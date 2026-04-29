@@ -3,7 +3,7 @@ A curated portfolio of end-to-end AI systems focused on real-world decision inte
 
 # Applied AI for Societal Impact
 
-## 📌 Overview
+## Overview
 
 This repository represents a curated portfolio of **applied Artificial Intelligence systems designed to address real-world problems across multiple domains**.
 
@@ -18,7 +18,7 @@ The focus is not on isolated models, but on **end-to-end AI systems** that integ
 
 ---
 
-## 🎯 Purpose
+## Purpose
 
 The purpose of this repository is to:
 
@@ -32,14 +32,14 @@ The purpose of this repository is to:
 
 ---
 
-## 🧭 Core Themes
+## Core Themes
 
 This portfolio spans multiple applied domains, unified by a common goal:
 **augmenting human and system-level decision-making using AI.**
 
 ---
 
-### 1. 🧠 Decision Intelligence & Behavioral AI
+### 1. Decision Intelligence & Behavioral AI
 
 AI systems designed to improve decision quality by incorporating behavioral science and reducing cognitive biases.
 
@@ -49,7 +49,7 @@ AI systems designed to improve decision quality by incorporating behavioral scie
 
 ---
 
-### 2. 📈 Financial & Market Intelligence
+### 2. Financial & Market Intelligence
 
 Data-driven systems for analyzing trends, identifying signals, and supporting investment or financial decisions.
 
@@ -60,7 +60,7 @@ Data-driven systems for analyzing trends, identifying signals, and supporting in
 
 ---
 
-### 3. 🌏 Environmental & Wildlife Intelligence
+### 3. Environmental & Wildlife Intelligence
 
 Application of AI to monitor and understand natural ecosystems.
 
@@ -71,7 +71,7 @@ Application of AI to monitor and understand natural ecosystems.
 
 ---
 
-### 4. ⚖️ Responsible & Explainable AI
+### 4. Responsible & Explainable AI
 
 Focus on building AI systems that are transparent, fair, and interpretable.
 
@@ -83,7 +83,7 @@ Focus on building AI systems that are transparent, fair, and interpretable.
 
 ---
 
-### 5. 🏢 Applied Enterprise AI Systems
+### 5. Applied Enterprise AI Systems
 
 Design of scalable AI solutions that operate within real-world constraints:
 
@@ -94,7 +94,7 @@ Design of scalable AI solutions that operate within real-world constraints:
 
 ---
 
-## 🏗️ Engineering Principles
+## Engineering Principles
 
 All projects are built with a consistent set of principles:
 
@@ -115,7 +115,7 @@ All projects are built with a consistent set of principles:
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```id="f3k29d"
 Applied-AI-for-Societal-Impact/
@@ -142,33 +142,33 @@ Applied-AI-for-Societal-Impact/
 
 ---
 
-## 🚀 Featured Projects
+## Featured Projects
 
-### 🔹 Bias-Aware AI Decision Copilot
+### Bias-Aware AI Decision Copilot
 
 A Retrieval-Augmented Generation (RAG) system grounded in behavioral science research to detect cognitive biases and improve decision-making.
 
 ---
 
-### 🔹 Market Intelligence & Analysis (Planned)
+### Market Intelligence & Analysis (Planned)
 
 AI-driven system for analyzing financial data, identifying patterns, and supporting investment decision-making.
 
 ---
 
-### 🔹 Wildlife Detection (Computer Vision)
+### Wildlife Detection (Computer Vision)
 
 A computer vision system for identifying and classifying wildlife from visual data.
 
 ---
 
-### 🔹 Acoustic Monitoring (Audio AI)
+### Acoustic Monitoring (Audio AI)
 
 An audio-based system for detecting environmental signals and biodiversity patterns.
 
 ---
 
-## 📊 Approach to Problem Solving
+## Approach to Problem Solving
 
 Each project follows a structured approach:
 
@@ -189,7 +189,7 @@ Each project follows a structured approach:
 
 ---
 
-## 💼 Perspective
+## Perspective
 
 The underlying philosophy of this work is:
 
@@ -203,7 +203,7 @@ The emphasis is on:
 
 ---
 
-## 🔮 Roadmap
+## Roadmap
 
 * Expansion of decision intelligence systems (multi-agent architectures)
 * Development of financial analytics and forecasting models
@@ -212,14 +212,14 @@ The emphasis is on:
 
 ---
 
-## 🤝 Collaboration
+## Collaboration
 
 This repository is intended as both a portfolio and a foundation for collaboration.
 Discussions, feedback, and contributions are welcome.
 
 ---
 
-## 👤 Author
+## Author
 
 Rommel Sharma
 
