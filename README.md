@@ -222,6 +222,7 @@ Discussions, feedback, and contributions are welcome.
 ## 👤 Author
 
 Rommel Sharma
+
 Enterprise Technology Leader | Applied AI Practitioner
 
 LinkedIn: https://www.linkedin.com/in/rommelsharma/
