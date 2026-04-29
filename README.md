@@ -121,7 +121,7 @@ All projects are built with a consistent set of principles:
 Applied-AI-for-Societal-Impact/
 │
 ├── decision-intelligence/
-│   └── bias-aware-rag-copilot/
+│   └── bias-aware-decision-making-rag-copilot/
 │
 ├── financial-intelligence/
 │   └── market-analysis/
