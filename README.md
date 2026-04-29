@@ -120,8 +120,8 @@ All projects are built with a consistent set of principles:
 ```id="f3k29d"
 Applied-AI-for-Societal-Impact/
 │
-├── decision-intelligence/
-│   └── bias-aware-rag-copilot/
+├── rags_for_decision-intelligence/
+│   └── bias-aware-decision-making-rag-copilot/
 │
 ├── financial-intelligence/
 │   └── market-analysis/
