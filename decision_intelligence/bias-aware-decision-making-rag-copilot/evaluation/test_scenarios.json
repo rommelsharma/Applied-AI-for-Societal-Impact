@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "scenario": "A manager prefers a candidate because they are from similar cultural background and share similar interests."
+  },
+  {
+    "id": 2,
+    "scenario": "A team agrees with the leader’s decision without questioning it, even though some members have concerns."
+  },
+  {
+    "id": 3,
+    "scenario": "A company uses past hiring data to train a model, which results in fewer women being selected."
+  }
+]
