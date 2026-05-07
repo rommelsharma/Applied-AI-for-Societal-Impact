@@ -1,0 +1,59 @@
+Nudge: Improving Decisions About Health, Wealth, and
+Happiness
+Authors: Richard H. Thaler, Cass R. Sunstein
+Publication context: 2008
+Corpus priority: Phase 1
+Document type: Synthesized RAG source dossier built from publicly available online material
+Purpose In This RAG Corpus
+• Core source on choice architecture and practical intervention design.
+• Highly relevant for policy, product design, governance, defaults, and ethical influence.
+• Useful for turning diagnosis of bias into applied decision-support recommendations.
+Key Concepts And Retrieval Tags
+• choice_architecture
+• default_effect
+• libertarian_paternalism
+• nudges
+• behavioral_design
+• loss_aversion
+Core Learnings
+• People routinely make poor choices, but environments can be designed to steer better outcomes
+without removing freedom of choice.
+• Defaults matter enormously because many people accept the path of least resistance.
+• Choice architecture is unavoidable, so the design question is not whether to influence decisions but how
+to do so responsibly.
+• Behaviorally informed interventions can improve savings, health, and policy outcomes when they
+respect autonomy.
+• The book is especially useful when the system should recommend process changes rather than only
+flag bias.
+Directions, Observations, And Implications
+• Use this source when suggesting better defaults, workflow design, option ordering, or reminder
+structures.
+• Retrieve it for public-policy, HR, product, and governance scenarios involving choice design.
+• Apply it to AI tools where the interface itself may be nudging user judgment.
+How This Can Be Applied In Decision Making
+• Use this source when suggesting better defaults, workflow design, option ordering, or reminder
+structures.
+• Retrieve it for public-policy, HR, product, and governance scenarios involving choice design.
+
+• Apply it to AI tools where the interface itself may be nudging user judgment.
+How This Strengthens A Bias-Aware RAG System
+• Helps bridge behavioral science into product and system design recommendations.
+• Supports ethical AI guidance around defaults, prompts, recommendation framing, and intervention
+design.
+• Balances diagnosis with constructive redesign strategies.
+Limitations And Cautions
+• This dossier is based on public descriptions and commentary rather than full licensed text.
+• Future additions should include stronger primary-policy examples if the RAG system will serve
+governance-heavy use cases.
+Source Notes
+• MIT Press Bookstore description (publisher_description):
+https://mitpressbookstore.mit.edu/book/9780300122237
+• Harvard Kennedy School excerpt page (excerpt): https://www.hks.harvard.edu/centers/mrcbg/programs
+/growthpolicy/nudge-improving-decisions-about-health-wealth-and-happiness
+• FinNotes summary and critical reception collection (secondary_summary):
+https://www.finnotes.org/publications/nudge
+RAG Ingestion Note
+This document is intentionally written as a concise, retrieval-friendly synthesis rather than as a book
+review. It is designed to help the system retrieve named biases and decision failures, practical mitigation
+methods, organizational and AI-governance implications, and scenario-to-concept mappings for user
+prompts.

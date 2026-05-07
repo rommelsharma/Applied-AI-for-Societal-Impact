@@ -62,11 +62,11 @@ It does **not replace professional judgment** or domain expertise.
 ## Core Components
 
 * Document ingestion and preprocessing
-* Embeddings and vector search
+* Metadata-aware bias taxonomy and retrieval concept catalog
+* Bedrock-powered embeddings and vector search
 * Retrieval pipeline (RAG)
 * LLM-based response generation
-* API layer (FastAPI)
-* Optional UI (Streamlit)
+* Evaluation and comparison flow
 
 ---
 
@@ -102,21 +102,32 @@ bias-aware-decision-making-rag-copilot/
 
 ## Status
 
-Initial setup and design phase.
-Focus areas:
+Foundation build in progress.
 
-* Bias taxonomy
-* Data structuring
-* RAG pipeline implementation
+Implemented now:
+
+* PDF parsing with metadata sidecars
+* Front/back matter cleanup during chunking
+* Taxonomy-driven concept enrichment
+* Expanded human + system bias taxonomy
+* Bedrock provider layer for chat and embeddings
+* Retrieval index build pipeline
+
+Still to validate end to end:
+
+* Live embedding build against Bedrock
+* Retrieval quality tuning
+* Baseline vs RAG evaluation scoring
+* Demo surface for recruiters
 
 ---
 
 ## Next Steps
 
-* Build ingestion and chunking pipeline
-* Implement vector search and retrieval
-* Design prompt templates for bias detection
-* Add evaluation framework
+* Validate the Bedrock embedding/index build against live infrastructure
+* Tune retrieval quality and concept/domain filtering
+* Expand evaluation scenarios and add scorecards
+* Add a simple demo interface
 
 ---
 

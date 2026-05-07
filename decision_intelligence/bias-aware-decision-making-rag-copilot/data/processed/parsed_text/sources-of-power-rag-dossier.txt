@@ -1,0 +1,98 @@
+Sources of Power
+Authors: Gary Klein
+Publication context: 1998 / 2017 edition
+Corpus priority: Phase 2
+Document type: Synthesized RAG source dossier built from publicly available online material
+Purpose In This RAG Corpus
+• A crucial counterbalance to bias-heavy frameworks because it takes expertise and intuition in real
+settings seriously.
+• Foundational for naturalistic decision making under pressure, uncertainty, and incomplete information.
+• Very useful for nuanced system design where not all fast judgment is treated as flawed.
+Key Concepts And Retrieval Tags
+• naturalistic_decision_making
+• recognition_primed_decision_model
+• intuition
+• mental_simulation
+• team_mind
+• hyperrationality
+Core Learnings
+• Laboratory models can understate the strengths of experienced decision makers operating in real
+environments.
+• Experts often do not compare many options; they recognize patterns, simulate likely outcomes, and act.
+• Intuition can be grounded in experience rather than mysticism, especially in high-feedback domains.
+• Mental simulation, leverage detection, and team coordination are practical cognitive strengths.
+• Overcorrecting toward rigid analysis can be harmful when speed, context, and expertise matter.
+Directions, Observations, And Implications
+• Use for emergency, operational, military, clinical, and leadership scenarios involving time pressure and
+incomplete information.
+• Retrieve it when users ask whether intuition should ever be trusted or when structured analysis may be
+too slow.
+• Apply it to recommendations that distinguish novice intuition from expert recognition.
+• Useful for designing a balanced copilot that respects both discipline and real-world expertise.
+How This Can Be Applied In Decision Making
+• Use for emergency, operational, military, clinical, and leadership scenarios involving time pressure and
+incomplete information.
+• Retrieve it when users ask whether intuition should ever be trusted or when structured analysis may be
+too slow.
+• Apply it to recommendations that distinguish novice intuition from expert recognition.
+
+• Useful for designing a balanced copilot that respects both discipline and real-world expertise.
+How This Strengthens A Bias-Aware RAG System
+• Helps the corpus avoid becoming one-sidedly anti-intuition.
+• Supports richer guidance on when to slow down and when to trust practiced expert pattern recognition.
+• Useful for AI-human collaboration design where systems should augment, not flatten, skilled human
+judgment.
+Limitations And Cautions
+• This dossier is synthesized from public descriptions and table-of-contents data rather than a full-text
+extract.
+• The book is best used as a balancing source alongside bias and noise materials, not as a rebuttal to
+them.
+Chapter-Wise Summary
+• Introduction: Frames the need to study decision making in real environments rather than only in
+simplified laboratory tasks.
+• Chronicling the Strengths Used in Making Difficult Decisions: Introduces the project of identifying
+cognitive strengths that practitioners use under pressure.
+• Learning from the Firefighters: Shows how field observations reveal expert pattern recognition and
+practical judgment.
+• The Recognition-Primed Decision Model: Presents the model in which experts recognize plausible
+actions rather than compare many formal options.
+• The Power of Intuition: Explains intuition as experience-based pattern matching rather than mere
+guesswork.
+• The Power of Mental Simulation: Shows how experts mentally rehearse likely outcomes to test
+whether a plan will work.
+• The Vincennes Shootdown: Uses a major error case to show how pressure, misframing, and context
+can still derail judgment.
+• Mental Simulation and Decision Making: Deepens the account of simulation as a practical reasoning
+tool under uncertainty.
+• The Power to Spot Leverage Points: Examines how experts detect where small interventions can
+have outsized effects.
+• Nonlinear Aspects of Problem Solving: Shows that real decision problems often do not unfold in neat
+analytic sequences.
+• The Power to See the Invisible: Highlights the role of tacit knowledge and subtle cues that novices
+often miss.
+• The Power of Stories: Explains how narratives can organize experience and help teams make sense
+of complex situations.
+• The Power of Metaphors and Analogues: Shows how analogy supports understanding and rapid
+transfer of lessons across situations.
+• The Power to Read Minds: Explores social understanding and anticipation of other actors inside
+coordinated decision work.
+
+• The Power of the Team Mind: Examines shared understanding, coordination, and collective expertise
+in high-performance teams.
+• The Power of Rational Analysis and the Problem of Hyperrationality: Argues for balance: formal
+analysis matters, but excessive dependence on it can become counterproductive.
+• Why Good People Make Poor Decisions: Acknowledges that even skilled decision makers can fail
+under certain pressures and conditions.
+• Conclusions: Pulls the lessons together into a broader account of expertise, intuition, and real-world
+judgment.
+Source Notes
+• Open Library summary (library_summary):
+https://openlibrary.org/books/OL21196907M/Sources_of_power
+• Open Library table of contents (table_of_contents):
+https://openlibrary.org/books/OL26943668M/Sources_of_power
+• JSTOR record (bibliographic_record): https://www.jstor.org/stable/j.ctt1v2xt08
+RAG Ingestion Note
+This document is intentionally written as a concise, retrieval-friendly synthesis rather than as a book
+review. It is designed to help the system retrieve named biases and decision failures, practical mitigation
+methods, organizational and AI-governance implications, and scenario-to-concept mappings for user
+prompts.

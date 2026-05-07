@@ -1,0 +1,60 @@
+Weapons of Math Destruction
+Authors: Cathy O'Neil
+Publication context: 2016
+Corpus priority: Phase 1
+Document type: Synthesized RAG source dossier built from publicly available online material
+Purpose In This RAG Corpus
+• One of the clearest foundations for connecting human judgment flaws to harmful algorithmic systems.
+• Directly relevant to fairness, opacity, contestability, and institutional automation.
+• Essential for the AI-bias and societal-impact framing of this project.
+Key Concepts And Retrieval Tags
+• algorithmic_bias
+• historical_bias
+• proxy_bias
+• opaque_models
+• feedback_loop_bias
+• contestability
+Core Learnings
+• Scalable models can amplify bias when they are opaque, unregulated, and hard for affected people to
+contest.
+• Algorithmic systems are often presented as objective while embedding choices about data, proxies,
+optimization, and power.
+• High-stakes systems in lending, hiring, policing, education, and insurance can reinforce inequality
+instead of reducing it.
+• The combination of scale, opacity, and weak accountability is especially dangerous in public or
+quasi-public decision systems.
+• The book is valuable because it makes systemic harm concrete and institutionally legible.
+Directions, Observations, And Implications
+• Use this source whenever the scenario involves automated screening, ranking, recommendation, or risk
+scoring.
+• Retrieve it for discussions of fairness audits, contestability, data proxies, and governance controls.
+• Apply it in tandem with human-bias sources to explain how human and model biases can reinforce one
+another.
+How This Can Be Applied In Decision Making
+• Use this source whenever the scenario involves automated screening, ranking, recommendation, or risk
+scoring.
+• Retrieve it for discussions of fairness audits, contestability, data proxies, and governance controls.
+
+• Apply it in tandem with human-bias sources to explain how human and model biases can reinforce one
+another.
+How This Strengthens A Bias-Aware RAG System
+• Critical for connecting the project's decision-intelligence framing to AI fairness and institutional harm.
+• Supports retrieval for hiring models, credit models, search/ranking systems, and public-sector
+automation.
+• Strengthens governance recommendations beyond individual-level bias mitigation.
+Limitations And Cautions
+• This dossier is synthesized from public descriptions and commentary rather than the full book text.
+• The book is intentionally polemical at times, so the RAG system should pair it with complementary
+governance and technical sources.
+Source Notes
+• Apple Books publisher description (publisher_description):
+https://books.apple.com/us/book/weapons-of-math-destruction/id1067627008
+• Open Library overview (library_summary):
+https://openlibrary.org/works/OL17840708W/Weapons_of_Math_Destruction
+• Time interview/profile summary (interview_summary):
+https://time.com/4471451/cathy-oneil-math-destruction/
+RAG Ingestion Note
+This document is intentionally written as a concise, retrieval-friendly synthesis rather than as a book
+review. It is designed to help the system retrieve named biases and decision failures, practical mitigation
+methods, organizational and AI-governance implications, and scenario-to-concept mappings for user
+prompts.

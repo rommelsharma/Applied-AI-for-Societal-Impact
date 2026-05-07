@@ -1,0 +1,82 @@
+Mistakes Were Made (But Not by Me)
+Authors: Carol Tavris, Elliot Aronson
+Publication context: 2007
+Corpus priority: Phase 2
+Document type: Synthesized RAG source dossier built from publicly available online material
+Purpose In This RAG Corpus
+• Excellent foundation for self-justification, cognitive dissonance, and escalation of commitment.
+• Very useful for leadership failures, investigations, conflict, bad science, and institutional defensiveness.
+• Adds psychological depth to why people double down after making harmful or foolish decisions.
+Key Concepts And Retrieval Tags
+• cognitive_dissonance
+• self_justification
+• confirmation_bias
+• memory_distortion
+• escalation_of_commitment
+• defensive_reasoning
+Core Learnings
+• Once people act, they often reshape beliefs and memory to preserve a positive self-image.
+• Self-justification is more dangerous than lying because people can sincerely believe their revised
+account.
+• Conflict, bad science, and institutional failure can all be reinforced by a refusal to admit error.
+• The book shows how small rationalizations can grow into large-scale harm.
+• Owning mistakes requires social and emotional conditions that make revision possible rather than
+humiliating.
+Directions, Observations, And Implications
+• Use for leadership, HR, compliance, and conflict scenarios where someone is protecting identity rather
+than truth.
+• Retrieve it when users describe doubling down, rewriting history, or defending bad decisions despite
+contrary evidence.
+• Apply it to recommendations about postmortems, accountability design, and psychologically safer error
+correction.
+• Useful when the system needs to explain why sincere people can become unreliable narrators of their
+own choices.
+How This Can Be Applied In Decision Making
+• Use for leadership, HR, compliance, and conflict scenarios where someone is protecting identity rather
+than truth.
+
+• Retrieve it when users describe doubling down, rewriting history, or defending bad decisions despite
+contrary evidence.
+• Apply it to recommendations about postmortems, accountability design, and psychologically safer error
+correction.
+• Useful when the system needs to explain why sincere people can become unreliable narrators of their
+own choices.
+How This Strengthens A Bias-Aware RAG System
+• Improves the corpus for self-justification, stubborn reasoning, and failure to update on evidence.
+• Adds nuance to escalation and defensive behavior in both individual and organizational settings.
+• Supports recommendations for learning loops, admissions of error, and anti-defensiveness process
+design.
+Limitations And Cautions
+• This dossier is based on public summaries and table-of-contents data rather than a full-text analysis.
+• The book is psychologically rich and example-heavy, so later expansion with primary excerpts would
+improve retrieval depth.
+Chapter-Wise Summary
+• Cognitive Dissonance: The Engine of Self-justification: Introduces dissonance as the tension that
+drives people to defend actions and beliefs rather than revise them.
+• Pride and Prejudice . . . and Other Blind Spots: Explains how identity, ego, and group loyalties create
+selective vision and biased interpretation.
+• Memory, the Self-justifying Historian: Shows how memory gets edited to support preferred
+self-understandings and protect prior choices.
+• Good Intentions, Bad Science: The Closed Loop of Clinical Judgment: Examines how
+professionals can keep trusting flawed methods by insulating themselves from correction.
+• Law and Disorder: Applies self-justification to legal actors, false confessions, prosecutorial certainty,
+and justice failures.
+• Love's Assassin: Self-justification in Marriage: Shows how intimate conflict escalates when both
+sides reinterpret events to preserve righteousness.
+• Wounds, Rifts, and Wars: Extends the logic of dissonance to intergroup conflict, polarization, and
+violence.
+• Letting Go and Owning Up: Closes with the difficult but necessary work of admitting error and
+reopening the possibility of learning.
+Source Notes
+• Open Library summary (library_summary):
+https://openlibrary.org/books/OL7362572M/Mistakes_Were_Made_%28But_Not_by_Me%29
+• Des Moines Public Library table of contents (table_of_contents):
+https://catalog.dmpl.org/Record/173013
+• Wikipedia overview (overview):
+https://en.wikipedia.org/wiki/Mistakes_Were_Made_%28but_Not_by_Me%29
+RAG Ingestion Note
+
+This document is intentionally written as a concise, retrieval-friendly synthesis rather than as a book
+review. It is designed to help the system retrieve named biases and decision failures, practical mitigation
+methods, organizational and AI-governance implications, and scenario-to-concept mappings for user
+prompts.

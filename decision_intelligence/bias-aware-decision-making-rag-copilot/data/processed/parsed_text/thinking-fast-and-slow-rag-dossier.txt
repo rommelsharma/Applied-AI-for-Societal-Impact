@@ -1,0 +1,63 @@
+Thinking, Fast and Slow
+Authors: Daniel Kahneman
+Publication context: 2011
+Corpus priority: Phase 1
+Document type: Synthesized RAG source dossier built from publicly available online material
+Purpose In This RAG Corpus
+• Foundational modern synthesis of heuristics, biases, and dual-process thinking.
+• Defines the System 1 versus System 2 framing that helps explain why biased judgments feel intuitive
+and convincing.
+• Provides direct concepts for decision-support, leadership reasoning, forecasting discipline, and AI-bias
+analogies.
+Key Concepts And Retrieval Tags
+• system_1
+• system_2
+• anchoring_bias
+• availability_heuristic
+• loss_aversion
+• overconfidence_bias
+• framing_effect
+• base_rate_neglect
+Core Learnings
+• Human judgment often substitutes easy questions for hard ones, which creates predictable error under
+uncertainty.
+• Fast, intuitive thinking is efficient and often useful, but it can produce systematic distortions when
+evidence is incomplete or emotionally charged.
+• Confidence in a judgment is not a reliable signal of accuracy; people routinely become overly certain
+even when the signal is weak.
+• How options are framed changes decisions even when the underlying facts are equivalent.
+• Statistical thinking and reference classes are powerful counterweights to intuition-led error.
+Directions, Observations, And Implications
+• Use structured decision prompts that slow down evaluation when stakes are high.
+• Ask for base rates, counterevidence, and alternative frames before accepting an intuitive conclusion.
+• Use this material to explain hiring, performance-review, and leadership bias in plain language to end
+users.
+• Treat strong confidence as something to calibrate, not something to reward automatically.
+How This Can Be Applied In Decision Making
+• Use structured decision prompts that slow down evaluation when stakes are high.
+
+• Ask for base rates, counterevidence, and alternative frames before accepting an intuitive conclusion.
+• Use this material to explain hiring, performance-review, and leadership bias in plain language to end
+users.
+• Treat strong confidence as something to calibrate, not something to reward automatically.
+How This Strengthens A Bias-Aware RAG System
+• Supports explanation of human cognitive bias patterns that also appear in AI-assisted workflows.
+• Improves retrieval for scenarios involving anchoring, framing, overconfidence, and evidence neglect.
+• Useful as conceptual grounding for prompt instructions that distinguish intuitive impressions from
+structured analysis.
+Limitations And Cautions
+• This dossier is synthesized from public descriptions and reviews, not the full copyrighted book text.
+• It is best used as a retrieval primer and should later be complemented by licensed or user-provided
+primary text where possible.
+Source Notes
+• Open Library publisher description (publisher_description):
+https://openlibrary.org/books/OL36689110M/Thinking_fast_and_slow
+• Apple Books publisher description (publisher_description):
+https://books.apple.com/us/book/thinking-fast-and-slow/id443149884
+• The New Yorker review (review):
+https://www.newyorker.com/magazine/2011/11/14/thinking-fast-and-slow
+RAG Ingestion Note
+This document is intentionally written as a concise, retrieval-friendly synthesis rather than as a book
+review. It is designed to help the system retrieve named biases and decision failures, practical mitigation
+methods, organizational and AI-governance implications, and scenario-to-concept mappings for user
+prompts.

@@ -1,24 +1,24 @@
-import sys
-import os
-
-# Add project root to Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from app.services.bias_detector import detect_bias_comparison, print_comparison
-
 import json
+import sys
+from pathlib import Path
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-file_path = os.path.join(BASE_DIR, "evaluation", "test_scenarios.json")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(PROJECT_ROOT))
 
-with open(file_path) as f:
-    scenarios = json.load(f)
-count = 0
-for s in scenarios:
-    if count > 0:
-        print("Test phase, only 1 scenario being tests")
-        break
-    print("\nSCENARIO:", s["scenario"])
-    result = detect_bias_comparison(s["scenario"])
-    print_comparison(result)
-    count += 1
+from app.services.bias_detector import compare_outputs, detect_bias_comparison, print_comparison
+
+
+def run_demo():
+    scenarios_path = PROJECT_ROOT / "evaluation" / "test_scenarios.json"
+    with scenarios_path.open("r", encoding="utf-8") as handle:
+        scenarios = json.load(handle)
+
+    for scenario in scenarios:
+        print("\nSCENARIO:", scenario["scenario"])
+        result = detect_bias_comparison(scenario["scenario"])
+        print_comparison(result)
+        compare_outputs(result["without_rag"], result["with_rag"])
+
+
+if __name__ == "__main__":
+    run_demo()

@@ -1,1 +1,6 @@
 .env
+__pycache__/
+*.pyc
+.DS_Store
+data/processed/vector_store/
+evaluation/latest_results.json

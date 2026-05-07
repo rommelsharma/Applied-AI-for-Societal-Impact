@@ -10,5 +10,33 @@
   {
     "id": 3,
     "scenario": "A company uses past hiring data to train a model, which results in fewer women being selected."
+  },
+  {
+    "id": 4,
+    "scenario": "During performance reviews, one director consistently gives lower ratings than peers, and employees say outcomes depend heavily on which reviewer they get."
+  },
+  {
+    "id": 5,
+    "scenario": "A hiring panel dismisses a candidate after one awkward answer, despite strong work samples and strong scores on other criteria."
+  },
+  {
+    "id": 6,
+    "scenario": "A product steering committee wants to continue funding an initiative because the team has already spent a year building it, even though adoption remains weak."
+  },
+  {
+    "id": 7,
+    "scenario": "A risk team relies on a screening model that flags applicants from certain zip codes more often, and reviewers rarely challenge the model’s recommendation."
+  },
+  {
+    "id": 8,
+    "scenario": "A leadership team is evaluating a restructuring plan and keeps citing a recent competitor failure as proof that any major change would be too risky."
+  },
+  {
+    "id": 9,
+    "scenario": "Interviewers are told to assess culture fit without a scoring rubric, and different candidates receive very different feedback depending on who interviews them."
+  },
+  {
+    "id": 10,
+    "scenario": "A compliance analyst assumes a case is high risk because it resembles a prior incident, even though the base rates and supporting evidence are different."
   }
 ]

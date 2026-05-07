@@ -1,211 +1,165 @@
 """
-bias_detector.py
-
-Enhanced version:
-- Supports comparison between:
-    1. Baseline LLM (no RAG)
-    2. RAG-enhanced LLM (with context)
-
-This allows qualitative evaluation of improvement.
+Baseline-vs-RAG bias detection backed by Amazon Bedrock.
 """
+
+from __future__ import annotations
+
 import json
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from typing import Any
 
-from google import genai
-# Load API key from environment
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
-
-
-def get_project_root():
-    """
-    Returns absolute path to project root directory.
-
-    Why:
-    - Ensures all file paths work regardless of where script is executed
-    - Avoids relative path bugs (like the one you're seeing)
-    """
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-
-def load_taxonomy():
-    """
-    Load bias taxonomy from project data folder.
-    """
-    base_dir = get_project_root()
-
-    file_path = os.path.join(base_dir, "data", "metadata", "bias-taxonomy.json")
-
-    with open(file_path, "r") as f:
-        return json.load(f)
+from app.services.bedrock_provider import BedrockProvider
+from data_pipeline.concept_extractor import extract_concepts
+from rag.retriever import KnowledgeRetriever
+from shared_components.utilities.path_utils import get_metadata_dir, get_prompts_dir
 
 
-def load_prompt():
-    """
-    Load system prompt from prompts directory.
-    """
-    base_dir = get_project_root()
-
-    file_path = os.path.join(base_dir, "prompts", "bias_detection_system_prompt.txt")
-
-    with open(file_path, "r") as f:
-        return f.read()
+def load_taxonomy() -> list[dict]:
+    file_path = get_metadata_dir() / "bias-taxonomy.json"
+    with file_path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
 
 
-#    Temporary RAG simulation.
+def load_prompt() -> str:
+    file_path = get_prompts_dir() / "bias_detection_system_prompt.txt"
+    with file_path.open("r", encoding="utf-8") as handle:
+        return handle.read()
 
-def load_mock_rag_context(scenario: str):
-    if "similar" in scenario or "background" in scenario:
-        return """
-        Similarity bias occurs when decision-makers favor individuals who resemble themselves.
-        This reduces diversity and leads to suboptimal hiring outcomes.
-        """
-    elif "leader" in scenario:
-        return """
-        Groupthink and authority bias occur when teams defer to leaders without critical evaluation.
-        This suppresses dissent and leads to poor decision quality.
-        """
-    elif "model" in scenario or "women" in scenario:
-        return """
-        Historical bias and representation bias arise when models are trained on past data reflecting inequality.
-        This leads to systematic discrimination.
-        """
-    else:
-        return ""
 
-import time
+def extract_json_payload(text: str) -> dict[str, Any]:
+    stripped = text.strip()
 
-def call_llm(system_prompt: str, scenario: str):
-    """
-    LLM call using Google GenAI SDK with retry + fallback models
-    Check the model from here for rate limits
-    https://aistudio.google.com/rate-limit
-    """
+    if stripped.startswith("```"):
+        stripped = stripped.strip("`")
+        stripped = stripped.replace("json\n", "", 1).strip()
 
-    models = [
-        "gemini-2.5-flash",
-        "gemini-2.5-pro",
-        "gemini-2.5-flasg-tts",
-        "gemini-3-flash-preview",
-        "gemini-3.1-flash-lite-preview",
-        "gemini-flash-latest"
-    ]
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        start = stripped.find("{")
+        end = stripped.rfind("}")
+        if start == -1 or end == -1:
+            raise
+        return json.loads(stripped[start : end + 1])
 
-    full_prompt = f"""
-{system_prompt}
 
----
+def format_retrieved_context(retrieval_results) -> str:
+    if not retrieval_results:
+        return "No supporting context was retrieved from the knowledge base."
 
-Scenario:
-{scenario}
-
----
-
-IMPORTANT:
-- Output MUST be valid JSON
-- Do NOT include markdown
-- Follow the schema strictly
-"""
-
-    last_error = None
-
-    for model_name in models:
-        try:
-            print(f"Trying model: {model_name}")
-
-            response = client.models.generate_content(
-                model=model_name,
-                contents=full_prompt
+    blocks = []
+    for index, item in enumerate(retrieval_results, start=1):
+        blocks.append(
+            "\n".join(
+                [
+                    f"[Context {index}]",
+                    f"Source: {item.source}",
+                    f"Author: {item.author}",
+                    f"Chunk ID: {item.id}",
+                    f"Concepts: {', '.join(item.concepts) if item.concepts else 'none'}",
+                    f"Summary: {item.summary}",
+                    f"Excerpt: {item.text[:900]}",
+                ]
             )
+        )
 
-            return json.loads(response.text)
-
-        except Exception as e:
-            print(f"Model {model_name} failed: {e}")
-
-            # Detect 503 / overload errors
-            if "503" in str(e) or "UNAVAILABLE" in str(e):
-                print("Retrying with next model...")
-                time.sleep(2)
-                last_error = e
-                continue
-            else:
-                # Other errors should fail fast
-                raise e
-
-    raise Exception(f"All models failed. Last error: {last_error}")
+    return "\n\n".join(blocks)
 
 
-def detect_bias_comparison(scenario: str):
-    """
-    Compare bias detection:
-    1. Without RAG
-    2. With RAG
+def build_system_prompt(base_prompt: str, taxonomy: list[dict], rag_context: str | None = None) -> str:
+    sections = [base_prompt]
 
-    Returns:
-        dict with both responses
-    """
+    if rag_context:
+        sections.append("Retrieved Supporting Context:\n" + rag_context)
 
+    sections.append("Bias Taxonomy:\n" + json.dumps(taxonomy, indent=2))
+    return "\n\n".join(sections)
+
+
+def call_llm(provider: BedrockProvider, system_prompt: str, scenario: str) -> dict[str, Any]:
+    user_prompt = f"Scenario:\n{scenario}\n\nReturn only valid JSON that follows the required schema."
+    result = provider.converse(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+    )
+
+    try:
+        return extract_json_payload(result.text)
+    except json.JSONDecodeError:
+        # Retry once with stricter formatting instructions if the first answer is malformed.
+        retry_prompt = (
+            f"{user_prompt}\n\n"
+            "Your previous answer was not valid JSON. "
+            "Retry with a compact response that is strictly valid JSON, with properly closed quotes, "
+            "commas, brackets, and braces."
+        )
+        retry_result = provider.converse(
+            system_prompt=system_prompt,
+            user_prompt=retry_prompt,
+            max_tokens=2200,
+        )
+        return extract_json_payload(retry_result.text)
+
+
+def detect_bias_comparison(scenario: str) -> dict[str, Any]:
     taxonomy = load_taxonomy()
     base_prompt = load_prompt()
+    provider = BedrockProvider()
+    retriever = KnowledgeRetriever(provider=provider)
 
-    # -----------------------------
-    # WITHOUT RAG (Baseline)
-    # -----------------------------
-    system_prompt_no_rag = (
-        base_prompt
-        + "\n\nBias Taxonomy:\n"
-        + json.dumps(taxonomy, indent=2)
+    scenario_concepts = extract_concepts(scenario)
+    retrieval_results = retriever.search(
+        scenario,
+        preferred_concepts=scenario_concepts["concepts"],
     )
+    rag_context = format_retrieved_context(retrieval_results)
 
-    response_no_rag = call_llm(system_prompt_no_rag, scenario)
+    system_prompt_no_rag = build_system_prompt(base_prompt, taxonomy)
+    response_no_rag = call_llm(provider, system_prompt_no_rag, scenario)
 
-    # -----------------------------
-    # WITH RAG (Enhanced)
-    # -----------------------------
-    rag_context = load_mock_rag_context(scenario)
-
-    system_prompt_with_rag = (
-        base_prompt
-        + "\n\nRelevant Context from Knowledge Base:\n"
-        + rag_context
-        + "\n\nBias Taxonomy:\n"
-        + json.dumps(taxonomy, indent=2)
-    )
-
-    response_with_rag = call_llm(system_prompt_with_rag, scenario)
+    system_prompt_with_rag = build_system_prompt(base_prompt, taxonomy, rag_context)
+    response_with_rag = call_llm(provider, system_prompt_with_rag, scenario)
 
     return {
         "without_rag": response_no_rag,
-        "with_rag": response_with_rag
+        "with_rag": response_with_rag,
+        "retrieval": [
+            {
+                "id": item.id,
+                "source": item.source,
+                "author": item.author,
+                "score": item.score,
+                "concepts": item.concepts,
+                "decision_domains": item.decision_domains,
+                "summary": item.summary,
+            }
+            for item in retrieval_results
+        ],
     }
 
-def compare_outputs(no_rag, with_rag):
-    print("\n📊 COMPARISON INSIGHT")
 
+def compare_outputs(no_rag: dict[str, Any], with_rag: dict[str, Any]) -> None:
+    print("\nCOMPARISON INSIGHT")
     if no_rag == with_rag:
-        print("⚠️ No difference detected")
+        print("No difference detected")
     else:
-        print("✅ RAG introduced differences")
+        print("RAG introduced differences")
 
     print("Bias count (no RAG):", len(no_rag.get("biases_identified", [])))
     print("Bias count (with RAG):", len(with_rag.get("biases_identified", [])))
 
-def print_comparison(result: dict):
-    """
-    Pretty-print comparison output.
 
-    Why:
-    - Makes qualitative evaluation easy
-    - Useful for demos and interviews
-    """
+def print_comparison(result: dict[str, Any]) -> None:
+    print("\n" + "=" * 80)
+    print("WITHOUT RAG (Baseline)")
+    print("=" * 80)
+    print(json.dumps(result["without_rag"], indent=2))
 
     print("\n" + "=" * 80)
-    print("🔴 WITHOUT RAG (Baseline)")
+    print("WITH RAG (Enhanced)")
     print("=" * 80)
-    print(result["without_rag"])
+    print(json.dumps(result["with_rag"], indent=2))
 
     print("\n" + "=" * 80)
-    print("🟢 WITH RAG (Enhanced)")
+    print("RETRIEVED CONTEXT")
     print("=" * 80)
-    print(result["with_rag"])
+    print(json.dumps(result["retrieval"], indent=2))

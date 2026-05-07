@@ -1,0 +1,64 @@
+Noise: A Flaw in Human Judgment
+Authors: Daniel Kahneman, Olivier Sibony, Cass R. Sunstein
+Publication context: 2021
+Corpus priority: Phase 1
+Document type: Synthesized RAG source dossier built from publicly available online material
+Purpose In This RAG Corpus
+• Core foundation for inconsistency in judgment, not just directional bias.
+• Directly applicable to hiring, legal systems, performance evaluation, claims handling, and governance.
+• Introduces decision hygiene and noise audits, which are highly practical for enterprise decision-support
+design.
+Key Concepts And Retrieval Tags
+• noise
+• level_noise
+• pattern_noise
+• occasion_noise
+• decision_hygiene
+• independent_assessment
+• structured_judgment
+Core Learnings
+• Two judges can evaluate the same case differently for reasons unrelated to the merits of the case, and
+that variability is itself a serious error source.
+• Judgment quality problems are not exhausted by bias; unwanted inconsistency can create unfairness,
+financial loss, and governance failure.
+• Noise often remains invisible until organizations deliberately measure it.
+• Decision hygiene reduces error by improving process structure rather than by trying to fix every bias
+directly in the moment.
+• Independent judgments, structured criteria, aggregation, and the outside view are recurring methods for
+improving reliability.
+Directions, Observations, And Implications
+• Use the book's framework to explain why inconsistent hiring or case handling is a problem even when
+no obvious bias is visible.
+• Build retrieval prompts that surface noise risks, not just named biases.
+• Design evaluation rubrics, structured interviews, and review workflows around decision hygiene
+principles.
+• Use the concept of a noise audit as an organizational intervention recommendation.
+How This Can Be Applied In Decision Making
+
+• Use the book's framework to explain why inconsistent hiring or case handling is a problem even when
+no obvious bias is visible.
+• Build retrieval prompts that surface noise risks, not just named biases.
+• Design evaluation rubrics, structured interviews, and review workflows around decision hygiene
+principles.
+• Use the concept of a noise audit as an organizational intervention recommendation.
+How This Strengthens A Bias-Aware RAG System
+• Extends the RAG system beyond cognitive bias into inconsistency, reviewer variance, and governance
+process quality.
+• Supports comparison of human judgment noise with model drift, calibration, and operational
+inconsistency in AI systems.
+• Provides strong grounding for recommendations about structured review and independent assessment.
+Limitations And Cautions
+• This dossier is based on the user-provided book text already in the repo plus public descriptions and
+tables of contents.
+• It is still a synthesized guide, not a substitute for a licensed analytic extract.
+Source Notes
+• Project source PDF already present in repository (primary_text): local_repo_source
+• MIT Press Bookstore description (publisher_description):
+https://mitpressbookstore.mit.edu/book/9780316322270-0
+• UNT library summary and table of contents (library_summary):
+https://discover.library.unt.edu/catalog/b7419582
+RAG Ingestion Note
+This document is intentionally written as a concise, retrieval-friendly synthesis rather than as a book
+review. It is designed to help the system retrieve named biases and decision failures, practical mitigation
+methods, organizational and AI-governance implications, and scenario-to-concept mappings for user
+prompts.
