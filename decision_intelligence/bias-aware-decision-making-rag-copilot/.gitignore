@@ -2,5 +2,18 @@
 __pycache__/
 *.pyc
 .DS_Store
-data/processed/vector_store/
+
+# Per-run evaluation outputs
 evaluation/latest_results.json
+evaluation/sample_results.json
+
+# Public corpus: raw PDFs are committed (synthesised dossiers).
+# Derived artefacts can be regenerated and are kept out of git.
+data/corpora/public/parsed_text/
+data/corpora/public/chunks/
+data/corpora/public/knowledge/
+data/corpora/public/vector_store/
+
+# Private corpus: full-book PDFs and every derivative are local-only.
+# Used for personal research and private evaluation; never committed.
+data/corpora/private/

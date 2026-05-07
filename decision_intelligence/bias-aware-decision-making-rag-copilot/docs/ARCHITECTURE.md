@@ -1,19 +1,19 @@
 # Architecture
 
-## Current pipeline
+## Current pipeline (corpus-aware)
 ```text
-PDF in data/raw/
+PDF in data/corpora/<corpus>/raw/                  # corpus ∈ {public, private, ...}
   -> pdf_parser.py
-  -> data/processed/parsed_text/{book}.txt
-  -> data/processed/parsed_text/{book}.meta.json
-  -> chunker.py
-  -> data/processed/chunks/chunks.json
+  -> data/corpora/<corpus>/parsed_text/{book}.txt
+  -> data/corpora/<corpus>/parsed_text/{book}.meta.json
+  -> chunker.py                                    # profile: dossier | book | auto
+  -> data/corpora/<corpus>/chunks/chunks.json
   -> concept_extractor.py
-  -> data/processed/chunks/chunks_with_concepts.json
-  -> enrich_chunks.py
-  -> data/processed/knowledge/knowledge_base.json
+  -> data/corpora/<corpus>/chunks/chunks_with_concepts.json
+  -> enrich_chunks.py                              # adds passage_type, decision_phase, chapter_title
+  -> data/corpora/<corpus>/knowledge/knowledge_base.json
   -> build_vector_index.py
-  -> data/processed/vector_store/
+  -> data/corpora/<corpus>/vector_store/
 ```
 
 ## Planned RAG pipeline

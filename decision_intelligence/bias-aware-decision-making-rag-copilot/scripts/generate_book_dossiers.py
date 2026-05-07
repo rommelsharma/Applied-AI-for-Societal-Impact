@@ -1,3 +1,19 @@
+"""
+Book-dossier generator.
+
+Reads a JSON manifest of curated books (``data/metadata/book_dossiers/*.json``)
+and produces three retrieval-friendly artefacts per book:
+
+    * Markdown   - human-readable source dossier (``generated_markdown/``)
+    * HTML       - styled rendering of the same content (``generated_html/``)
+    * PDF        - high-fidelity print-ready version (``data/raw/``)
+
+These dossiers are intentionally written as *concise, retrieval-friendly
+syntheses* (named biases, mitigations, decision applications, AI/governance
+implications) rather than as book reviews - they are designed to feed the
+ingestion pipeline and produce useful chunks downstream.
+"""
+
 from __future__ import annotations
 
 import json
@@ -16,14 +32,23 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BOOKS_FILE = ROOT / "data" / "metadata" / "book_dossiers" / "phase1_priority_books.json"
 OUTPUT_MD_DIR = ROOT / "data" / "metadata" / "book_dossiers" / "generated_markdown"
 OUTPUT_HTML_DIR = ROOT / "data" / "metadata" / "book_dossiers" / "generated_html"
-OUTPUT_PDF_DIR = ROOT / "data" / "raw"
+# Dossier PDFs are public-corpus content. They land directly in the public
+# corpus's raw/ directory so the next ingestion run picks them up.
+OUTPUT_PDF_DIR = ROOT / "data" / "corpora" / "public" / "raw"
 
 
 def bullet_list(items: list[str]) -> str:
+    """Render a Python list as a Markdown bullet list."""
     return "\n".join(f"- {item}" for item in items)
 
 
 def render_markdown(book: dict) -> str:
+    """Render a single book entry from the manifest as a Markdown dossier.
+
+    The section structure (Purpose, Key Concepts, Core Learnings, Decision
+    Applications, RAG Relevance, Limitations, Source Notes) is fixed so every
+    dossier produces the same shape of chunks at ingestion time.
+    """
     title = book["title"]
     authors = ", ".join(book["authors"])
     sources = "\n".join(
@@ -85,6 +110,11 @@ This document is intentionally written as a concise, retrieval-friendly synthesi
 
 
 def markdown_to_html(markdown_text: str, title: str) -> str:
+    """Convert a Markdown dossier to a self-contained HTML document with styling.
+
+    Inline CSS is used so the HTML can be opened (or rendered to PDF via
+    Playwright) without external assets.
+    """
     from markdown import markdown
 
     body = markdown(
@@ -146,6 +176,12 @@ def markdown_to_html(markdown_text: str, title: str) -> str:
 
 
 def build_pdf(book: dict, pdf_path: Path) -> None:
+    """Render a book entry directly to PDF using ReportLab.
+
+    This is an alternative to the Playwright HTML→PDF path. ReportLab gives a
+    consistent, print-ready PDF without a browser dependency, which is useful
+    when running in headless CI environments where Chromium is unavailable.
+    """
     styles = getSampleStyleSheet()
     styles.add(
         ParagraphStyle(
@@ -266,6 +302,12 @@ def build_pdf(book: dict, pdf_path: Path) -> None:
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments.
+
+    The default ``--input`` points at the Phase 1 priority manifest, but any
+    JSON manifest with the same schema can be substituted (e.g. Phase 2
+    legal/organizational books).
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--input",
@@ -276,6 +318,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Generate Markdown, HTML, and PDF artefacts for every book in the manifest.
+
+    Also writes a ``manifest.json`` next to the HTML output so downstream tools
+    (notably ``render_html_to_pdf.mjs``) can iterate the generated set
+    deterministically.
+    """
     args = parse_args()
     OUTPUT_MD_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUT_HTML_DIR.mkdir(parents=True, exist_ok=True)

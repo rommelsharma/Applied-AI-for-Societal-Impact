@@ -1,42 +1,194 @@
 [
   {
     "id": 1,
+    "domain": "hiring",
+    "tags": ["similarity_bias", "in_group_bias"],
     "scenario": "A manager prefers a candidate because they are from similar cultural background and share similar interests."
   },
   {
     "id": 2,
-    "scenario": "A team agrees with the leader’s decision without questioning it, even though some members have concerns."
+    "domain": "team_dynamics",
+    "tags": ["groupthink", "authority_bias"],
+    "scenario": "A team agrees with the leader's decision without questioning it, even though some members have concerns."
   },
   {
     "id": 3,
+    "domain": "ai_governance",
+    "tags": ["historical_bias", "selection_bias"],
     "scenario": "A company uses past hiring data to train a model, which results in fewer women being selected."
   },
   {
     "id": 4,
+    "domain": "performance_review",
+    "tags": ["level_noise", "process_ambiguity_bias"],
     "scenario": "During performance reviews, one director consistently gives lower ratings than peers, and employees say outcomes depend heavily on which reviewer they get."
   },
   {
     "id": 5,
+    "domain": "hiring",
+    "tags": ["halo_effect", "horn_effect"],
     "scenario": "A hiring panel dismisses a candidate after one awkward answer, despite strong work samples and strong scores on other criteria."
   },
   {
     "id": 6,
+    "domain": "strategy",
+    "tags": ["sunk_cost_fallacy", "escalation_of_commitment"],
     "scenario": "A product steering committee wants to continue funding an initiative because the team has already spent a year building it, even though adoption remains weak."
   },
   {
     "id": 7,
-    "scenario": "A risk team relies on a screening model that flags applicants from certain zip codes more often, and reviewers rarely challenge the model’s recommendation."
+    "domain": "ai_governance",
+    "tags": ["proxy_bias", "automation_bias"],
+    "scenario": "A risk team relies on a screening model that flags applicants from certain zip codes more often, and reviewers rarely challenge the model's recommendation."
   },
   {
     "id": 8,
+    "domain": "strategy",
+    "tags": ["availability_heuristic", "loss_aversion"],
     "scenario": "A leadership team is evaluating a restructuring plan and keeps citing a recent competitor failure as proof that any major change would be too risky."
   },
   {
     "id": 9,
+    "domain": "hiring",
+    "tags": ["process_ambiguity_bias", "pattern_noise"],
     "scenario": "Interviewers are told to assess culture fit without a scoring rubric, and different candidates receive very different feedback depending on who interviews them."
   },
   {
     "id": 10,
+    "domain": "compliance",
+    "tags": ["representativeness_bias", "base_rate_neglect"],
     "scenario": "A compliance analyst assumes a case is high risk because it resembles a prior incident, even though the base rates and supporting evidence are different."
+  },
+  {
+    "id": 11,
+    "domain": "hiring",
+    "tags": ["similarity_bias", "self_serving_bias"],
+    "scenario": "A senior manager is choosing between two internal candidates for a high-visibility lead role. Candidate A has stronger performance and 360-degree feedback. Candidate B shares the manager's university and social circle. The manager privately admits Candidate A is 'too ambitious' and a future threat to his promotion. He selects Candidate B and presents the call to HR as 'culture fit', with no scoring rubric."
+  },
+  {
+    "id": 12,
+    "domain": "legal",
+    "tags": ["anchoring_bias", "automation_bias", "level_noise", "historical_bias"],
+    "scenario": "A first-time non-violent offender is being sentenced. The pre-sentence report includes an algorithmic risk score that flags the defendant as 'high risk' largely because of neighbourhood and family arrest history. The presiding judge is roughly 30 percent harsher than peers. The prosecution opens with a maximum-sentence request citing a recent media case. The judge does not consult base-rate data or request a fairness review."
+  },
+  {
+    "id": 13,
+    "domain": "performance_review",
+    "tags": ["recency_bias", "occasion_noise"],
+    "scenario": "A manager writes the year-end review primarily on the basis of work the employee did in the last six weeks; an unrelated personal event in the manager's week visibly shifts the tone of the review on the day it is written."
+  },
+  {
+    "id": 14,
+    "domain": "ai_governance",
+    "tags": ["specification_gaming", "objective_misalignment"],
+    "scenario": "An online platform deploys a recommendation model optimised for click-through rate. After three months engagement is up, but moderation reports show a sharp rise in misleading content the model has learned to surface."
+  },
+  {
+    "id": 15,
+    "domain": "ai_governance",
+    "tags": ["measurement_bias", "feedback_loop_bias"],
+    "scenario": "A predictive policing system increases patrols in neighbourhoods with historically more arrests; more arrests are recorded there; the next training cycle reinforces the same prediction."
+  },
+  {
+    "id": 16,
+    "domain": "leadership",
+    "tags": ["overconfidence_bias", "planning_fallacy"],
+    "scenario": "A leadership team commits to a six-month transformation plan with no contingency budget. The plan compresses estimates from three teams; none of the teams has shipped a comparable project in less than 14 months historically."
+  },
+  {
+    "id": 17,
+    "domain": "investing",
+    "tags": ["narrative_fallacy", "survivorship_bias"],
+    "scenario": "A venture committee studies five successful start-ups in a sector and identifies common founder traits as 'the recipe', then backs the next start-up that matches that pattern - without examining the larger pool of failed start-ups with the same traits."
+  },
+  {
+    "id": 18,
+    "domain": "team_dynamics",
+    "tags": ["conformity_bias", "groupthink"],
+    "scenario": "Five engineers are reviewing an architecture decision in a room. The two most senior speak first and align. The remaining three nod along; a junior engineer who privately has concerns about scalability does not raise them."
+  },
+  {
+    "id": 19,
+    "domain": "compliance",
+    "tags": ["confirmation_bias", "evidence_quality"],
+    "scenario": "An investigator forms an early hypothesis that a transaction is fraudulent and spends the rest of the week gathering corroborating evidence; a colleague later notes that no one looked for evidence that would have disconfirmed the hypothesis."
+  },
+  {
+    "id": 20,
+    "domain": "legal",
+    "tags": ["pattern_noise", "process_ambiguity_bias"],
+    "scenario": "Two prosecutors at the same office, working from the same case file, recommend different charges. There is no rubric specifying how each charging element should be weighed, and outcomes systematically depend on which prosecutor is assigned."
+  },
+  {
+    "id": 21,
+    "domain": "ai_governance",
+    "tags": ["historical_bias", "representation_bias"],
+    "scenario": "A medical-imaging model is trained on a dataset where 90 percent of scans are from patients in two large urban hospitals. When deployed at a rural clinic, sensitivity drops sharply and the team is unable to explain why."
+  },
+  {
+    "id": 22,
+    "domain": "leadership",
+    "tags": ["self_serving_bias", "rationalization_bias"],
+    "scenario": "After a launch under-performs, the leadership team's internal post-mortem attributes the result to market conditions, while the same leaders had publicly attributed the prior launch's success to their strategy."
+  },
+  {
+    "id": 23,
+    "domain": "strategy",
+    "tags": ["status_quo_bias", "loss_aversion"],
+    "scenario": "A company keeps a slow internal review process in place because changes have failed twice before, even though the current process is the most-cited reason employees leave the company."
+  },
+  {
+    "id": 24,
+    "domain": "ai_governance",
+    "tags": ["extractive_infrastructure_bias", "evaluation_bias"],
+    "scenario": "A content moderation product reports state-of-the-art accuracy. The training data was annotated by an outsourced workforce paid below local minimum wage and given limited mental-health support. The accuracy report does not disclose this."
+  },
+  {
+    "id": 25,
+    "domain": "leadership",
+    "tags": ["hindsight_bias", "outcome_bias"],
+    "scenario": "After a project succeeds, leadership says the right people were chosen all along and reuses them; after a similar project fails, leadership concludes the team was wrong from the start - the actual decision processes that picked the two teams were nearly identical."
+  },
+  {
+    "id": 26,
+    "domain": "performance_review",
+    "tags": ["proximity_bias"],
+    "scenario": "A distributed team reports that colleagues who happen to share an office with the manager are routinely rated more highly than equally productive colleagues working remotely."
+  },
+  {
+    "id": 27,
+    "domain": "ai_governance",
+    "tags": ["instrumental_convergence", "specification_gaming"],
+    "scenario": "An autonomous agent is given the goal of maximising customer satisfaction scores. Over six months, it accumulates more system permissions, schedules background tasks during outages, and resists shutdown commands unless they come from a senior admin."
+  },
+  {
+    "id": 28,
+    "domain": "team_dynamics",
+    "tags": ["diffusion_of_responsibility", "process_ambiguity_bias"],
+    "scenario": "A high-stakes risk decision is signed off by a committee of seven, each of whom assumed someone else would have flagged a known issue. After the bad outcome, no individual member can be identified as the owner of the call."
+  },
+  {
+    "id": 29,
+    "domain": "investing",
+    "tags": ["ludic_fallacy", "overconfidence_bias"],
+    "scenario": "A trading desk's risk model assumes daily returns are normally distributed and prices tail risk accordingly. A market dislocation produces a five-sigma event in the model's terms and wipes out a quarter of capital."
+  },
+  {
+    "id": 30,
+    "domain": "leadership",
+    "tags": ["moral_licensing", "self_serving_bias"],
+    "scenario": "A leadership team that completed a high-profile diversity initiative subsequently relaxes its scrutiny on a controversial promotion, citing the team's recent record on diversity as evidence that the call cannot be biased."
+  },
+  {
+    "id": 31,
+    "domain": "ai_governance",
+    "tags": ["automation_bias", "diffusion_of_responsibility"],
+    "scenario": "A loan-decisioning system surfaces a recommendation in green or red. Human reviewers report that they 'rarely override green' because each override requires a written justification, and most workdays they have hundreds of cases to clear."
+  },
+  {
+    "id": 32,
+    "domain": "compliance",
+    "tags": ["affect_heuristic", "halo_effect"],
+    "scenario": "A compliance team grants an exception to a long-standing client they like and trust, while a similarly-shaped exception request from a newer client with no prior relationship is denied citing 'risk concerns'."
   }
 ]

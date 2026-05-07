@@ -25,11 +25,11 @@ The system is not legal advice, medical advice, or HR policy enforcement. It is 
 
 ## Current state of the repo
 The project has already been moving through these stages:
-1. PDF ingestion from `data/raw/`
-2. text parsing to `data/processed/parsed_text/`
-3. chunk generation to `data/processed/chunks/chunks.json`
-4. concept extraction to `data/processed/chunks/chunks_with_concepts.json`
-5. enrichment to `data/processed/knowledge/knowledge_base.json`
+1. PDF ingestion from `data/corpora/<corpus>/raw/` (public or private)
+2. text parsing to `data/corpora/<corpus>/parsed_text/`
+3. chunk generation to `data/corpora/<corpus>/chunks/chunks.json` (profile-aware)
+4. concept extraction to `data/corpora/<corpus>/chunks/chunks_with_concepts.json`
+5. enrichment to `data/corpora/<corpus>/knowledge/knowledge_base.json` (passage_type + decision_phase + chapter_title)
 6. next phase: embeddings + vector store + retrieval + RAG response generation
 
 ## Key implementation goals
