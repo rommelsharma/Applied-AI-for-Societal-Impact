@@ -36,14 +36,31 @@ from data_pipeline.enrich_chunks import enrich
 from data_pipeline.pdf_parser import parse_all_pdfs
 
 
-def run_pipeline(corpus: str | None = None, profile: str | None = None):
-    """Execute parse → chunk → concept-tag → enrich in sequence."""
+def run_pipeline(
+    corpus: str | None = None,
+    profile: str | None = None,
+    *,
+    skip_parse: bool = False,
+):
+    """Execute parse → chunk → concept-tag → enrich in sequence.
+
+    Set ``skip_parse=True`` to skip the PDF parsing step. This is useful when
+    parsed-text has been written directly into ``parsed_text/`` by another
+    ingestion path (for example ``scripts/ingest_author_content.py``) and
+    re-running the PDF parser would either be wasteful or would overwrite
+    those externally-produced sidecars.
+    """
     print(f"\nCorpus: {corpus or '(env-default)'} | Profile: {profile or '(auto/env)'}")
 
-    print("\n==============================")
-    print("STEP 1 — PARSING PDFs")
-    print("==============================")
-    parse_all_pdfs(corpus=corpus)
+    if skip_parse:
+        print("\n==============================")
+        print("STEP 1 — PARSING PDFs (skipped)")
+        print("==============================")
+    else:
+        print("\n==============================")
+        print("STEP 1 — PARSING PDFs")
+        print("==============================")
+        parse_all_pdfs(corpus=corpus)
 
     print("\n==============================")
     print("STEP 2 — CREATING CHUNKS")
@@ -64,7 +81,7 @@ def run_pipeline(corpus: str | None = None, profile: str | None = None):
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse CLI arguments. ``--corpus`` and ``--profile`` are optional."""
+    """Parse CLI arguments. ``--corpus``, ``--profile`` and ``--skip-parse`` are optional."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--corpus", default=None, help="Corpus to ingest (defaults to CORPUS_NAME or 'public').")
     parser.add_argument(
@@ -73,9 +90,17 @@ def parse_args() -> argparse.Namespace:
         choices=["dossier", "book", "auto"],
         help="Chunking profile override.",
     )
+    parser.add_argument(
+        "--skip-parse",
+        action="store_true",
+        help=(
+            "Skip the PDF parsing step (useful after running "
+            "scripts/ingest_author_content.py which writes parsed text directly)."
+        ),
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    run_pipeline(corpus=args.corpus, profile=args.profile)
+    run_pipeline(corpus=args.corpus, profile=args.profile, skip_parse=args.skip_parse)

@@ -2,13 +2,15 @@
 
 This document captures end-to-end outputs from the bias-aware decision-making RAG copilot for two representative scenarios. For each scenario the system was called twice with the same locked JSON-schema system prompt and the same closed bias taxonomy. The only difference between the two calls is whether retrieved context from the curated knowledge base was injected into the system prompt.
 
-**Generated:** 2026-05-07 23:07
+**Generated:** 2026-05-08 00:55
+
+**Corpus:** `public` (this is the public, committed corpus; private full-book results are produced separately via `scripts/compare_versions.py` and are not included in this report).
 
 **Models:**
 
 - Chat: `us.anthropic.claude-sonnet-4-5-20250929-v1:0` (Amazon Bedrock)
 - Embeddings: `amazon.titan-embed-text-v2:0` (1024 dims, normalised)
-- Retrieval index: FAISS `IndexFlatIP` over 247 chunks
+- Retrieval index: FAISS `IndexFlatIP` over 301 chunks
 
 ---
 
@@ -31,91 +33,87 @@ This document captures end-to-end outputs from the bias-aware decision-making RA
 
 | # | Source | Author | Score | Concepts | Decision Domains |
 |---|--------|--------|-------|----------|------------------|
-| 1 | `noise-rag-dossier` | Daniel Kahneman, Olivier Sibony, Cass R. Sunstein | 0.2777 | decision_hygiene, independent_assessment, judgment, noise, noise_audit, outside_view, structured_interviewing | ai, finance, governance, hr, leadership, legal, management, program_management, recruiting, risk, strategy |
+| 1 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3627 | anchoring_bias, judgment, structured_interviewing | ai, finance, hr, leadership, legal, management, procurement, recruiting, strategy |
+| 2 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3535 | estimate_talk_estimate, judgment, structured_interviewing | ai, governance, hr, leadership, legal, management, recruiting, risk |
+| 3 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3497 | estimate_talk_estimate, judgment, noise, structured_interviewing | ai, governance, hr, leadership, legal, management, recruiting, risk |
+| 4 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3416 | decision_hygiene, estimate_talk_estimate, independent_assessment, judgment, noise, structured_interviewing | ai, governance, hr, leadership, legal, management, recruiting, risk |
+| 5 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3005 | estimate_talk_estimate, judgment, noise, similarity_bias, structured_interviewing | ai, governance, hr, leadership, legal, management, recruiting, risk |
 
 **Top retrieved excerpts (summaries):**
 
-- **[1] noise-rag-dossier** - Noise: A Flaw in Human Judgment Authors: Daniel Kahneman, Olivier Sibony, Cass R. Sunstein Publication context: 2021 Corpus priority: Phase 1 Document type: Synthesized RAG source dossier built from publicly available online material Purpose In This RAG Corpus • Core foundation f...
+- **[1] noise-a-flaw-in-human-judgment-9780316451383** - close. “I see a clear similarity between the evaluation of candidates and the evaluation of options in big decisions: options are like candidates . And this similarity leads me to the idea that we should adapt the method that works for evaluating candidates to our task, which is...
+- **[2] noise-a-flaw-in-human-judgment-9780316451383** - supervisor or an HR professional, are a rite of passage required to enter many organizations. In most cases, interviews follow a well-rehearsed routine. After exchanging some pleasantries, interviewers ask candidates to describe their experience or elaborate on specific aspects o...
+- **[3] noise-a-flaw-in-human-judgment-9780316451383** - score them against a predetermined rating scale, using a unified rubric. The rubric gives examples of what average, good, or great answers look like for each question. This shared scale (an example of the behaviorally anchored rating scales we introduced in the preceding chapter)...
+- **[4] noise-a-flaw-in-human-judgment-9780316451383** - that this approach to making the final decision is a sensible one. But note that while they are not mechanical, Google’s final hiring decisions are anchored on the average score assigned by the four interviewers. They are also informed by the underlying evidence. In other words,...
+- **[5] noise-a-flaw-in-human-judgment-9780316451383** - the subjudgments in a guideline: it focuses the judges on the important cues. Decomposition acts as a road map to specify what data is needed. And it filters out irrelevant information. In Google’s case, there are four mediating assessments in the decomposition: general cognitive...
 
 ### Baseline Output (without RAG)
 
 ```json
 {
-  "situation_summary": "A senior manager selects a less qualified internal candidate (Candidate B) over a stronger performer (Candidate A) for a high-visibility role. The decision appears driven by personal affinity (shared university, hobbies, social circle), perceived threat to the manager's career advancement, and rationalized as 'culture fit' without structured evaluation or documentation.",
+  "situation_summary": "A senior manager selects a weaker internal candidate (Candidate B) over a stronger one (Candidate A) for a high-visibility role. The decision is driven by personal affinity, shared background, and self-interest (fear of being outcompeted), rather than merit. The manager rationalizes the choice as 'culture fit' without structured evaluation or documentation.",
   "biases_identified": [
     {
       "bias_name": "similarity_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The manager favors Candidate B based on shared background (same university), common hobbies, and membership in the same social circle rather than job-relevant qualifications.",
-      "evidence": "Manager and Candidate B share university background, hobbies, and are part of the same close social circle outside work",
-      "risk": "Selection is based on personal affinity rather than merit, reducing fairness and potentially harming team performance and organizational diversity"
+      "explanation": "The manager favors Candidate B due to shared university background, hobbies, and social circle rather than job-relevant qualifications.",
+      "evidence": "Candidate B 'went to the same university as the manager, shares the manager's hobbies, and is part of the same close social circle outside work'",
+      "risk": "Merit is displaced by personal affinity, reducing fairness and team capability while reinforcing homogeneity."
     },
     {
       "bias_name": "self_serving_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The manager frames the decision to protect his own career interests (avoiding a perceived threat to his promotion) while rationalizing it as serving team needs through 'culture fit' and 'loyalty'.",
-      "evidence": "Manager states Candidate A is 'too ambitious' and 'could become a threat to his own promotion trajectory' while describing Candidate B as 'more loyal'",
-      "risk": "Personal career protection takes precedence over organizational benefit, creating defensive decision-making that blocks talent development and succession planning"
+      "explanation": "The manager protects his own promotion prospects by selecting a less threatening candidate rather than the best performer.",
+      "evidence": "Manager states Candidate A is 'too ambitious' and 'could become a threat to his own promotion trajectory'",
+      "risk": "Organizational performance suffers as decisions prioritize personal career protection over team strength."
+    },
+    {
+      "bias_name": "rationalization_bias",
+      "bias_layer": "human",
+      "confidence": "high",
+      "explanation": "The manager constructs a post-hoc justification ('culture and team fit') to mask the true self-interested and affinity-based drivers of the decision.",
+      "evidence": "Manager presents decision to HR as 'culture and team fit' call despite private admission of threat concerns and loyalty preference",
+      "risk": "True decision rationale is hidden from accountability systems, preventing oversight and enabling repeat behavior."
     },
     {
       "bias_name": "process_ambiguity_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "The decision lacks structured evaluation criteria, scoring rubrics, or documented comparison against role requirements, leaving excessive room for subjective and biased judgment.",
-      "evidence": "Decision presented to HR as 'culture and team fit' call with no scoring rubric and no documentation of how candidates were compared on role criteria",
-      "risk": "Absence of structure enables personal biases to dominate while creating appearance of legitimate process, making bias difficult to detect or challenge"
-    },
-    {
-      "bias_name": "halo_effect",
-      "bias_layer": "human",
-      "confidence": "medium",
-      "explanation": "The manager's positive personal relationship with Candidate B (social connection, shared interests) appears to create an overall favorable impression that overshadows objective performance deficits.",
-      "evidence": "Despite weaker performance history and less experience, Candidate B is characterized positively as 'easier to work with' and 'more loyal'",
-      "risk": "Personal rapport inflates overall evaluation, causing distinct job-relevant criteria to blur together and objective weaknesses to be minimized"
-    },
-    {
-      "bias_name": "rationalization",
-      "bias_layer": "human",
-      "confidence": "high",
-      "explanation": "The manager constructs post-hoc justifications ('culture fit', 'easier to work with', 'loyalty') to legitimize a decision actually driven by self-interest and personal affinity.",
-      "evidence": "Private admission of threat concerns and loyalty preferences is repackaged to HR as a 'culture and team fit' decision",
-      "risk": "Rationalization obscures true decision drivers, prevents accountability, and establishes precedent for subjective criteria to override merit"
+      "explanation": "The absence of a scoring rubric or documented comparison criteria leaves excessive room for idiosyncratic and biased judgment.",
+      "evidence": "Decision made 'with no scoring rubric and no documentation of how the two candidates were compared on the role criteria'",
+      "risk": "Unstructured processes allow personal biases to dominate and make unfair decisions difficult to detect or challenge."
     },
     {
       "bias_name": "in_group_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The manager favors a member of his social in-group (same social circle outside work) over an outsider to that group, despite objective performance differences.",
-      "evidence": "Candidate B is part of the manager's 'close social circle outside work' while Candidate A has stronger objective credentials but lacks this social connection",
-      "risk": "Group membership boundaries override merit-based evaluation, creating unfair advantage for socially connected individuals and excluding high performers"
+      "explanation": "The manager favors a candidate from his own social and educational in-group over an outsider with superior qualifications.",
+      "evidence": "Candidate B is 'part of the same close social circle outside work' and shares university and hobby affiliations",
+      "risk": "Group membership substitutes for merit, entrenching insider advantage and excluding high performers from different backgrounds."
     }
   ],
   "noise_considerations": {
     "present": true,
-    "explanation": "The absence of structured criteria and documentation means that if different managers evaluated these candidates, outcomes would likely vary significantly based on each manager's personal relationships, career concerns, and subjective interpretation of vague concepts like 'culture fit' and 'loyalty'. This represents high pattern noise (different decision-makers weighting factors differently) and occasion noise (same manager might decide differently under different circumstances or career pressures)."
+    "explanation": "The lack of structured criteria means different managers would likely reach different conclusions on the same candidates. The decision is also vulnerable to occasion noise—if the manager were less concerned about his promotion at a different time, the outcome might change."
   },
-  "overall_risk_assessment": "This decision presents severe organizational risk across multiple dimensions: (1) Merit-based selection is compromised by personal relationships and self-interest, (2) High-performing talent (Candidate A) is blocked from advancement, creating retention risk and signaling that performance matters less than social connection, (3) The lack of structured process creates legal and ethical exposure around fairness and potential discrimination, (4) Managerial self-interest is prioritized over organizational capability-building, (5) The precedent established undermines trust in internal mobility and talent development systems, and (6) The rationalization as 'culture fit' without documentation makes the bias difficult to detect or correct through normal governance channels.",
+  "overall_risk_assessment": "This decision poses high organizational risk. A demonstrably weaker candidate is selected for a high-visibility role due to personal affinity and self-interest rather than merit. The lack of process structure and documentation enables the bias to operate unchecked. The organization loses the stronger performer's contributions, sets a precedent that personal loyalty outweighs performance, and risks reputational and legal exposure if the decision is challenged. The manager's behavior also signals to other employees that merit is secondary to social connection and non-threatening behavior.",
   "recommended_actions": [
-    "Implement mandatory structured evaluation rubrics for all internal promotions, requiring documented scoring against predefined role criteria before decisions are finalized",
-    "Require multi-stakeholder review panels for high-visibility roles to reduce single-manager discretion and surface conflicting perspectives",
-    "Establish clear definitions and evidence requirements for subjective criteria like 'culture fit' and 'team fit' to prevent their use as rationalization vehicles",
-    "Create independent HR review of promotion decisions where the selected candidate has materially weaker objective performance metrics than alternatives",
-    "Implement blind or semi-blind initial screening phases where feasible to reduce the influence of personal relationships on candidate evaluation",
-    "Require managers to document potential conflicts of interest (including career competition concerns) when evaluating direct reports or internal candidates",
-    "Conduct regular audits of promotion decisions to identify patterns where social connections or demographic similarities correlate with selection outcomes",
-    "Provide training on similarity bias, in-group bias, and rationalization to hiring managers, emphasizing the organizational costs of non-merit-based selection",
-    "Establish appeals or review mechanisms for internal candidates who believe decisions were made without fair evaluation",
-    "Track long-term performance outcomes of promoted candidates to validate whether selection criteria actually predict success"
+    "Require structured evaluation rubrics for all internal promotions, with documented scoring on predefined role-relevant criteria before any decision is finalized.",
+    "Mandate independent review or panel-based assessment for high-visibility roles to reduce single-manager discretion and self-interest.",
+    "Audit this decision specifically: compare documented rationale against candidate evidence and require the manager to justify the choice against objective performance data.",
+    "Implement blind or semi-blind review stages where candidate identity and social connections are obscured during initial scoring.",
+    "Establish clear accountability: require named decision owners to attest that personal relationships did not influence the outcome.",
+    "Provide training on similarity bias, self-serving bias, and rationalization to leadership, emphasizing the organizational cost of affinity-based decisions.",
+    "Create a whistleblower or escalation path for employees who observe decisions driven by favoritism rather than merit."
   ],
   "alternative_perspectives": [
-    "Candidate A's ambition and strong performance could be reframed as exactly what the organization needs in a high-visibility role - someone who will drive results and grow the function's impact",
-    "The manager's concern about being 'threatened' could indicate that Candidate A possesses leadership qualities that should be developed rather than suppressed, and that the manager himself may need coaching on talent development",
-    "Culture fit and loyalty, when properly defined, can be legitimate criteria - but in this case they appear to be proxies for personal comfort and control rather than genuine team dynamics or organizational values alignment",
-    "The decision could be viewed through a succession planning lens: selecting Candidate B may create a short-term reporting relationship the manager prefers, but it weakens the organization's leadership pipeline and signals that performance is not the primary path to advancement",
-    "From Candidate A's perspective, this decision may trigger disengagement, departure, or reduced performance - representing a loss of organizational investment in a proven high performer",
-    "The lack of documentation and structure could be interpreted not as oversight but as intentional avoidance of creating an evidence trail that would reveal the true decision drivers"
+    "Candidate A's ambition could be reframed as a strength—high performers drive team results and can be retained through clear development paths rather than being seen as threats.",
+    "Culture fit is a legitimate consideration, but it must be defined with specific behavioral criteria and assessed independently of personal affinity or social similarity.",
+    "The manager's fear of being outcompeted suggests a scarcity mindset; a healthier organizational culture would reward managers who develop strong successors rather than penalizing them.",
+    "If Candidate B were truly the better fit, a structured process would surface evidence of that; the absence of documentation suggests the manager cannot defend the choice on merit.",
+    "This decision may reflect broader systemic issues: if the organization rewards loyalty over performance or lacks promotion transparency, similar biased decisions are likely occurring elsewhere."
   ]
 }
 ```
@@ -124,69 +122,78 @@ This document captures end-to-end outputs from the bias-aware decision-making RA
 
 ```json
 {
-  "situation_summary": "A senior manager selects a less qualified internal candidate (Candidate B) over a stronger performer (Candidate A) for a high-visibility role. The decision appears driven by personal affinity, shared background, perceived threat to the manager's career, and lack of structured evaluation process.",
+  "situation_summary": "A senior manager selects a less qualified internal candidate (Candidate B) over a stronger performer (Candidate A) for a high-visibility role. The decision appears driven by personal affinity (shared university, hobbies, social circle) and self-interest (viewing the stronger candidate as a career threat). The manager rationalizes the choice as 'culture fit' without structured evaluation or documentation.",
   "biases_identified": [
     {
       "bias_name": "similarity_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The manager favors Candidate B due to shared university background, hobbies, and social circle rather than objective qualifications.",
-      "evidence": "Manager and Candidate B attended same university, share hobbies, and are part of the same social circle outside work.",
-      "risk": "Selection based on personal similarity rather than merit reduces team capability and undermines fairness in promotion decisions."
+      "explanation": "The manager favors Candidate B based on shared background (same university), common hobbies, and membership in the same social circle rather than job-relevant qualifications.",
+      "evidence": "Candidate B 'went to the same university as the manager, shares the manager's hobbies, and is part of the same close social circle outside work'",
+      "risk": "Personal affinity substitutes for merit-based evaluation, reducing fairness and potentially harming team performance by selecting a weaker candidate."
     },
     {
       "bias_name": "self_serving_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The manager prioritizes protecting his own promotion prospects over selecting the best candidate for the organization.",
-      "evidence": "Manager states Candidate A is 'too ambitious' and 'could become a threat to his own promotion trajectory in the next 18 months'.",
-      "risk": "Organizational performance suffers when leaders make decisions to protect personal interests rather than optimize team outcomes."
+      "explanation": "The manager protects his own career interests by avoiding a candidate he perceives as a competitive threat, prioritizing personal advancement over organizational benefit.",
+      "evidence": "Manager states Candidate A is 'too ambitious' and 'could become a threat to his own promotion trajectory in the next 18 months'",
+      "risk": "The organization loses the benefit of its strongest talent while the manager's self-interest drives suboptimal staffing decisions and creates a culture where merit is subordinated to politics."
+    },
+    {
+      "bias_name": "rationalization_bias",
+      "bias_layer": "human",
+      "confidence": "high",
+      "explanation": "The manager constructs a post-hoc justification ('culture and team fit') to legitimize a decision actually driven by personal affinity and career self-protection.",
+      "evidence": "Manager presents decision to HR as 'culture and team fit' call after privately admitting concerns about personal career threat and preference for someone 'easier to work with' and 'more loyal'",
+      "risk": "The true decision criteria remain hidden from accountability mechanisms, preventing organizational learning and enabling repeated poor decisions under the guise of legitimate business rationale."
     },
     {
       "bias_name": "process_ambiguity_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "The absence of a scoring rubric or documented comparison criteria allows subjective judgment to dominate the selection process.",
-      "evidence": "Decision presented as 'culture and team fit' call with no scoring rubric and no documentation of how candidates were compared on role criteria.",
-      "risk": "Lack of structured evaluation enables personal biases to operate unchecked and makes decisions difficult to audit or contest."
+      "explanation": "The absence of a scoring rubric, structured comparison, or documented evaluation criteria leaves excessive room for idiosyncratic and biased judgment.",
+      "evidence": "Decision made 'with no scoring rubric and no documentation of how the two candidates were compared on the role criteria'",
+      "risk": "Without structured evaluation, personal biases operate unchecked and equivalent candidates receive inconsistent treatment based on manager preferences rather than job requirements."
     },
     {
       "bias_name": "halo_effect",
       "bias_layer": "human",
       "confidence": "medium",
-      "explanation": "Positive personal rapport with Candidate B may cause the manager to overweight perceived loyalty and underweight performance gaps.",
-      "evidence": "Manager describes Candidate B as 'easier to work with' and 'more loyal' despite weaker objective performance.",
-      "risk": "One positive dimension (interpersonal comfort) distorts evaluation of other critical competencies needed for the role."
+      "explanation": "Positive feelings toward Candidate B stemming from social connection and perceived loyalty may have inflated assessments of their professional capabilities across unrelated dimensions.",
+      "evidence": "Candidate B described as 'easier to work with' and 'more loyal' despite weaker objective performance, suggesting personal rapport colors professional evaluation",
+      "risk": "Social compatibility is mistaken for job competence, leading to inflated expectations that may not materialize in actual performance."
     },
     {
       "bias_name": "confirmation_bias",
       "bias_layer": "human",
       "confidence": "medium",
-      "explanation": "The manager appears to seek justifications for a preferred choice rather than objectively weighing evidence for both candidates.",
-      "evidence": "Manager frames Candidate A's strength (ambition) as a negative and emphasizes subjective traits (loyalty, ease of working) for Candidate B.",
-      "risk": "Evidence supporting the preferred candidate is emphasized while contradictory evidence about capability gaps is minimized or ignored."
+      "explanation": "Once the manager formed a preference for Candidate B, he likely sought and weighted evidence supporting that choice (loyalty, fit) while discounting contradictory evidence (Candidate A's superior track record).",
+      "evidence": "Manager emphasizes subjective qualities ('easier to work with', 'loyal') that favor Candidate B while dismissing objective performance data favoring Candidate A",
+      "risk": "The decision becomes resistant to corrective evidence, and the manager's initial preference drives selective attention to information that confirms rather than challenges the choice."
     }
   ],
   "noise_considerations": {
     "present": true,
-    "explanation": "Without structured criteria or independent review, different managers would likely reach different conclusions on the same candidates. The decision is vulnerable to occasion noise (manager's current career concerns) and pattern noise (idiosyncratic weighting of loyalty versus performance)."
+    "explanation": "The lack of structured evaluation criteria means different managers would likely reach different conclusions on identical candidate pairs based on their personal relationships, career anxieties, and subjective interpretations of 'culture fit'. This represents pattern noise (different managers weight relationship factors differently) and creates a judgment lottery where outcomes depend heavily on which manager conducts the evaluation."
   },
-  "overall_risk_assessment": "This decision carries high organizational risk. A less qualified candidate is selected for a high-visibility role based on personal affinity and self-protective motives rather than merit. The lack of process structure enables bias to operate unchecked, creates legal and ethical exposure, damages team morale, and sets a precedent that undermines meritocracy and diversity.",
+  "overall_risk_assessment": "This decision carries high organizational risk across multiple dimensions: (1) Merit-based selection is compromised, potentially setting a precedent that personal connections outweigh performance; (2) The stronger candidate may become disengaged or leave, representing talent loss; (3) The weaker candidate may underperform in a high-visibility role, damaging team outcomes; (4) The hidden decision rationale prevents accountability and enables repeated poor choices; (5) Other employees observing the outcome may conclude that performance matters less than social proximity to leadership, degrading motivation and trust in the promotion process.",
   "recommended_actions": [
-    "Require structured evaluation rubrics for all internal promotions with predefined role criteria and weighted scoring.",
-    "Mandate independent review or panel assessment for high-visibility roles to reduce single-decision-maker bias.",
-    "Document candidate comparisons explicitly, including how each candidate was assessed against role requirements.",
-    "Implement decision hygiene practices such as independent first-pass assessments before group discussion.",
-    "Establish clear policies prohibiting consideration of personal relationships or perceived career threats in promotion decisions.",
-    "Conduct periodic audits of promotion decisions to identify patterns of bias or inconsistency across managers.",
-    "Provide training on similarity bias, self-serving bias, and the importance of merit-based selection."
+    "Require structured evaluation rubrics for all internal promotions, with predefined role criteria scored independently before holistic judgment",
+    "Mandate documentation of candidate comparisons showing how each person was assessed against job requirements, reviewable by HR or a promotion committee",
+    "Implement blind or semi-blind review processes where initial assessments are made without knowledge of personal relationships or social connections",
+    "Establish independent review panels for high-visibility roles to reduce single-manager discretion and surface conflicts of interest",
+    "Create explicit conflict-of-interest disclosure requirements when managers evaluate candidates with whom they have close personal relationships",
+    "Use 360-degree feedback and objective performance data as mandatory inputs rather than optional considerations in promotion decisions",
+    "Conduct periodic audits of promotion decisions to identify patterns where weaker candidates are selected over stronger ones, investigating the rationale",
+    "Provide training on similarity bias, self-serving bias, and rationalization to help managers recognize when personal factors are distorting professional judgment"
   ],
   "alternative_perspectives": [
-    "Candidate A's ambition could be reframed as a strength that drives high performance and benefits the organization, not a threat.",
-    "Team fit and loyalty are legitimate considerations but should be assessed through structured behavioral evidence, not personal affinity.",
-    "The manager's concern about career competition could be addressed through succession planning rather than blocking strong talent.",
-    "An independent panel might conclude that Candidate A's stronger track record outweighs subjective comfort with Candidate B.",
-    "HR could view this as a process failure requiring intervention rather than accepting the manager's unstructured justification."
+    "Candidate A's ambition could be reframed as a strength: high performers who push boundaries often drive innovation and raise team standards, and managing ambitious talent is a core leadership competency rather than a threat to be avoided",
+    "The manager's concern about career competition might reflect organizational design problems: if internal talent development creates zero-sum promotion dynamics, the system may need restructuring to reward managers who develop strong successors",
+    "Culture fit is a legitimate consideration, but it should be defined through observable behaviors and team needs rather than personal comfort: a structured definition would distinguish genuine team compatibility from personal affinity",
+    "Loyalty and ease of working relationship are valuable, but they should be evidenced through past collaboration patterns and peer feedback rather than assumed from social proximity",
+    "The decision could be viewed through a risk lens: selecting the weaker candidate in a high-visibility role creates execution risk that may ultimately harm the manager's own reputation if the role underperforms"
   ]
 }
 ```
@@ -195,12 +202,12 @@ This document captures end-to-end outputs from the bias-aware decision-making RA
 
 | Dimension | Baseline (no RAG) | RAG-enhanced |
 |-----------|-------------------|--------------|
-| Biases identified (count) | 6 | 5 |
-| Biases identified (names) | halo_effect, in_group_bias, process_ambiguity_bias, rationalization, self_serving_bias, similarity_bias | confirmation_bias, halo_effect, process_ambiguity_bias, self_serving_bias, similarity_bias |
-| Surfaced only with RAG | _n/a_ | confirmation_bias |
-| Surfaced only without RAG | in_group_bias, rationalization | _n/a_ |
-| Recommended actions (count) | 10 | 7 |
-| Alternative perspectives (count) | 6 | 5 |
+| Biases identified (count) | 5 | 6 |
+| Biases identified (names) | in_group_bias, process_ambiguity_bias, rationalization_bias, self_serving_bias, similarity_bias | confirmation_bias, halo_effect, process_ambiguity_bias, rationalization_bias, self_serving_bias, similarity_bias |
+| Surfaced only with RAG | _n/a_ | confirmation_bias, halo_effect |
+| Surfaced only without RAG | in_group_bias | _n/a_ |
+| Recommended actions (count) | 7 | 8 |
+| Alternative perspectives (count) | 5 | 5 |
 
 ---
 
@@ -216,65 +223,69 @@ This document captures end-to-end outputs from the bias-aware decision-making RA
 
 | # | Source | Author | Score | Concepts | Decision Domains |
 |---|--------|--------|-------|----------|------------------|
-| 1 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.4456 | judgment | ai, hr, leadership, legal, management |
-| 2 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3967 | judgment, level_noise, noise, pattern_noise | ai, education, governance, hr, leadership, legal, management |
-| 3 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3877 | _none_ | _none_ |
-| 4 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3618 | judgment, level_noise, noise, pattern_noise | ai, education, governance, hr, leadership, legal, management |
-| 5 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3589 | judgment, noise, noise_audit | ai, governance, hr, leadership, legal, management |
-| 6 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3525 | judgment, noise | ai, governance, hr, leadership, legal, management |
+| 1 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.4319 | judgment, level_noise, noise, pattern_noise | ai, education, governance, hr, leadership, legal, management |
+| 2 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.4106 | estimate_talk_estimate, judgment, level_noise, noise, pattern_noise | ai, education, governance, hr, leadership, legal, management, risk |
+| 3 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.2868 | noise | governance, hr, legal, management |
+| 4 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3078 | judgment, noise | ai, governance, hr, leadership, legal, management |
+| 5 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3252 | noise | governance, hr, legal, management |
+| 6 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.3463 | estimate_talk_estimate, judgment, noise, noise_audit | ai, governance, hr, leadership, legal, management, risk |
+| 7 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.2731 | estimate_talk_estimate, judgment, noise | ai, governance, hr, leadership, legal, management, risk |
+| 8 | `noise-a-flaw-in-human-judgment-9780316451383` | Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein | 0.2807 | noise | governance, hr, legal, management |
 
 **Top retrieved excerpts (summaries):**
 
-- **[1] noise-a-flaw-in-human-judgment-9780316451383** - the defendants, 74% were released, and of these, 15% failed to appear in court and 26% were rearrested.) With this data, the researchers trained a machine-learning algorithm and evaluated its performance. Since the model was built through machine learning, it was not restricted t...
-- **[2] noise-a-flaw-in-human-judgment-9780316451383** - some orthopedists are more aggressive than others. Each row in figure 9 shows the sentences set by one judge. The mean sentence set by each judge, shown in the rightmost column of the table, is a measure of the judge’s level of severity. As it turns out, judges vary widely on thi...
-- **[3] noise-a-flaw-in-human-judgment-9780316451383** - society. If bail is granted to the wrong defendant, the person may flee before trial or even commit another crime. The model that the researchers built uses just two inputs known to be highly predictive of a defendant’s likelihood to jump bail: the defendant’s age (older people a...
-- **[4] noise-a-flaw-in-human-judgment-9780316451383** - missed.” The algorithm’s ability to find patterns easily missed by other methods is especially pronounced for the defendants whom the algorithm classifies as highest risk. In other words, some patterns in the data, though rare, strongly predict high risk. This finding—that the al...
-- **[5] noise-a-flaw-in-human-judgment-9780316451383** - analyze it. The Sentencing Lottery Start from the picture of the perfect world we described above, in which all cases receive the same punishment from every judge. Each column is a series of 208 identical numbers. Now, add noise by going down each column and changing some numbers...
-- **[6] noise-a-flaw-in-human-judgment-9780316451383** - discrimination. The variance of biases across cases—some positive, some negative—is an important source of error and unfairness. Confusingly, this variance is what is often referred to as “bias.” Our analysis in this chapter—and in this book—is focused on noise, which is a distin...
+- **[1] noise-a-flaw-in-human-judgment-9780316451383** - rather than a bail/no-bail decision. This approach recognizes that the maximum acceptable risk threshold, that is, the level of risk above which a defendant should be denied bail, requires an evaluative judgment that a model cannot make. However, the researchers calculated that,...
+- **[2] noise-a-flaw-in-human-judgment-9780316451383** - criminal from society), rehabilitation, or deterrence. They found that judges who think that the main goal is rehabilitation tend to assign shorter prison sentences and more supervised time than do judges who pointed to deterrence or incapacitation. Separately, judges located in...
+- **[3] noise-a-flaw-in-human-judgment-9780316451383** - application with sufficient objectivity to ensure that the results will be more than the idiosyncratic ukases of particular officials, justices, or others.” (The term idiosyncratic ukases is a bit esoteric; by it, Frankel meant personal edicts.) Much more than that, Frankel argue...
+- **[4] noise-a-flaw-in-human-judgment-9780316451383** - forty-three “offense levels,” depending on their seriousness. The defendant’s criminal history refers principally to the number and severity of a defendant’s previous convictions. Once the crime and the criminal history are put together, the guidelines offer a relatively narrow r...
+- **[5] noise-a-flaw-in-human-judgment-9780316451383** - character. The key finding was “substantial disparity.” In a case involving burglary, for example, the recommended sentences ranged from five years in prison to a mere thirty days (alongside a fine of $100). In a case involving possession of marijuana, some judges recommended pri...
+- **[6] noise-a-flaw-in-human-judgment-9780316451383** - noise-free. What would figure 9 look like in such a world? Evidently, all the cells in the Case A column would be identical, because all judges would give the defendant in case A the same sentence of exactly one year. The same would be true in all the other columns. The numbers i...
+- **[7] noise-a-flaw-in-human-judgment-9780316451383** - “mindless consistency”) could significantly improve judgment in a difficult problem illustrates the massive effect of noise on the validity of clinical predictions. This quick tour has shown how noise impairs clinical judgment. In predictive judgments, human experts are easily ou...
+- **[8] noise-a-flaw-in-human-judgment-9780316451383** - temperature can influence judges. A review of 207,000 immigration court decisions over four years found a significant effect of daily temperature variations: when it is hot outside, people are less likely to get asylum. If you are suffering political persecution in your home coun...
 
 ### Baseline Output (without RAG)
 
 ```json
 {
-  "situation_summary": "A first-time non-violent offender faces sentencing influenced by a proprietary algorithmic risk score flagging them as high risk based on neighbourhood, employment instability, and family arrest history. The judge is known for harsher sentencing, the prosecution anchors with a maximum sentence request citing a media case, and no structured rubric or fairness review is applied.",
+  "situation_summary": "A first-time non-violent offender faces sentencing where a proprietary algorithmic risk score flags them as high risk based on neighbourhood, employment instability, and family arrest history. The judge is systematically harsher than peers, the prosecution anchors on maximum sentence citing a media-salient case, and no base-rate data or fairness review is consulted. No structured sentencing rubric exists.",
   "biases_identified": [
     {
       "bias_name": "algorithmic_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "The risk model systematically produces unfair outcomes by weighting neighbourhood and family arrest history, which are proxies for socioeconomic status and race rather than individual culpability.",
-      "evidence": "Model flags defendant as high risk based on neighbourhood, employment instability, and family arrests rather than individual criminal history.",
-      "risk": "The algorithm scales historical policing disparities into sentencing decisions, creating systematically harsher outcomes for defendants from over-policed communities."
+      "explanation": "The risk model systematically produces unfair outcomes by weighting neighbourhood and family arrest history, which encode historical policing patterns rather than individual culpability.",
+      "evidence": "Model weighs neighbourhood and family arrests from over-policed areas; defence notes historical data over-represents arrests from heavily policed neighbourhoods.",
+      "risk": "The defendant receives harsher treatment due to systemic factors unrelated to their own conduct, scaling discriminatory patterns under the guise of objectivity."
     },
     {
       "bias_name": "historical_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "Training data reflects past inequities in policing, where certain neighbourhoods were disproportionately targeted, encoding discriminatory patterns into the model.",
-      "evidence": "Defence attorney notes historical data over-represents arrests from heavily policed neighbourhoods.",
-      "risk": "Past discriminatory enforcement practices are repackaged as objective risk predictions, perpetuating systemic unfairness."
+      "explanation": "Training data reflects past inequities in policing and arrest patterns, encoding discriminatory enforcement into the risk score.",
+      "evidence": "Defence attorney identifies that historical data over-represents arrests from heavily policed neighbourhoods.",
+      "risk": "Past discriminatory policing practices are repackaged as present-day evidence of individual risk, perpetuating systemic injustice."
     },
     {
       "bias_name": "proxy_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "Neighbourhood and family arrest history serve as indirect proxies for protected characteristics like race and socioeconomic status rather than measuring individual risk.",
-      "evidence": "Model weighs neighbourhood and family arrests, which correlate with demographic factors rather than individual behaviour.",
-      "risk": "Indirect discrimination persists even though protected attributes may not be explicitly included in the model."
+      "explanation": "Neighbourhood and family arrest history serve as proxies for protected characteristics like race and socioeconomic status rather than measuring individual risk.",
+      "evidence": "Model uses neighbourhood, employment instability, and family arrests as risk factors.",
+      "risk": "Indirect discrimination persists even without explicit use of protected attributes, producing disparate impact."
     },
     {
       "bias_name": "automation_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The judge appears to accept the algorithmic risk score without scrutinizing its methodology, error modes, or fairness properties.",
-      "evidence": "Judge reviews the risk score but does not request a fairness review or consult base-rate data.",
-      "risk": "Questionable model outputs gain unwarranted authority in high-stakes decisions, displacing independent judicial reasoning."
+      "explanation": "The judge reviews and relies on the algorithmic risk score without scrutinizing its methodology, error modes, or fairness properties.",
+      "evidence": "Judge reviews the risk score but does not request a fairness review of the model or consult alternative evidence.",
+      "risk": "Questionable model outputs gain unwarranted authority, and the judge abdicates independent judgment to the algorithm."
     },
     {
       "bias_name": "anchoring_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The prosecution's opening request for maximum sentence establishes a salient numerical anchor that can distort the judge's subsequent evaluation.",
+      "explanation": "The prosecution's opening request for maximum sentence establishes a salient numerical anchor that distorts the judge's subsequent evaluation.",
       "evidence": "Prosecution opens with a request for the maximum allowable sentence.",
       "risk": "The initial extreme anchor pulls the final sentence upward even when evidence does not support it."
     },
@@ -282,65 +293,64 @@ This document captures end-to-end outputs from the bias-aware decision-making RA
       "bias_name": "availability_heuristic",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "A recent media case involving a similar-sounding defendant who re-offended is easily recalled and overweights the judge's risk perception.",
+      "explanation": "A recent media-salient case of re-offending is easily recalled and drives outsized concern about a rare risk, crowding out base-rate evidence.",
       "evidence": "Prosecution cites a recent unrelated media case where a similar-sounding defendant re-offended within months.",
-      "risk": "A memorable but statistically unrepresentative case distorts judgment about the actual likelihood of recidivism for this defendant."
+      "risk": "Memorable but unrepresentative cases distort probability judgments, leading to disproportionate sentencing."
     },
     {
       "bias_name": "base_rate_neglect",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The judge does not consult general recidivism rates for first-time non-violent offenders, relying instead on the algorithmic score and salient anecdotes.",
+      "explanation": "The judge ignores general prevalence data for first-time non-violent offenders in favor of the compelling risk score and media narrative.",
       "evidence": "Judge does not consult base-rate data for first-time non-violent offenders.",
-      "risk": "General prevalence data is ignored in favour of vivid but misleading case-specific cues, leading to systematically distorted risk assessments."
+      "risk": "Rare but vivid narratives dominate actual probabilities, producing sentences disconnected from statistical reality."
     },
     {
       "bias_name": "level_noise",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "The judge is known for handing down sentences roughly 30 percent harsher than peers for comparable cases, indicating systematic severity differences.",
-      "evidence": "Judge has a reputation for sentences roughly 30 percent harsher than peers in this jurisdiction for comparable cases.",
-      "risk": "Who presides over the case matters too much, creating unfair variability in sentencing outcomes for equivalent offences."
+      "explanation": "This judge is systematically harsher than peers, introducing unwanted variability where equivalent cases should receive similar treatment.",
+      "evidence": "Judge has a reputation for handing down sentences roughly 30 percent harsher than peers for comparable cases.",
+      "risk": "Who evaluates the case matters too much, producing unfair sentencing disparities for similar offenders."
     },
     {
       "bias_name": "process_ambiguity_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "The absence of a structured sentencing rubric leaves too much room for idiosyncratic judgment and inconsistent application of criteria.",
+      "explanation": "The absence of a structured sentencing rubric leaves too much room for idiosyncratic judgment and allows biases to operate unchecked.",
       "evidence": "There is no structured sentencing rubric in use.",
-      "risk": "Lack of clear criteria and process structure allows cognitive biases and noise to dominate sentencing decisions."
+      "risk": "Inconsistency and hidden bias rise when the process lacks structure, producing arbitrary and unfair outcomes."
     },
     {
-      "bias_name": "measurement_bias",
+      "bias_name": "diffusion_of_responsibility",
       "bias_layer": "system",
       "confidence": "medium",
-      "explanation": "The risk model uses arrests rather than convictions as a feature, treating an unreliable and biased measure as if it were valid evidence of criminal behaviour.",
-      "evidence": "Model weighs prior arrests of family members, not convictions.",
-      "risk": "Arrests reflect policing practices and resource allocation rather than actual culpability, distorting risk predictions."
+      "explanation": "Multiple actors (model developers, prosecution, judge) share oversight but no single party is accountable for the fairness or validity of the risk score.",
+      "evidence": "Proprietary model is used without fairness review; judge relies on it without independent validation.",
+      "risk": "Accountability gaps allow flawed decisions to pass through nominally robust governance, and no one can later say they personally vouched for the score."
     }
   ],
   "noise_considerations": {
     "present": true,
-    "explanation": "Sentencing outcomes exhibit substantial unwanted variability. The same defendant could receive materially different sentences depending on which judge presides, the timing of media coverage, and the framing of the prosecution's opening. Level noise is evident in the judge's systematic severity, and occasion noise may arise from recent salient cases influencing judgment."
+    "explanation": "Level noise is present because this judge is systematically harsher than peers. Occasion noise may also be present if the judge's severity varies with contextual factors like recent media coverage or workload. The lack of structured criteria amplifies both sources of noise."
   },
-  "overall_risk_assessment": "This scenario presents compounded decision risks across human and system layers. The algorithmic risk score encodes historical discrimination and uses biased proxies, while the judge's decision process is vulnerable to anchoring, availability bias, base-rate neglect, and systematic severity. The absence of structured criteria and fairness review mechanisms allows these biases to operate unchecked, creating a high likelihood of an unjust and disproportionately harsh sentence.",
+  "overall_risk_assessment": "This sentencing decision is at high risk of being unjust and discriminatory. The algorithmic risk score encodes historical policing bias and uses proxy variables for protected characteristics. The judge over-relies on the model without scrutiny, is anchored by an extreme prosecution request, is influenced by a media-salient but unrepresentative case, and ignores base-rate evidence. The judge's systematic harshness and the absence of structured criteria compound these risks. The defendant faces a sentence driven by systemic bias, cognitive shortcuts, and noise rather than evidence of individual culpability.",
   "recommended_actions": [
-    "Require independent fairness audits of the risk model before use in sentencing, including disparate impact analysis across demographic groups.",
-    "Mandate consultation of base-rate recidivism data for first-time non-violent offenders as part of the sentencing record.",
-    "Implement structured sentencing rubrics with explicit criteria, weights, and ranges to reduce idiosyncratic judgment.",
-    "Prohibit or limit the use of neighbourhood, family arrest history, and other proxy variables in risk models.",
-    "Introduce judicial calibration processes to reduce level noise and ensure comparable cases receive comparable sentences.",
-    "Require judges to document independent risk assessments before reviewing algorithmic scores to reduce automation bias.",
-    "Use pre-commitment strategies where judges state sentencing ranges before hearing prosecution anchors or reviewing risk scores.",
-    "Establish appellate review standards that scrutinize reliance on algorithmic tools and check for base-rate neglect."
+    "Require a fairness audit of the risk model before use, including disparate impact analysis across demographic groups and validation against base-rate recidivism data for first-time non-violent offenders.",
+    "Mandate that judges consult base-rate data for the relevant offender category and document how the individual case deviates from the base rate.",
+    "Implement a structured sentencing rubric with explicit criteria, scoring dimensions, and predefined ranges to reduce noise and idiosyncratic judgment.",
+    "Prohibit or limit the use of neighbourhood, family arrest history, and other proxy variables in risk models unless they can be shown to predict individual behavior independent of systemic bias.",
+    "Require judges to document their reasoning independently before reviewing algorithmic scores, prosecution recommendations, or media-salient cases to reduce anchoring and automation bias.",
+    "Introduce calibration and severity monitoring for judges, with peer comparison and feedback to reduce level noise.",
+    "Assign a named accountability owner for each algorithmic tool used in sentencing, responsible for ongoing fairness validation and contestability.",
+    "Provide defence attorneys with access to model documentation, training data lineage, and error rates to enable meaningful challenge of risk scores."
   ],
   "alternative_perspectives": [
-    "The defendant's individual circumstances and lack of prior convictions suggest a low actual risk of recidivism, contrary to the algorithmic score.",
-    "The media case cited by the prosecution is statistically unrepresentative and should not influence this unrelated sentencing decision.",
-    "Employment instability and neighbourhood are consequences of structural inequality rather than indicators of individual criminal intent.",
-    "A structured rubric applied by a different judge might produce a sentence 30 percent lower, highlighting the arbitrariness of the current process.",
-    "The risk model's reliance on family arrests punishes the defendant for the behaviour of others and the policing practices in their community.",
-    "Base-rate data for first-time non-violent offenders would likely show much lower recidivism risk than the algorithmic score suggests."
+    "The risk score may be statistically predictive on average but still unfair if it systematically disadvantages groups subjected to discriminatory policing. Predictive accuracy does not equal fairness.",
+    "The media-salient case is a single anecdote and may represent a rare outcome. First-time non-violent offenders have low base rates of serious re-offending, and this defendant's individual circumstances should be weighed more heavily than a vivid but unrepresentative story.",
+    "The judge's harshness relative to peers suggests that equivalent cases are receiving inconsistent treatment. This defendant may be receiving a sentence that reflects the judge's personal severity rather than the evidence.",
+    "The prosecution's maximum sentence request may be a strategic anchor rather than a good-faith assessment. The judge should evaluate the evidence independently rather than negotiating down from an extreme starting point.",
+    "The absence of a structured rubric means that this sentence is vulnerable to all the biases identified. A fair process would require explicit criteria, independent dimension scoring, and base-rate comparison before determining the sentence."
   ]
 }
 ```
@@ -349,114 +359,111 @@ This document captures end-to-end outputs from the bias-aware decision-making RA
 
 ```json
 {
-  "situation_summary": "A first-time non-violent offender faces sentencing where multiple biases converge: an algorithmic risk score built on biased data (neighbourhood, family arrests), a systematically harsh judge, prosecutorial anchoring on maximum sentence, media-driven availability bias, and absence of structured decision criteria or fairness review.",
+  "situation_summary": "A first-time non-violent offender faces sentencing where multiple biases converge: a proprietary risk algorithm trained on biased arrest data from over-policed neighbourhoods, a judge with a documented pattern of harsher sentencing, prosecutorial anchoring to maximum sentence, media-driven availability bias, and absence of structured decision criteria or fairness review.",
   "biases_identified": [
     {
       "bias_name": "algorithmic_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "The risk model systematically produces unfair outcomes by weighting proxies for race and socioeconomic status (neighbourhood, family arrest history) rather than individual culpability or validated predictors.",
-      "evidence": "Model flags defendant as high risk based on neighbourhood and family arrests, not convictions or individual behavior.",
-      "risk": "Biased risk score appears objective and scientific, amplifying discriminatory patterns at scale while obscuring the underlying data problems."
+      "explanation": "The risk model systematically produces unfair outcomes by weighting neighbourhood, employment instability, and family arrest records—proxies that encode historical over-policing and socioeconomic disadvantage rather than individual culpability.",
+      "evidence": "Model flags defendant as high risk based on neighbourhood and family arrests, not convictions; defence notes historical data reflects over-policing.",
+      "risk": "The algorithm scales and legitimises discriminatory patterns from biased training data, making them appear objective and scientific in court."
     },
     {
       "bias_name": "historical_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "Training data reflects over-policing of certain neighbourhoods, encoding past discriminatory enforcement patterns into present-day predictions.",
-      "evidence": "Defence notes historical data over-represents arrests from heavily policed areas.",
-      "risk": "Past inequities are repackaged as neutral risk evidence, perpetuating systemic discrimination under the guise of data-driven decision-making."
+      "explanation": "Training data reflects past inequities in policing and arrest patterns, embedding systemic discrimination into the model's predictions.",
+      "evidence": "Defence attorney identifies that underlying data over-represents arrests from heavily policed neighbourhoods.",
+      "risk": "Past discriminatory enforcement practices are repackaged as neutral risk evidence, perpetuating inequality under the guise of data-driven decision-making."
     },
     {
       "bias_name": "proxy_bias",
       "bias_layer": "system",
       "confidence": "high",
-      "explanation": "Neighbourhood and family arrest history serve as proxies for protected characteristics (race, socioeconomic status) rather than measuring individual risk.",
-      "evidence": "Model uses neighbourhood and family member arrests as predictive features.",
-      "risk": "Indirect discrimination persists even though protected attributes may not be explicitly included, creating legally and ethically problematic disparate impact."
-    },
-    {
-      "bias_name": "anchoring_bias",
-      "bias_layer": "human",
-      "confidence": "high",
-      "explanation": "Prosecution's opening request for maximum sentence sets a high anchor that distorts the judge's subsequent evaluation.",
-      "evidence": "Prosecution opens with maximum sentence request, which judge reviews without independent baseline.",
-      "risk": "Initial extreme position pulls final sentence upward regardless of case-specific evidence or proportionality."
-    },
-    {
-      "bias_name": "availability_heuristic",
-      "bias_layer": "human",
-      "confidence": "high",
-      "explanation": "Recent media case involving similar-sounding defendant makes recidivism risk feel more probable than base-rate data would support.",
-      "evidence": "Prosecution cites recent unrelated media case; judge does not consult base-rate data for first-time non-violent offenders.",
-      "risk": "Memorable but unrepresentative case dominates judgment, crowding out statistical evidence about actual recidivism rates for this defendant category."
+      "explanation": "Neighbourhood, employment instability, and family arrest records serve as proxies for race and socioeconomic status, enabling indirect discrimination even without explicit protected attributes.",
+      "evidence": "Model weighs neighbourhood and family arrests—variables that correlate with systemic disadvantage rather than individual behaviour.",
+      "risk": "Removing explicit demographic variables does not prevent discrimination when correlated proxies remain in the model."
     },
     {
       "bias_name": "automation_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "Judge accepts algorithmic risk score without scrutinizing its construction, error modes, or fairness properties.",
-      "evidence": "Judge reviews risk score but does not request fairness review or question model validity.",
-      "risk": "Proprietary model output gains unwarranted authority, and flawed predictions are treated as objective evidence rather than contestable judgment."
+      "explanation": "The judge treats the algorithmic risk score as authoritative without scrutinising its methodology, error modes, or fairness properties.",
+      "evidence": "Judge reviews the risk score but does not request a fairness review or question the model's construction.",
+      "risk": "Algorithmic outputs gain unwarranted credibility, suppressing critical evaluation and enabling biased predictions to drive sentencing."
     },
     {
-      "bias_name": "level_noise",
+      "bias_name": "anchoring_bias",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "Judge is systematically 30 percent harsher than peers, introducing unwarranted severity independent of case facts.",
-      "evidence": "Judge has reputation for sentences roughly 30 percent harsher than peers for comparable cases.",
-      "risk": "Defendant receives disproportionately harsh sentence simply due to which judge was assigned, violating fairness and consistency principles."
+      "explanation": "The prosecution's opening request for maximum sentence sets a numerical anchor that distorts the judge's subsequent evaluation.",
+      "evidence": "Prosecution opens with a request for maximum allowable sentence, which the judge reviews.",
+      "risk": "Initial extreme position shifts the judge's reference point upward, resulting in harsher sentences than evidence warrants."
     },
     {
-      "bias_name": "process_ambiguity_bias",
-      "bias_layer": "system",
+      "bias_name": "availability_heuristic",
+      "bias_layer": "human",
       "confidence": "high",
-      "explanation": "Absence of structured sentencing rubric leaves excessive discretion, enabling idiosyncratic and biased judgment.",
-      "evidence": "No structured sentencing rubric in use; judge relies on risk score, prosecution anchor, and media case without formal criteria.",
-      "risk": "Lack of structure allows multiple biases to compound unchecked, producing inconsistent and unfair outcomes across similar cases."
+      "explanation": "A recent media case involving a similar-sounding defendant who re-offended makes recidivism risk feel more salient and likely than base-rate data would support.",
+      "evidence": "Prosecution cites a recent unrelated media case where a similar-sounding defendant re-offended within months.",
+      "risk": "Memorable but unrepresentative cases crowd out statistical evidence, inflating perceived risk."
     },
     {
       "bias_name": "base_rate_neglect",
       "bias_layer": "human",
       "confidence": "high",
-      "explanation": "Judge ignores statistical evidence about recidivism rates for first-time non-violent offenders in favor of salient individual case and risk score.",
+      "explanation": "The judge does not consult base-rate recidivism data for first-time non-violent offenders, relying instead on the algorithmic score and vivid anecdotes.",
       "evidence": "Judge does not consult base-rate data for first-time non-violent offenders.",
-      "risk": "General prevalence data that should anchor risk assessment is replaced by vivid but unrepresentative information, distorting probability judgment."
+      "risk": "General prevalence information is ignored in favour of case-specific cues, leading to systematically miscalibrated risk assessments."
+    },
+    {
+      "bias_name": "level_noise",
+      "bias_layer": "human",
+      "confidence": "high",
+      "explanation": "This judge is documented as systematically harsher than peers, introducing stable but unwarranted severity into sentencing.",
+      "evidence": "Judge has a reputation for handing down sentences roughly 30 percent harsher than peers for comparable cases.",
+      "risk": "Equivalent cases receive materially different sentences depending on which judge presides, violating fairness and consistency."
+    },
+    {
+      "bias_name": "process_ambiguity_bias",
+      "bias_layer": "system",
+      "confidence": "high",
+      "explanation": "Absence of a structured sentencing rubric leaves excessive discretion, enabling idiosyncratic judgment and compounding other biases.",
+      "evidence": "There is no structured sentencing rubric in use.",
+      "risk": "Unstructured processes allow cognitive biases, noise, and external anchors to dominate, producing inconsistent and unfair outcomes."
     },
     {
       "bias_name": "confirmation_bias",
       "bias_layer": "human",
       "confidence": "medium",
-      "explanation": "Judge may selectively weight evidence that confirms initial impression formed from risk score and prosecution framing.",
-      "evidence": "Judge reviews risk score and prosecution anchor without seeking disconfirming evidence or alternative perspectives.",
-      "risk": "Early negative framing from risk score and prosecution may cause judge to discount mitigating factors and overweight confirming details."
+      "explanation": "Once the judge sees the high-risk label and prosecution anchor, subsequent information may be interpreted to confirm the initial severity framing.",
+      "evidence": "Judge reviews risk score and prosecution request but does not seek disconfirming evidence or alternative interpretations.",
+      "risk": "Early cues create a narrative that filters later evidence, preventing balanced evaluation."
     }
   ],
   "noise_considerations": {
     "present": true,
-    "explanation": "Significant level noise exists due to judge's systematic harshness relative to peers. Pattern noise likely present as different judges would weigh risk score, media case, and defendant characteristics differently. Occasion noise possible if judge's severity varies by workload, time of day, or recent cases. Absence of structured criteria amplifies all noise sources."
+    "explanation": "Level noise is clearly present: this judge sentences 30 percent more harshly than peers. Occasion noise may also apply if the judge's severity varies with contextual factors like media salience or time of day. Pattern noise could emerge if different judges weight the algorithmic score differently. The absence of structured criteria amplifies all forms of noise."
   },
-  "overall_risk_assessment": "This scenario presents compounded bias and noise creating severe risk of unjust outcome. Algorithmic bias built on discriminatory data combines with human cognitive biases (anchoring, availability, automation trust) and systemic failures (no rubric, no fairness review, harsh judge). Defendant faces disproportionate sentence driven by neighbourhood proxies, media salience, prosecutorial framing, and judge severity rather than individual culpability or evidence-based risk assessment. Multiple fairness violations likely, with disparate impact on marginalized groups.",
+  "overall_risk_assessment": "This scenario exhibits severe compounding of human cognitive biases, systemic algorithmic bias, and structural process failures. The defendant faces a sentencing lottery driven by: biased training data, proxy discrimination, algorithmic authority bias, prosecutorial anchoring, media-driven availability effects, a systematically harsh judge, and no structured review. The cumulative effect is a high probability of unjust and disproportionate sentencing that violates fairness, consistency, and equal treatment principles.",
   "recommended_actions": [
-    "Require independent fairness audit of risk model before use, including disparate impact analysis across protected groups and validation against actual recidivism outcomes for first-time non-violent offenders.",
-    "Implement structured sentencing rubric with explicit criteria, weight ranges, and required documentation of aggravating and mitigating factors to reduce discretion and noise.",
-    "Mandate consultation of base-rate recidivism data for defendant category before sentencing, presented alongside any algorithmic score.",
-    "Prohibit use of neighbourhood, family member arrests (not convictions), and other proxy variables in risk models; require transparent feature justification.",
-    "Establish judicial calibration process to identify and correct systematic severity differences across judges (level noise reduction).",
-    "Require judges to document independent preliminary sentence before reviewing prosecution recommendation to reduce anchoring effect.",
-    "Implement contestability mechanism allowing defence to challenge risk score methodology and request alternative risk assessment.",
-    "Use blind review or aggregated judgment from multiple reviewers for high-stakes sentencing decisions to reduce individual judge noise.",
-    "Prohibit citation of media cases without statistical context about their representativeness and base-rate comparison.",
-    "Establish periodic review of sentencing patterns by judge, defendant demographics, and case type to detect and correct bias and noise."
+    "Require independent fairness audits of all risk models before courtroom use, including disparate impact analysis across demographic groups and documentation of training data provenance.",
+    "Implement structured sentencing rubrics with explicit criteria, weight ranges, and mandatory base-rate comparisons for offense categories.",
+    "Prohibit prosecutorial anchoring by requiring evidence-based sentencing recommendations rather than opening with maximum requests.",
+    "Mandate judicial training on cognitive biases, algorithmic limitations, and noise in sentencing; introduce calibration exercises across judges.",
+    "Establish appellate review standards that scrutinise reliance on algorithmic scores and require judges to document consideration of base rates and alternative explanations.",
+    "Remove or limit use of proxy variables (neighbourhood, family arrest records) in risk models; require models to demonstrate predictive validity independent of protected-class proxies.",
+    "Introduce contestability mechanisms allowing defendants to challenge algorithmic scores with independent expert review.",
+    "Collect and publish sentencing data by judge to make level noise visible and enable corrective feedback."
   ],
   "alternative_perspectives": [
-    "Risk assessment tools, if properly validated and audited for fairness, could reduce human bias and noise—but only if built on representative data, transparent features, and subject to ongoing monitoring. Current tool fails these requirements.",
-    "Defendant's neighbourhood and family context may reflect systemic disadvantage rather than individual risk; sentencing should account for structural factors and focus on evidence of individual culpability and rehabilitation potential.",
-    "First-time non-violent offender status suggests lower recidivism risk than model predicts; base-rate evidence would likely support more lenient sentence than judge is considering.",
-    "Media-salient comparison case is unrepresentative and should be discounted; statistical evidence about similar defendants provides better guidance.",
-    "Harsh judge assignment introduces arbitrary unfairness; case outcome should not depend on judicial lottery. Structured guidelines or review mechanisms needed.",
-    "Prosecution's maximum sentence request may reflect institutional incentives (conviction metrics, political pressure) rather than proportionate justice; independent review of appropriateness needed.",
-    "Absence of fairness review and structured process suggests systemic failure in court administration; governance and oversight mechanisms are inadequate."
+    "The defendant may have mitigating factors (employment efforts, family support, lack of prior convictions) that are underweighted relative to the algorithmic score and media narrative.",
+    "Base-rate data likely shows that first-time non-violent offenders have low recidivism rates, contradicting the high-risk label.",
+    "The risk model may perform poorly for individuals from over-policed neighbourhoods, meaning the score is less reliable for this defendant than for others.",
+    "A structured rubric might reveal that comparable cases typically receive far lighter sentences, exposing the judge's systematic harshness.",
+    "The media case cited by prosecution may be a statistical outlier rather than a representative example, making it misleading as a comparison.",
+    "If the model's training data and feature weights were disclosed, the defence could demonstrate that the score reflects systemic bias rather than individual risk."
   ]
 }
 ```
@@ -466,11 +473,11 @@ This document captures end-to-end outputs from the bias-aware decision-making RA
 | Dimension | Baseline (no RAG) | RAG-enhanced |
 |-----------|-------------------|--------------|
 | Biases identified (count) | 10 | 10 |
-| Biases identified (names) | algorithmic_bias, anchoring_bias, automation_bias, availability_heuristic, base_rate_neglect, historical_bias, level_noise, measurement_bias, process_ambiguity_bias, proxy_bias | algorithmic_bias, anchoring_bias, automation_bias, availability_heuristic, base_rate_neglect, confirmation_bias, historical_bias, level_noise, process_ambiguity_bias, proxy_bias |
+| Biases identified (names) | algorithmic_bias, anchoring_bias, automation_bias, availability_heuristic, base_rate_neglect, diffusion_of_responsibility, historical_bias, level_noise, process_ambiguity_bias, proxy_bias | algorithmic_bias, anchoring_bias, automation_bias, availability_heuristic, base_rate_neglect, confirmation_bias, historical_bias, level_noise, process_ambiguity_bias, proxy_bias |
 | Surfaced only with RAG | _n/a_ | confirmation_bias |
-| Surfaced only without RAG | measurement_bias | _n/a_ |
-| Recommended actions (count) | 8 | 10 |
-| Alternative perspectives (count) | 6 | 7 |
+| Surfaced only without RAG | diffusion_of_responsibility | _n/a_ |
+| Recommended actions (count) | 8 | 8 |
+| Alternative perspectives (count) | 5 | 6 |
 
 ---
 

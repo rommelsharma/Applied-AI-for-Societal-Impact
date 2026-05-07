@@ -20,6 +20,19 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 from app.services.bias_detector import detect_bias_comparison
+from shared_components.utilities.path_utils import get_corpus_name, get_vector_store_dir
+
+
+def _read_index_manifest() -> dict:
+    """Return the active corpus's vector-store manifest as a dict.
+
+    Falls back to a minimal placeholder when the manifest is missing so the
+    report can still render against an unbuilt corpus during development.
+    """
+    manifest_path = get_vector_store_dir() / "manifest.json"
+    if not manifest_path.exists():
+        return {"corpus": get_corpus_name(), "count": 0, "dimension": 0, "index_type": "unknown"}
+    return json.loads(manifest_path.read_text(encoding="utf-8"))
 
 
 # Two deliberately distinct scenarios to exercise different parts of the taxonomy.
@@ -69,6 +82,11 @@ def render_markdown(results: list[dict]) -> str:
     """Render the per-scenario comparison results as a reviewer-facing markdown report."""
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M %Z").strip()
+    manifest = _read_index_manifest()
+    corpus_name = manifest.get("corpus", get_corpus_name())
+    chunk_count = manifest.get("count", 0)
+    embedding_dim = manifest.get("dimension", 1024)
+    index_type = manifest.get("index_type", "IndexFlatIP")
 
     lines: list[str] = []
     lines.append("# Sample Results - Baseline vs RAG Comparison")
@@ -83,11 +101,19 @@ def render_markdown(results: list[dict]) -> str:
     lines.append("")
     lines.append(f"**Generated:** {timestamp}")
     lines.append("")
+    lines.append(f"**Corpus:** `{corpus_name}` (this is the public, committed corpus; "
+                 f"private full-book results are produced separately via "
+                 f"`scripts/compare_versions.py` and are not included in this report).")
+    lines.append("")
     lines.append("**Models:**")
     lines.append("")
     lines.append("- Chat: `us.anthropic.claude-sonnet-4-5-20250929-v1:0` (Amazon Bedrock)")
-    lines.append("- Embeddings: `amazon.titan-embed-text-v2:0` (1024 dims, normalised)")
-    lines.append("- Retrieval index: FAISS `IndexFlatIP` over 247 chunks")
+    lines.append(
+        f"- Embeddings: `amazon.titan-embed-text-v2:0` ({embedding_dim} dims, normalised)"
+    )
+    lines.append(
+        f"- Retrieval index: FAISS `{index_type}` over {chunk_count} chunks"
+    )
     lines.append("")
     lines.append("---")
     lines.append("")

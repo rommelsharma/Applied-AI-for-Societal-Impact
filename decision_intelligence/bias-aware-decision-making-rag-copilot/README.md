@@ -132,21 +132,35 @@ Implemented now:
 * Baseline-vs-RAG bias detector returning strict JSON with retrieval traceability
 * ~30 evaluation scenarios across hiring, performance review, legal, AI governance, leadership, strategy, and compliance
 * `compare_versions.py` for side-by-side public-vs-private corpus evaluation
+* ML-Ops plan, LLM provider portability section, and phased rollout plan (Phases 0/1 done; Phase 2 scaffolding shipped)
+* `scripts/ingest_author_content.py` (Phase 2 author-published-content fetcher) and `data_pipeline/build_knowledge_base.py --skip-parse` flag
 
 Still to validate end to end:
 
-* Private-corpus build against full-length book PDFs (run locally)
-* Honest A/B numbers on the lift between corpora
+* Phase 2 author content (manifest is empty until items are licence-checked and added)
 * Demo surface for recruiters
+
+---
+
+## Phased Rollout Snapshot
+
+| Phase | What it adds | Status |
+|---|---|---|
+| 0 | Synthesised dossiers in the public corpus | Done |
+| 1 | Full books in the private corpus + A/B harness | Done |
+| 2 | Author-published essays / lectures in the public corpus | Scaffolding shipped, manifest empty |
+| 3 | Permitted summaries and reviews in the public corpus | Future |
+| 4 | Reranker enabled (>3k chunks) and IVF/HNSW migration (>50k chunks) | Future |
+
+Full plan: [`docs/phased-rollout-plan.md`](docs/phased-rollout-plan.md).
 
 ---
 
 ## Next Steps
 
-* Build the private corpus locally and run `compare_versions.py` to capture honest lift numbers
-* Phased rollout (dossiers + author-published essays in public, full books in private eval) — see `docs/PRIVATE_CORPUS_GUIDE.md`
-* Promote the rule-based passage classifier to LLM-assisted once the private corpus is in place (`ENRICHMENT_USE_LLM=true`)
-* Consider enabling the Claude-Haiku reranker once the corpus exceeds ~3,000 chunks
+* Curate and licence-check the first batch of author-published content for `data/metadata/author_content_manifest.json`, then run `scripts/ingest_author_content.py` followed by the corpus rebuild
+* Promote the rule-based passage classifier to LLM-assisted once Phase 2 content is in (`ENRICHMENT_USE_LLM=true`)
+* Consider enabling the Claude-Haiku reranker once the public corpus exceeds ~3,000 chunks
 * Add a simple demo interface
 
 ---
