@@ -2,7 +2,7 @@
 
 This document explains the *why* behind the Bias-Aware Decision Making RAG Copilot — the logical flow, the core ideas in retrieval-augmented generation, and the rationale for the specific technologies chosen.
 
-It is intended as a primer for engineers, reviewers, and recruiters who want to understand not just what the system does but *why* it is built this way.
+It is intended as a primer for engineers, reviewers, and HR / Legal / business stakeholders who want to understand not just what the system does but *why* it is built this way.
 
 ---
 
@@ -409,7 +409,7 @@ Books carry copyright pages, dedications, tables of contents, acknowledgments, n
 
 ## 12. Why a Baseline-vs-RAG Comparison Mode
 
-The single most important question a recruiter or reviewer will ask is: *"Does the retrieval actually help?"*
+The single most important question an HR, Legal, or business reviewer will ask is: *"Does the retrieval actually help?"*
 
 Running both prompts on every scenario answers that question with evidence rather than belief. Over time, the comparison can be scored on:
 

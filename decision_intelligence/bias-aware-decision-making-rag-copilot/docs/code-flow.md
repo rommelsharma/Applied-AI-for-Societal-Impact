@@ -1,6 +1,6 @@
 # Code Flow
 
-This document describes the repository layout and the end-to-end execution flow of the Bias-Aware Decision Making RAG Copilot. It is intended to be the single navigational reference for new contributors, code reviewers, and recruiters auditing the system.
+This document describes the repository layout and the end-to-end execution flow of the Bias-Aware Decision Making RAG Copilot. It is intended to be the single navigational reference for new contributors, code reviewers, and HR / Legal / business reviewers auditing the system.
 
 ---
 

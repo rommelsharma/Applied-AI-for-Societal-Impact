@@ -18,4 +18,4 @@ Read these files in order:
 1. validate Bedrock-based embeddings and retrieval
 2. integrate live retrieval into the bias detection copilot
 3. tune taxonomy, retrieval quality, and grounding
-4. add stronger evaluation and recruiter-demo polish
+4. add stronger evaluation and HR / Legal / Manager demo polish

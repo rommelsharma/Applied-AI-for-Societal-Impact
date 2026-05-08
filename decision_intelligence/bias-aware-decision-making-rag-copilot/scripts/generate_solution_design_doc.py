@@ -383,10 +383,10 @@ def build_background(doc: Document) -> None:
         doc,
         [
             "Managers and team leaders evaluating people, projects, and trade-offs.",
-            "HR and recruiting professionals running structured interviews and performance reviews.",
+            "HR and People Operations professionals running structured interviews and performance reviews.",
             "Legal, compliance, and policy reviewers assessing case patterns.",
             "Individual contributors making difficult judgment calls.",
-            "Portfolio reviewers and recruiters evaluating applied-AI capability.",
+            "Portfolio reviewers and hiring stakeholders evaluating applied-AI capability.",
         ],
     )
 
@@ -768,6 +768,118 @@ def build_validation_qa(doc: Document) -> None:
         ],
     )
 
+    add_heading(doc, "7.5 Entry Point - Run a Scenario Yourself", level=2)
+    add_paragraph(
+        doc,
+        "Three entry points are available depending on whether the user wants "
+        "to test a single ad-hoc scenario, run the canonical scenario suite, or "
+        "produce the showcase comparison document. The simplest path for an "
+        "HR, Legal, or Manager user is the single-scenario CLI helper.",
+    )
+
+    add_header_table(
+        doc,
+        ["Goal", "Script to execute", "Where the result lands"],
+        [
+            [
+                "Test ONE custom scenario (recommended for ad-hoc use)",
+                "python scripts/run_my_scenario.py --scenario \"...\"",
+                "Console summary + evaluation/my_scenario_result.json",
+            ],
+            [
+                "Test ONE long scenario from a file",
+                "python scripts/run_my_scenario.py --file path/to/my_scenario.txt",
+                "Console summary + evaluation/my_scenario_result.json",
+            ],
+            [
+                "Run the FULL canonical scenario suite (~30 scenarios)",
+                "python evaluation/run_evaluation.py",
+                "evaluation/latest_results.json (full payload per scenario) + console diff stats",
+            ],
+            [
+                "Re-generate the showcase comparison document",
+                "python scripts/run_sample_comparison.py",
+                "evaluation/sample_results.json + docs/sample_results_comparison.md",
+            ],
+            [
+                "Add a custom scenario to the canonical suite",
+                "Edit evaluation/test_scenarios.json (add an entry with id, domain, tags, scenario), then run python evaluation/run_evaluation.py",
+                "evaluation/latest_results.json (will include the new entry)",
+            ],
+            [
+                "Compare two corpora (public vs private)",
+                "python scripts/compare_versions.py --versions public,private",
+                "data/corpora/comparisons/<timestamp>/ (markdown summary + JSON detail)",
+            ],
+        ],
+    )
+
+    add_paragraph(
+        doc,
+        "How to specify your own prompt with run_my_scenario.py:",
+        bold=True,
+    )
+    add_bullets(
+        doc,
+        [
+            "Inline:    python scripts/run_my_scenario.py --scenario \"A senior manager is filling a high-visibility lead role...\"",
+            "From file: python scripts/run_my_scenario.py --file path/to/my_scenario.txt",
+            "Via stdin: echo \"A team agrees with the leader without questioning...\" | python scripts/run_my_scenario.py",
+            "Quiet:     add --quiet to skip the readable summary and only write the JSON payload.",
+            "Custom output path: add --output path/to/my_result.json to redirect the JSON.",
+            "Corpus: add --corpus public or --corpus private to pick which knowledge base to retrieve from (default: public).",
+        ],
+    )
+
+    add_paragraph(
+        doc,
+        "What you will see on the console:",
+        bold=True,
+    )
+    add_bullets(
+        doc,
+        [
+            "SCENARIO - the text you submitted, echoed back.",
+            "SITUATION SUMMARY - the system's plain-language framing of what is happening.",
+            "BIASES IDENTIFIED - cognitive, systemic, and AI-governance biases for both the baseline (no-RAG) and RAG paths.",
+            "RECOMMENDED ACTIONS - structured countermeasures grounded in the curated literature.",
+            "ALTERNATIVE PERSPECTIVES - viewpoints a careful reviewer would consider.",
+            "RETRIEVED SUPPORTING SOURCES - the top chunks that grounded the analysis (source, author, similarity score, concepts).",
+        ],
+    )
+
+    add_paragraph(
+        doc,
+        "Where to find results on disk:",
+        bold=True,
+    )
+    add_bullets(
+        doc,
+        [
+            "evaluation/my_scenario_result.json - the full JSON payload (without_rag, with_rag, retrieval) for the most recent run of run_my_scenario.py.",
+            "evaluation/latest_results.json - the full canonical-suite results, refreshed every time evaluation/run_evaluation.py is executed.",
+            "docs/sample_results_comparison.md - the human-readable showcase comparison document, refreshed every time scripts/run_sample_comparison.py is executed.",
+            "data/corpora/comparisons/ - markdown + JSON outputs from scripts/compare_versions.py for cross-corpus A/B reviews.",
+        ],
+    )
+
+    add_paragraph(
+        doc,
+        "All entry points read the same Bedrock configuration from .env, share "
+        "the same taxonomy and prompt, and produce identical output structure - "
+        "so a scenario tested through run_my_scenario.py is fully comparable to "
+        "scenarios run through the evaluation harness.",
+    )
+
+    add_paragraph(
+        doc,
+        "Reminder: the system is decision support only and is not legal, "
+        "medical, HR, or financial advice. Outputs must be reviewed by "
+        "qualified human decision makers familiar with the local legal, "
+        "regulatory, and organisational context.",
+        italic=True,
+    )
+
     add_page_break(doc)
 
 
@@ -780,7 +892,7 @@ def build_infrastructure(doc: Document) -> None:
         doc,
         [
             "                                    +-------------------------+",
-            "                                    |   End User / Recruiter  |",
+            "                                    | End User - HR/Legal/Mgr |",
             "                                    +-----------+-------------+",
             "                                                |",
             "                                                v",
@@ -1223,7 +1335,7 @@ def build_roadmap(doc: Document) -> None:
             "Validate the live Bedrock embedding and chat paths end-to-end against a clean rebuild.",
             "Tune ``top_k`` and concept/domain filters using inspection runs over the existing scenarios.",
             "Add automated schema and taxonomy adherence checks to the evaluation runner.",
-            "Implement a minimal Streamlit or FastAPI demo surface for recruiter walk-throughs.",
+            "Implement a minimal Streamlit or FastAPI demo surface for HR, Legal, and Manager walk-throughs.",
         ],
     )
 

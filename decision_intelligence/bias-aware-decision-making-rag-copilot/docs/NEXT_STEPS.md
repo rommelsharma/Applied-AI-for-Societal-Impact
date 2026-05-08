@@ -41,4 +41,4 @@
 
 ### 7. Add a demo interface
 - minimal Streamlit UI or FastAPI endpoint
-- enough for recruiters to test the solution interactively
+- enough for HR, Legal, and Manager users to test the solution interactively

@@ -19,7 +19,7 @@ Create a polished enterprise-style AI portfolio project centered on decision int
 - HR professionals
 - legal and policy-adjacent reviewers
 - individual contributors making difficult judgment calls
-- recruiters reviewing candidates
+- hiring committees and panels reviewing candidates
 
 ## Main user experience
 A user submits a complex scenario. The system responds with:
