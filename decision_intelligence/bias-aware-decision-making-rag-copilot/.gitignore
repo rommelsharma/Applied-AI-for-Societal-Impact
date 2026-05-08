@@ -1,19 +1,66 @@
+# --------------------------------------------------------------------------
+# Environment, secrets, and runtime artefacts
+# --------------------------------------------------------------------------
 .env
 __pycache__/
 *.pyc
 .DS_Store
 
-# Per-run evaluation outputs
+# Per-run evaluation outputs (regenerated locally; not part of the design)
 evaluation/latest_results.json
 evaluation/sample_results.json
 
-# Public corpus: raw PDFs are committed (synthesised dossiers).
-# Derived artefacts can be regenerated and are kept out of git.
+
+# --------------------------------------------------------------------------
+# Source-book safety net (defence in depth)
+# --------------------------------------------------------------------------
+# Source books are NEVER committed to GitHub. Even though the curated
+# private corpus directory is gitignored below, this section adds extra
+# layers so a stray full book in any other location is also ignored:
+#
+#   1. Common ebook formats are ignored everywhere in the repository.
+#   2. The public corpus's raw/ folder uses a strict whitelist - only
+#      project-authored research dossiers (named "*-rag-dossier.pdf") are
+#      tracked. Anything else placed there (full books, scans, etc.) is
+#      ignored automatically.
+#
+# Synthesised dossiers (project-authored summaries) are NOT source books
+# and are intentionally tracked.
+*.epub
+*.mobi
+*.azw
+*.azw3
+*.kfx
+*.fb2
+*.djvu
+
+# Public corpus raw/: whitelist only synthesised research dossiers.
+data/corpora/public/raw/*
+!data/corpora/public/raw/.gitignore
+!data/corpora/public/raw/*-rag-dossier.pdf
+
+
+# --------------------------------------------------------------------------
+# Derived artefacts under the public corpus
+# --------------------------------------------------------------------------
+# These are reproducible from raw/ + the pipeline; keep them out of git.
 data/corpora/public/parsed_text/
 data/corpora/public/chunks/
 data/corpora/public/knowledge/
 data/corpora/public/vector_store/
 
-# Private corpus: full-book PDFs and every derivative are local-only.
-# Used for personal research and private evaluation; never committed.
+
+# --------------------------------------------------------------------------
+# Private corpus: full-book PDFs for personal / private evaluation only.
+# --------------------------------------------------------------------------
+# Entire tree is local-only and is NEVER committed.
 data/corpora/private/
+
+
+# --------------------------------------------------------------------------
+# Generic data-sourcing / scratch directories
+# --------------------------------------------------------------------------
+# Anything under a top-level "sourcing/" or per-project "*/sourcing/" folder
+# is treated as a download / scratch area and never committed.
+sourcing/
+**/sourcing/

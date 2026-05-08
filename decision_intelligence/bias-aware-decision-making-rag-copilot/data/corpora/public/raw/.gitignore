@@ -1,2 +1,6 @@
+# Public corpus raw/ - whitelist only project-authored research dossiers.
+# Source books and any other PDFs placed here are NEVER committed to GitHub.
+# To add a new dossier, name it "<slug>-rag-dossier.pdf".
 *
 !.gitignore
+!*-rag-dossier.pdf
