@@ -163,7 +163,7 @@ The Jaguar Identification Project aims to automate the Jaguar identification pro
 
 ---
 
-### Acoustic Monitoring (Audio AI)
+### Acoustic Monitoring (Audio AI) -  (Planned)
 
 An audio-based system for detecting environmental signals and biodiversity patterns.
 
