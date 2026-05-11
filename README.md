@@ -127,7 +127,7 @@ Applied-AI-for-Societal-Impact/
 │   └── market-analysis/
 │
 ├── computer-vision/
-│   └── wildlife-detection/
+│   └── jaguar-reid/
 │
 ├── audio-ai/
 │   └── acoustic-monitoring/
@@ -159,10 +159,11 @@ AI-driven system for analyzing financial data, identifying patterns, and support
 ### Wildlife Detection (Computer Vision)
 
 A computer vision system for identifying and classifying wildlife from visual data.
+The Jaguar Identification Project aims to automate the Jaguar identification process moving away from manual identification to help support the survival of this near-threatened species.
 
 ---
 
-### Acoustic Monitoring (Audio AI)
+### Acoustic Monitoring (Audio AI) -  (Planned)
 
 An audio-based system for detecting environmental signals and biodiversity patterns.
 
