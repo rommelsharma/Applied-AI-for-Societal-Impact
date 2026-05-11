@@ -1,6 +1,13 @@
 # Jaguar re-identification
 
-Professional layout for a **Kaggle-style fine-grained re-ID** solution: pairwise similarity for **371** test images (**137,270** pairs), evaluated with **identity-balanced mean Average Precision**. Training uses **MegaDescriptor-L**, **GeM pooling**, **ArcFace**, **LLRD**, **5-fold CV**, and inference uses **TTA**, **query expansion**, and **k-reciprocal re-ranking**.
+Jaguars are the apex predators of the Americas, but tracking their populations across vast landscapes like the Pantanal is a monumental task. Researchers have relied on manual identification by comparing unique spot patterns, which act like a biological fingerprint, to distinguish individuals. With the rise of eco-tourism and citizen science, thousands of photographs are captured each year. However, the volume of data makes manual identification a bottleneck for conservation efforts. The Jaguar Identification Project aims to automate this process. 
+
+This solution is my approach to developing a computer vision model capable of identifying individual jaguars (such as "Medrosa," "Patricia," or "Ousado") from wildlife photographs. 
+
+I loved this project due to its practical environmental and societal impact for wildlife identification and preservation by being part of wildlife demographics research. 
+Collectively this research and contributions of code help support the survival of this near-threatened species.
+
+Training uses **MegaDescriptor-L**, **GeM pooling**, **ArcFace**, **LLRD**, **5-fold CV**, and inference uses **TTA**, **query expansion**, and **k-reciprocal re-ranking**.
 
 ## Repository layout
 
@@ -30,19 +37,6 @@ jaguar-reid/
     └── test_package_import.py
 ```
 
-## File mapping (legacy → this repo)
-
-| Legacy location (unchanged originals) | This repository |
-|----------------------------------------|-----------------|
-| `successful_solution_notebook/successful_v7-jaguar-re-identify-megadescriptor.py` | `src/jaguar_reid/train.py` |
-| `successful_solution_notebook/0-817-jaguar-id-megadescriptor-l-with-llrd.ipynb` | `notebooks/jaguar_id_megadescriptor_llrd.ipynb` |
-| `successful_solution_notebook/Jaguar Re-ID Architecture Report.docx` | `docs/architecture/Jaguar_Re-ID_Architecture_Report.docx` |
-| `successful_solution_notebook/source-docs/overview.docx` | `docs/competition/overview.docx` |
-| `successful_solution_notebook/source-docs/dataset_description.docx` | `docs/competition/dataset_description.docx` |
-
-Paths in the first column are relative to  
-`jaguar-id/submitted-on-kaggle-tested-on-gcp/submission4/`  
-(see [LEGACY.md](./LEGACY.md) for the full relative path from `computer-vision/`).
 
 ## Quick start
 
@@ -54,7 +48,7 @@ Paths in the first column are relative to
    pip install -U pip && pip install -r requirements.txt
    ```
 
-2. **Data** — Place Kaggle competition files under `data/` (or edit `DATA_DIR` / `OUTPUT_DIR` inside `src/jaguar_reid/train.py`).
+2. **Data** — Place training data files under `data/` (or edit `DATA_DIR` / `OUTPUT_DIR` inside `src/jaguar_reid/train.py`).
 
 3. **Run**
 
@@ -69,7 +63,7 @@ Paths in the first column are relative to
    python -m jaguar_reid.train
    ```
 
-4. **Notebook** — Open `notebooks/jaguar_id_megadescriptor_llrd.ipynb` for the documented Kaggle-oriented workflow.
+4. **Notebook** — Open `notebooks/jaguar_id_megadescriptor_llrd.ipynb` for the documented workflow.
 
 ## Documentation
 
@@ -80,8 +74,10 @@ See [docs/README.md](./docs/README.md) for an index.
 
 ## Provenance
 
-This tree is a **copy** of the solution artifacts from the historical workspace (unchanged originals remain in the legacy folder). Use **`jaguar-reid/`** for **GitHub presentation**; keep the legacy tree for exact historical paths and Kaggle notebooks that still reference them.
+This work is a summary of my submission to a Kaggle competition to identify Jaguars. 
+This was an excellent learning on computer vision moving beyond generic computer vision models and needed specialised model application. 
+My best code was after the competition submission deadline as I took some time to reach a better approach starting from computer vision fundamentals to more specialised application.
 
 ## License
 
-Respect **Kaggle competition rules** and third-party model licenses (**MegaDescriptor**, **timm**, **PyTorch**). Add a root `LICENSE` file that matches your intent before publishing.
+**Kaggle competition rules** and third-party model licenses (**MegaDescriptor**, **timm**, **PyTorch**). 
