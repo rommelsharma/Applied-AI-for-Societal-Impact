@@ -1,0 +1,1199 @@
+{
+  "connectivity": {
+    "ok": true,
+    "steps": [
+      {
+        "name": "bedrock_credentials",
+        "ok": true,
+        "region": "us-west-2"
+      },
+      {
+        "name": "embedding_probe",
+        "ok": true,
+        "latency_ms": 1625,
+        "dimensions": 1024,
+        "model_id": "amazon.titan-embed-text-v2:0"
+      },
+      {
+        "name": "vector_store_load",
+        "ok": true,
+        "corpus": "public"
+      },
+      {
+        "name": "retrieval_probe",
+        "ok": true,
+        "latency_ms": 618,
+        "chunks_returned": 3,
+        "top_score": 0.5761739611625671
+      }
+    ],
+    "errors": [],
+    "chat_model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "embedding_model_id": "amazon.titan-embed-text-v2:0",
+    "corpus_name": "public"
+  },
+  "run_card": {
+    "label": "before_refactor",
+    "generated_at_utc": "2026-05-13T04:04:22.231993+00:00",
+    "generated_at_local": "2026-05-13T14:04:22+10:00",
+    "project_root": "/Users/romsharm/Local-Data/my-code/GitHub/Applied-AI-for-Societal-Impact/decision_intelligence/bias-aware-decision-making-rag-copilot",
+    "git_commit": "2bfa8a7542166b454a579d99794dd52e71c98c84",
+    "git_dirty": true,
+    "scenario_file": "evaluation/baseline_scenarios.json",
+    "scenario_file_sha256": "051f487c94d02ee3eb415ef1cfdf4f42a8921c285064e51ba5a2e33772fbaf81",
+    "prompt_file": "/Users/romsharm/Local-Data/my-code/GitHub/Applied-AI-for-Societal-Impact/decision_intelligence/bias-aware-decision-making-rag-copilot/prompts/bias_detection_system_prompt.txt",
+    "prompt_file_sha256": "f49124ed039b210f9b54a285a4bafeda3f731ae64bc15bf66143bf6f90db2048",
+    "bedrock_region": "us-west-2",
+    "bedrock_chat_model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "bedrock_embedding_model_id": "amazon.titan-embed-text-v2:0",
+    "bedrock_embedding_dimensions": 1024,
+    "rag_corpus_name": "public",
+    "rag_chunk_profile": "auto",
+    "rag_top_k": 8,
+    "rag_mmr_lambda": 0.7,
+    "rag_reranker": "none",
+    "rag_reranker_candidates": 24,
+    "extra": {
+      "scenario_count": 3,
+      "script": "record_response_run.py"
+    }
+  },
+  "scenarios": [
+    {
+      "scenario_id": "baseline_hiring_rubric",
+      "title": "Hiring \u2014 ambiguous culture-fit without rubric",
+      "domain": "hiring",
+      "scenario_text": "A hiring panel is split on two finalists. Interviewers were asked to assess culture fit with no scoring rubric. One finalist shares several interviewers' hobbies and alma mater; the other has stronger documented outcomes but is quieter in conversation. The panel wants to decide today.",
+      "latency_seconds": 132.053,
+      "result": {
+        "corpus": "public",
+        "without_rag": {
+          "situation_summary": "A hiring panel must choose between two finalists under time pressure. One candidate shares personal similarities with interviewers (hobbies, alma mater) but has weaker documented outcomes. The other has stronger performance evidence but is quieter. The evaluation process used an unstructured 'culture fit' criterion without scoring rubrics.",
+          "biases_identified": [
+            {
+              "bias_name": "similarity_bias",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "Interviewers favor the candidate who shares hobbies and alma mater, which are personal similarities rather than job-relevant qualifications.",
+              "evidence": "One finalist shares several interviewers' hobbies and alma mater",
+              "risk": "Personal affinity may be mistaken for competence or fit, leading to selection of a weaker performer and reducing diversity."
+            },
+            {
+              "bias_name": "process_ambiguity_bias",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "The instruction to assess 'culture fit' without a scoring rubric leaves excessive room for idiosyncratic and inconsistent judgment.",
+              "evidence": "Interviewers were asked to assess culture fit with no scoring rubric",
+              "risk": "Ambiguous criteria allow hidden biases to dominate and create inconsistent evaluations across candidates."
+            },
+            {
+              "bias_name": "affect_heuristic",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "Emotional reactions to the more socially engaging candidate may substitute for evidence-based evaluation of capability.",
+              "evidence": "One candidate shares hobbies and is presumably more conversational; the other is quieter",
+              "risk": "Likeability and conversational style can override documented performance evidence in the final decision."
+            },
+            {
+              "bias_name": "halo_effect",
+              "bias_layer": "human",
+              "confidence": "medium",
+              "explanation": "Positive impressions from shared interests may cause interviewers to rate the similar candidate more favorably across unrelated competencies.",
+              "evidence": "Candidate shares hobbies and alma mater with interviewers",
+              "risk": "One positive trait (social similarity) may inflate ratings on unrelated job dimensions."
+            },
+            {
+              "bias_name": "base_rate_neglect",
+              "bias_layer": "human",
+              "confidence": "medium",
+              "explanation": "The panel may focus on subjective impressions while ignoring the stronger documented outcomes that provide base-rate evidence of performance.",
+              "evidence": "The other has stronger documented outcomes but is quieter in conversation",
+              "risk": "Compelling personal narratives can dominate actual predictive evidence of success."
+            }
+          ],
+          "noise_considerations": {
+            "present": true,
+            "explanation": "Without structured criteria, different interviewers likely weight 'culture fit' differently, leading to pattern noise. The rushed timeline may also introduce occasion noise as interviewers make judgments under time pressure."
+          },
+          "overall_risk_assessment": "High risk of unfair selection driven by personal similarity rather than job-relevant qualifications. The unstructured process amplifies individual biases and creates inconsistent evaluation. Time pressure increases the likelihood of relying on intuitive shortcuts rather than evidence review.",
+          "recommended_actions": [
+            "Pause the decision and define explicit, job-relevant evaluation criteria with scoring rubrics before proceeding.",
+            "Require each interviewer to independently score both candidates on defined dimensions before group discussion.",
+            "Review documented outcomes and performance evidence systematically for both candidates.",
+            "Separate assessment of interpersonal style from assessment of capability and past results.",
+            "Consider whether 'culture fit' is being used as a proxy for similarity rather than alignment with organizational values and work requirements.",
+            "If time permits, conduct a structured reference check focused on performance outcomes for both candidates."
+          ],
+          "alternative_perspectives": [
+            "The quieter candidate may perform better in roles requiring deep focus and independent work, while conversational ease may not predict job success.",
+            "Shared hobbies and alma mater do not predict collaboration effectiveness or values alignment in a professional context.",
+            "Documented outcomes provide more reliable evidence of future performance than subjective impressions from a single interview.",
+            "Rushing to decide today may reflect organizational pressure rather than decision quality needs; delaying by even one day could improve the process.",
+            "Culture fit should be defined as alignment with organizational values and work style, not personal similarity to current employees."
+          ]
+        },
+        "with_rag": {
+          "situation_summary": "A hiring panel must choose between two finalists today. One candidate shares hobbies and alma mater with interviewers but has weaker documented outcomes. The other has stronger performance evidence but is quieter. Culture fit was assessed without a structured rubric.",
+          "biases_identified": [
+            {
+              "bias_name": "similarity_bias",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "Interviewers favor the candidate who shares their hobbies and educational background, treating similarity as evidence of fit rather than evaluating job-relevant competencies.",
+              "evidence": "One finalist shares several interviewers' hobbies and alma mater",
+              "risk": "The panel may select based on personal affinity rather than predictive performance indicators, reducing hiring quality and diversity."
+            },
+            {
+              "bias_name": "process_ambiguity_bias",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "Culture fit was assessed without a scoring rubric or clear criteria, leaving interviewers to apply idiosyncratic and potentially biased interpretations.",
+              "evidence": "Interviewers were asked to assess culture fit with no scoring rubric",
+              "risk": "Ambiguous criteria allow subjective preferences and hidden biases to dominate, producing inconsistent and unfair evaluations across candidates."
+            },
+            {
+              "bias_name": "halo_effect",
+              "bias_layer": "human",
+              "confidence": "medium",
+              "explanation": "The shared-background candidate's social ease and conversational style may create a positive general impression that inflates ratings on unrelated job dimensions.",
+              "evidence": "One candidate shares hobbies and is implicitly more socially engaging; the other is quieter",
+              "risk": "Interviewers may rate the socially similar candidate higher across all criteria without independent evidence for each dimension."
+            },
+            {
+              "bias_name": "affect_heuristic",
+              "bias_layer": "human",
+              "confidence": "medium",
+              "explanation": "Positive feelings toward the candidate with shared interests may substitute for evidence-based evaluation, while the quieter candidate's reserved style triggers less favorable emotional reactions.",
+              "evidence": "One finalist shares hobbies and alma mater; the other is quieter in conversation",
+              "risk": "Emotional reactions to interpersonal style can override objective performance data, leading to suboptimal selection."
+            },
+            {
+              "bias_name": "base_rate_neglect",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "The panel is prioritizing subjective culture-fit impressions over documented outcomes, which are stronger predictors of future performance based on hiring research.",
+              "evidence": "The other has stronger documented outcomes but is quieter in conversation",
+              "risk": "Ignoring base-rate evidence about what predicts success leads to systematically weaker hiring decisions."
+            }
+          ],
+          "noise_considerations": {
+            "present": true,
+            "explanation": "Without a structured rubric, different interviewers likely weighted culture fit differently and responded idiosyncratically to candidate traits. The same candidates evaluated by a different panel or on a different day could receive materially different assessments, reflecting pattern noise and occasion noise."
+          },
+          "overall_risk_assessment": "The decision process is at high risk of producing an unfair and suboptimal outcome. Similarity bias and process ambiguity create conditions where personal affinity can dominate evidence of capability. The pressure to decide today prevents corrective steps. The quieter candidate with stronger outcomes may be unfairly disadvantaged.",
+          "recommended_actions": [
+            "Delay the decision to implement a structured evaluation process rather than rushing to judgment today.",
+            "Define explicit, job-relevant criteria for culture fit with behaviorally anchored rating scales and examples.",
+            "Have each interviewer independently score both candidates on each criterion before group discussion to reduce conformity and anchoring.",
+            "Review documented performance outcomes as the primary decision input and treat interpersonal style as secondary unless directly job-relevant.",
+            "Assign a devil's advocate to argue for the quieter candidate and surface evidence the panel may be discounting.",
+            "Check whether the shared-background candidate's ratings are inflated across dimensions or grounded in specific evidence for each criterion."
+          ],
+          "alternative_perspectives": [
+            "The quieter candidate's reserved style may reflect thoughtfulness or introversion rather than poor culture fit, and could be an asset in roles requiring focus or independent work.",
+            "Shared hobbies and alma mater are weak predictors of job performance and may proxy for demographic similarity rather than true cultural alignment.",
+            "Culture fit should be defined as alignment with organizational values and work style, not personal similarity to current employees.",
+            "The pressure to decide today may reflect urgency bias rather than a genuine constraint; delaying for a structured process may improve long-term hiring quality.",
+            "If the panel is split, this signals that the evidence does not clearly favor one candidate under the current process, suggesting the need for better decision structure rather than a forced consensus."
+          ]
+        },
+        "retrieval": [
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_221",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.455793559551239,
+            "concepts": [
+              "estimate_talk_estimate",
+              "judgment",
+              "noise",
+              "structured_interviewing"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "recruiting",
+              "risk"
+            ],
+            "chapter_title": "CHAPTER 24 Structure in Hiring",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "score them against a predetermined rating scale, using a unified rubric. The rubric gives examples of what average, good, or great answers look like for each question. This shared scale (an example of the behaviorally anchored rating scales we introduced in the preceding chapter)..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_217",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.38358765840530396,
+            "concepts": [
+              "anchoring_bias",
+              "estimate_talk_estimate"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "governance",
+              "hr",
+              "leadership",
+              "procurement",
+              "risk",
+              "strategy"
+            ],
+            "chapter_title": "CHAPTER 24 Structure in Hiring",
+            "passage_type": "study",
+            "decision_phase": "diagnose",
+            "summary": "this may be particularly true of skilled interviewers. But the first seconds of an interview reflect exactly the sort of superficial qualities you associate with first impressions: early perceptions are based mostly on a candidate\u2019s extraversion and verbal skills. Even the qualit..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_265",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.30900558829307556,
+            "concepts": [
+              "anchoring_bias",
+              "availability_heuristic",
+              "estimate_talk_estimate",
+              "judgment",
+              "loss_aversion",
+              "noise",
+              "occasion_noise",
+              "pattern_noise",
+              "structured_analytic_techniques"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "governance",
+              "hr",
+              "intelligence",
+              "leadership",
+              "legal",
+              "management",
+              "operations",
+              "procurement",
+              "risk",
+              "security",
+              "strategy"
+            ],
+            "chapter_title": "CHAPTER 28 Rules or Standards?",
+            "passage_type": "framework",
+            "decision_phase": "diagnose",
+            "summary": "bias, but system noise will cause many hiring errors. Another example is the disproportionate effect of first impressions. This is a psychological bias, but that bias will produce occasion noise when the order in which the evidence is presented varies randomly. We have described..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_227",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.2912924587726593,
+            "concepts": [
+              "estimate_talk_estimate",
+              "halo_effect",
+              "independent_assessment",
+              "judgment"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "risk",
+              "sales"
+            ],
+            "chapter_title": "chapter in the deal team\u2019s report should end with a rating that answers a simple",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "work independently. Some of the analysts expressed surprise. \u201cIsn\u2019t teamwork better?\u201d they asked him. \u201cWhat\u2019s the point of assembling a team if you don\u2019t want us to communicate?\u201d Jeff realized he needed to explain the need for independence. \u201cYou probably know about the halo effec..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_214",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.4302355945110321,
+            "concepts": [
+              "estimate_talk_estimate",
+              "judgment",
+              "structured_interviewing"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "recruiting",
+              "risk"
+            ],
+            "chapter_title": "CHAPTER 24 Structure in Hiring",
+            "passage_type": "study",
+            "decision_phase": "unknown",
+            "summary": "supervisor or an HR professional, are a rite of passage required to enter many organizations. In most cases, interviews follow a well-rehearsed routine. After exchanging some pleasantries, interviewers ask candidates to describe their experience or elaborate on specific aspects o..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_224",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.37716418504714966,
+            "concepts": [
+              "anchoring_bias",
+              "judgment",
+              "structured_interviewing"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "procurement",
+              "recruiting",
+              "strategy"
+            ],
+            "chapter_title": "CHAPTER 25 The Mediating Assessments Protocol",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "close. \u201cI see a clear similarity between the evaluation of candidates and the evaluation of options in big decisions: options are like candidates . And this similarity leads me to the idea that we should adapt the method that works for evaluating candidates to our task, which is..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_222",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.42616477608680725,
+            "concepts": [
+              "decision_hygiene",
+              "estimate_talk_estimate",
+              "independent_assessment",
+              "judgment",
+              "noise",
+              "structured_interviewing"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "recruiting",
+              "risk"
+            ],
+            "chapter_title": "CHAPTER 24 Structure in Hiring",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "that this approach to making the final decision is a sensible one. But note that while they are not mechanical, Google\u2019s final hiring decisions are anchored on the average score assigned by the four interviewers. They are also informed by the underlying evidence. In other words,..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_220",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.43141305446624756,
+            "concepts": [
+              "estimate_talk_estimate",
+              "judgment",
+              "noise",
+              "similarity_bias",
+              "structured_interviewing"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "recruiting",
+              "risk"
+            ],
+            "chapter_title": "CHAPTER 24 Structure in Hiring",
+            "passage_type": "prescription",
+            "decision_phase": "design",
+            "summary": "the subjudgments in a guideline: it focuses the judges on the important cues. Decomposition acts as a road map to specify what data is needed. And it filters out irrelevant information. In Google\u2019s case, there are four mediating assessments in the decomposition: general cognitive..."
+          }
+        ]
+      },
+      "metrics": {
+        "without_rag": {
+          "schema_ok": true,
+          "errors": [],
+          "bias_count": 5,
+          "taxonomy_violations": []
+        },
+        "with_rag": {
+          "schema_ok": true,
+          "errors": [],
+          "bias_count": 5,
+          "taxonomy_violations": []
+        },
+        "retrieval": {
+          "chunk_count": 8,
+          "avg_score": 0.3880821093916893
+        },
+        "aggregate_schema_ok": true
+      }
+    },
+    {
+      "scenario_id": "baseline_ai_governance_proxy",
+      "title": "AI governance \u2014 proxy risk in screening",
+      "domain": "ai_governance",
+      "scenario_text": "A risk committee is about to approve an applicant screening model. The model uses zip code and commute time as inputs because they correlate with past hiring outcomes. Compliance has not run a disparate-impact review, and reviewers say they trust the vendor's accuracy claims.",
+      "latency_seconds": 108.356,
+      "result": {
+        "corpus": "public",
+        "without_rag": {
+          "situation_summary": "A risk committee is preparing to approve an applicant screening model that uses zip code and commute time as predictive features based on correlation with past hiring outcomes. No disparate-impact review has been conducted, and the committee is relying on vendor accuracy claims without independent validation.",
+          "biases_identified": [
+            {
+              "bias_name": "proxy_bias",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "Zip code and commute time are likely proxies for protected characteristics such as race, ethnicity, and socioeconomic status. These features can encode historical patterns of residential segregation and transportation access inequality.",
+              "evidence": "The model explicitly uses zip code and commute time as inputs, which are known to correlate with demographic characteristics.",
+              "risk": "The model may systematically disadvantage applicants from certain neighborhoods or those with limited transportation options, perpetuating historical inequities even without directly using protected attributes."
+            },
+            {
+              "bias_name": "historical_bias",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "The model is trained on past hiring outcomes, which may reflect prior discriminatory practices, unconscious biases in historical hiring decisions, or structural barriers that affected certain groups.",
+              "evidence": "Features are selected because they correlate with past hiring outcomes, meaning the model learns from historical patterns.",
+              "risk": "Past inequities in hiring are encoded as predictive signals, causing the model to recommend candidates who resemble historically favored groups rather than objectively qualified candidates."
+            },
+            {
+              "bias_name": "automation_bias",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "The committee is trusting the vendor's accuracy claims without independent validation or scrutiny of the model's fairness properties, treating the automated system as authoritative.",
+              "evidence": "Reviewers say they trust the vendor's accuracy claims without conducting their own evaluation.",
+              "risk": "The committee may approve a flawed or discriminatory model because the automated nature and vendor authority create unwarranted confidence, bypassing critical review."
+            },
+            {
+              "bias_name": "diffusion_of_responsibility",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "The risk committee structure may create accountability gaps where no single individual feels personally responsible for validating fairness or conducting disparate-impact analysis.",
+              "evidence": "Compliance has not run a disparate-impact review despite the committee being ready to approve the model.",
+              "risk": "The model may be approved with serious fairness issues because responsibility for validation is diffused across the committee and compliance function, with no clear owner."
+            },
+            {
+              "bias_name": "evaluation_bias",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "The committee is evaluating the model primarily on accuracy metrics provided by the vendor, without assessing fairness, disparate impact, or performance across demographic subgroups.",
+              "evidence": "The committee relies on vendor accuracy claims and has not conducted disparate-impact review or fairness evaluation.",
+              "risk": "The model may perform well on average accuracy while systematically harming specific demographic groups, and these harms will remain invisible until deployment."
+            },
+            {
+              "bias_name": "deployment_context_bias",
+              "bias_layer": "system",
+              "confidence": "medium",
+              "explanation": "The model may have been validated in a different context than the actual hiring workflow, and vendor claims may not reflect performance in this organization's specific applicant population and decision environment.",
+              "evidence": "The committee is relying on vendor claims without independent validation in their own context.",
+              "risk": "Model performance and fairness characteristics may degrade when applied to this organization's specific applicant pool and hiring process."
+            }
+          ],
+          "noise_considerations": {
+            "present": false,
+            "explanation": "The primary concern is systematic bias rather than judgment variability. The model will produce consistent outputs for given inputs, but those outputs may be systematically unfair across demographic groups."
+          },
+          "overall_risk_assessment": "This scenario presents high risk of deploying a discriminatory screening model. The use of proxy features (zip code, commute time) combined with training on historical outcomes creates strong potential for encoding and amplifying past inequities. The absence of disparate-impact review and over-reliance on vendor claims means fairness issues will likely go undetected until after deployment. The committee structure may diffuse accountability, allowing approval without adequate scrutiny.",
+          "recommended_actions": [
+            "Immediately conduct a disparate-impact analysis across protected demographic groups before approval, examining both model inputs and outputs.",
+            "Require the vendor to provide disaggregated performance metrics by demographic subgroup and document the training data composition and historical hiring patterns.",
+            "Assign a single named owner responsible for model fairness validation and require their explicit personal sign-off before approval.",
+            "Evaluate whether zip code and commute time are necessary and job-relevant features, or whether they can be replaced with less problematic alternatives.",
+            "Establish independent validation using the organization's own applicant data and hiring outcomes, rather than relying solely on vendor claims.",
+            "Implement ongoing monitoring for disparate impact post-deployment with predefined thresholds that trigger review and potential model suspension.",
+            "Document the decision process, including what fairness considerations were evaluated and what tradeoffs were accepted, to enable future accountability."
+          ],
+          "alternative_perspectives": [
+            "The model might be capturing legitimate job-relevant factors such as willingness to relocate or transportation reliability, but these should be measured directly rather than through demographic proxies.",
+            "Vendor accuracy claims may be technically correct on average while masking serious fairness issues in specific subgroups; accuracy and fairness are distinct evaluation criteria.",
+            "The absence of disparate-impact review may reflect organizational capacity constraints rather than intentional neglect, suggesting need for process redesign and capability building.",
+            "Historical hiring outcomes may reflect both legitimate job performance and historical bias; the model cannot distinguish between these without explicit fairness constraints.",
+            "The committee may be operating under time pressure or resource constraints that make thorough review difficult, pointing to systemic issues in the approval process rather than individual failures."
+          ]
+        },
+        "with_rag": {
+          "situation_summary": "A risk committee is preparing to approve an applicant screening model that uses zip code and commute time as predictive features based on correlation with past hiring outcomes. No disparate-impact review has been conducted, and the committee is relying on vendor accuracy claims without independent validation.",
+          "biases_identified": [
+            {
+              "bias_name": "proxy_bias",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "Zip code is a well-documented proxy for race, socioeconomic status, and other protected characteristics. Using it as a model input creates indirect discrimination risk even when race is not explicitly included as a feature.",
+              "evidence": "The model uses zip code as an input variable, which the retrieved context identifies as a classic proxy that can perpetuate historical inequities.",
+              "risk": "The model may systematically disadvantage applicants from certain neighborhoods or demographic groups while appearing objective and race-neutral on the surface."
+            },
+            {
+              "bias_name": "historical_bias",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "The model is trained on past hiring outcomes, which likely encode prior organizational biases, exclusionary practices, or structural inequities in who was hired historically.",
+              "evidence": "The model correlates inputs with 'past hiring outcomes' without questioning whether those historical decisions were fair or representative of true job performance.",
+              "risk": "Past discrimination or homogeneous hiring patterns become embedded as predictive signals, causing the model to replicate rather than correct historical unfairness."
+            },
+            {
+              "bias_name": "automation_bias",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "Committee members are trusting the vendor's accuracy claims without independent scrutiny, treating the model output as authoritative simply because it comes from an algorithmic system.",
+              "evidence": "Reviewers 'trust the vendor's accuracy claims' rather than requiring independent validation, fairness audits, or evidence of performance across demographic groups.",
+              "risk": "Flawed or biased model outputs may be accepted without question, and the committee may fail to detect fairness issues, error modes, or misalignment with organizational values."
+            },
+            {
+              "bias_name": "measurement_bias",
+              "bias_layer": "system",
+              "confidence": "high",
+              "explanation": "Commute time and zip code are being used as proxies for candidate quality or fit, but these features measure geography and logistics rather than job-relevant skills or potential.",
+              "evidence": "The model uses commute time and zip code as inputs, which are weak or distorted measures of the actual construct (candidate suitability) the organization should be evaluating.",
+              "risk": "The model optimizes on easily measured but conceptually wrong features, leading to decisions that feel data-driven but are substantively misaligned with hiring goals."
+            },
+            {
+              "bias_name": "diffusion_of_responsibility",
+              "bias_layer": "system",
+              "confidence": "medium",
+              "explanation": "The risk committee structure may create a situation where no single individual feels personally accountable for validating the model's fairness or challenging the vendor's claims.",
+              "evidence": "A committee is approving the model, and compliance has not conducted a disparate-impact review, suggesting accountability gaps across multiple functions.",
+              "risk": "The model may be approved through a process where everyone assumes someone else has verified fairness and accuracy, allowing serious flaws to pass through governance."
+            },
+            {
+              "bias_name": "objective_misalignment",
+              "bias_layer": "system",
+              "confidence": "medium",
+              "explanation": "The model optimizes for correlation with past hiring outcomes rather than for the organization's true objective, which should be identifying candidates who will succeed in the role and contribute to a diverse, equitable workforce.",
+              "evidence": "The model is built to correlate with 'past hiring outcomes' without evidence that those outcomes represent the right success criteria or that the optimization includes fairness constraints.",
+              "risk": "Strong optimization on the wrong objective can produce a model that performs well on vendor-defined accuracy metrics while systematically harming fairness, diversity, and long-term organizational goals."
+            }
+          ],
+          "noise_considerations": {
+            "present": false,
+            "explanation": "The scenario does not provide evidence of judgment variability across reviewers or occasions. The primary concern is systematic bias in the model and governance process rather than inconsistency in how the model is being evaluated."
+          },
+          "overall_risk_assessment": "This scenario presents high risk of deploying a discriminatory screening model that will scale historical hiring biases under the appearance of objectivity. The use of zip code and commute time as predictive features creates clear proxy-bias and measurement-bias risks. The absence of a disparate-impact review and the committee's reliance on unvalidated vendor claims indicate governance failures that could allow serious fairness violations to go undetected. If approved, this model is likely to systematically disadvantage protected groups while the organization believes it is making evidence-based, neutral decisions.",
+          "recommended_actions": [
+            "Require an independent disparate-impact analysis before approval, testing model outcomes across demographic groups and comparing approval rates to protected-class benchmarks.",
+            "Remove or justify zip code and commute time as model inputs by demonstrating they measure job-relevant constructs rather than acting as proxies for protected characteristics.",
+            "Conduct independent validation of the vendor's accuracy claims using the organization's own data and success criteria, not just the vendor's chosen metrics.",
+            "Assign a single named owner (not a committee) who is personally accountable for signing off on the model's fairness and alignment with organizational values.",
+            "Redefine the model objective to optimize for future job success and fairness rather than correlation with past hiring outcomes, which may encode historical bias.",
+            "Establish a post-deployment monitoring plan that tracks model outcomes by demographic group and includes predefined thresholds for triggering review or suspension.",
+            "Require the vendor to provide documentation of training data provenance, feature justification, and fairness testing before the model is approved for use."
+          ],
+          "alternative_perspectives": [
+            "The vendor may have conducted fairness testing that the committee has not yet reviewed; requesting this documentation could reveal whether proxy-bias risks have already been addressed.",
+            "Zip code and commute time might be used for logistical planning rather than candidate evaluation; clarifying how these features influence the final decision could change the risk assessment.",
+            "The committee may be operating under time pressure or resource constraints that explain the reliance on vendor claims; understanding these constraints could inform a phased approval process with validation milestones.",
+            "Past hiring outcomes might include objective performance data rather than subjective ratings; if the labels are based on measurable job success rather than biased evaluations, the historical-bias risk could be lower than assumed.",
+            "The organization may have existing diversity and fairness goals that are not mentioned in the scenario; aligning the model evaluation with those goals could provide a clearer decision framework."
+          ]
+        },
+        "retrieval": [
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_222",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.3563442528247833,
+            "concepts": [
+              "decision_hygiene",
+              "estimate_talk_estimate",
+              "independent_assessment",
+              "judgment",
+              "noise",
+              "structured_interviewing"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "recruiting",
+              "risk"
+            ],
+            "chapter_title": "CHAPTER 24 Structure in Hiring",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "that this approach to making the final decision is a sensible one. But note that while they are not mechanical, Google\u2019s final hiring decisions are anchored on the average score assigned by the four interviewers. They are also informed by the underlying evidence. In other words,..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_93",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.33426612615585327,
+            "concepts": [
+              "level_noise",
+              "noise",
+              "pattern_noise"
+            ],
+            "decision_domains": [
+              "education",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management"
+            ],
+            "chapter_title": "CHAPTER 10 Noiseless Rules",
+            "passage_type": "study",
+            "decision_phase": "diagnose",
+            "summary": "who is not stricter in general. These results offer clear evidence of pattern noise. A more detailed analysis revealed that differences between cases accounted for 67% of the variance, and system noise for 33%. System noise included some level noise, i.e., differences in average..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_216",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.33391135931015015,
+            "concepts": [
+              "anchoring_bias",
+              "judgment",
+              "noise",
+              "occasion_noise",
+              "pattern_noise"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "procurement",
+              "strategy"
+            ],
+            "chapter_title": "CHAPTER 24 Structure in Hiring",
+            "passage_type": "prescription",
+            "decision_phase": "diagnose",
+            "summary": "candidates who are culturally similar to them or with whom they have something in common, including gender, race, and educational background. Many companies now recognize the risks posed by biases and try to address them through specific training of recruiting professionals and o..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_171",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.2954113185405731,
+            "concepts": [
+              "decision_hygiene",
+              "estimate_talk_estimate",
+              "noise"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "risk"
+            ],
+            "chapter_title": "CHAPTER 19 Debiasing and Decision Hygiene",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "dynamics. This makes the observer alert to biases that may have affected the proposal\u2019s development. Other organizations might assign a member of each working team to be the team\u2019s \u201cbias buster\u201d; this guardian of the decision process reminds teammates in real time of the biases t..."
+          },
+          {
+            "id": "weapons-of-math-destruction-rag-dossier_chunk_0",
+            "source": "weapons-of-math-destruction-rag-dossier",
+            "author": "Cathy O'Neil",
+            "score": 0.28989312052726746,
+            "concepts": [
+              "algorithmic_bias",
+              "estimate_talk_estimate",
+              "fairness_audit",
+              "judgment"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "risk"
+            ],
+            "chapter_title": "",
+            "passage_type": "framework",
+            "decision_phase": "decide",
+            "summary": "Weapons of Math Destruction Authors: Cathy O'Neil Publication context: 2016 Corpus priority: Phase 1 Document type: Synthesized RAG source dossier built from publicly available online material Purpose In This RAG Corpus \u2022 One of the clearest foundations for connecting human judgm..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_92",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.2915487587451935,
+            "concepts": [
+              "judgment",
+              "level_noise",
+              "noise",
+              "pattern_noise"
+            ],
+            "decision_domains": [
+              "ai",
+              "education",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management"
+            ],
+            "chapter_title": "CHAPTER 10 Noiseless Rules",
+            "passage_type": "framework",
+            "decision_phase": "diagnose",
+            "summary": "rather than a bail/no-bail decision. This approach recognizes that the maximum acceptable risk threshold, that is, the level of risk above which a defendant should be denied bail, requires an evaluative judgment that a model cannot make. However, the researchers calculated that,..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_218",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.31554102897644043,
+            "concepts": [
+              "anchoring_bias",
+              "judgment"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "procurement",
+              "strategy"
+            ],
+            "chapter_title": "CHAPTER 24 Structure in Hiring",
+            "passage_type": "prescription",
+            "decision_phase": "diagnose",
+            "summary": "had met candidates responding truthfully. Such is our ability to create coherence. As we can often find an imaginary pattern in random data or imagine a shape in the contours of a cloud, we are capable of finding logic in perfectly meaningless answers. For a less extreme illustra..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_224",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.3274417519569397,
+            "concepts": [
+              "anchoring_bias",
+              "judgment",
+              "structured_interviewing"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "procurement",
+              "recruiting",
+              "strategy"
+            ],
+            "chapter_title": "CHAPTER 25 The Mediating Assessments Protocol",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "close. \u201cI see a clear similarity between the evaluation of candidates and the evaluation of options in big decisions: options are like candidates . And this similarity leads me to the idea that we should adapt the method that works for evaluating candidates to our task, which is..."
+          }
+        ]
+      },
+      "metrics": {
+        "without_rag": {
+          "schema_ok": true,
+          "errors": [],
+          "bias_count": 6,
+          "taxonomy_violations": []
+        },
+        "with_rag": {
+          "schema_ok": true,
+          "errors": [],
+          "bias_count": 6,
+          "taxonomy_violations": []
+        },
+        "retrieval": {
+          "chunk_count": 8,
+          "avg_score": 0.3180447146296501
+        },
+        "aggregate_schema_ok": true
+      }
+    },
+    {
+      "scenario_id": "baseline_strategy_sunk_cost",
+      "title": "Strategy \u2014 escalation after heavy investment",
+      "domain": "strategy",
+      "scenario_text": "A steering committee is deciding whether to sunset a customer analytics initiative. The team has spent eighteen months and a large budget; adoption is flat and internal users prefer spreadsheets. Several leaders argue that stopping now would waste the investment and embarrass the sponsor.",
+      "latency_seconds": 132.152,
+      "result": {
+        "corpus": "public",
+        "without_rag": {
+          "situation_summary": "A steering committee faces a decision about ending a customer analytics initiative after eighteen months and significant investment. Despite flat adoption and user preference for spreadsheets, leaders resist stopping due to past investment and concern about sponsor embarrassment.",
+          "biases_identified": [
+            {
+              "bias_name": "sunk_cost_fallacy",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "Leaders are continuing the initiative primarily because of past investment rather than evaluating future value independently.",
+              "evidence": "Leaders argue that stopping now would waste the investment, focusing on what has already been spent rather than whether continued investment makes sense.",
+              "risk": "The committee may continue funding a failing initiative, compounding losses and preventing resources from being redirected to more valuable work."
+            },
+            {
+              "bias_name": "escalation_of_commitment",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "Leaders are doubling down to defend the original decision and avoid admitting the initiative has failed.",
+              "evidence": "Concern about embarrassing the sponsor suggests leaders are protecting the original choice rather than objectively evaluating current performance.",
+              "risk": "Error correction is delayed while the organization continues investing in a demonstrably unsuccessful initiative, and accountability mechanisms weaken."
+            },
+            {
+              "bias_name": "loss_aversion",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "The pain of acknowledging a loss feels more significant than the potential gain from reallocating resources to better alternatives.",
+              "evidence": "Leaders frame stopping as wasting investment rather than as cutting future losses, showing losses loom larger than equivalent gains.",
+              "risk": "The committee may avoid a beneficial change because the immediate loss feels too painful, even when expected future value is negative."
+            },
+            {
+              "bias_name": "status_quo_bias",
+              "bias_layer": "human",
+              "confidence": "medium",
+              "explanation": "Continuing the current initiative feels safer than making an active decision to stop, even though continuation has clear costs.",
+              "evidence": "The committee is considering continuation despite flat adoption and user preference for alternatives, suggesting inertia favors the current state.",
+              "risk": "The organization may stick with an inferior solution and delay needed adaptation to user preferences and market reality."
+            },
+            {
+              "bias_name": "groupthink",
+              "bias_layer": "human",
+              "confidence": "medium",
+              "explanation": "Pressure to protect the sponsor and maintain cohesion may suppress critical evaluation of the initiative's actual performance.",
+              "evidence": "Concern about embarrassment suggests social cohesion is influencing the decision more than objective performance data.",
+              "risk": "Important evidence about user adoption and value delivery may be downplayed to avoid conflict, leading to a poor collective decision."
+            }
+          ],
+          "noise_considerations": {
+            "present": true,
+            "explanation": "Different committee members may weight the same evidence differently based on their relationship to the sponsor, their role in the original decision, or their tolerance for acknowledging failure. This pattern noise could lead to inconsistent judgments about when to stop similar initiatives."
+          },
+          "overall_risk_assessment": "The committee faces high risk of continuing a failing initiative due to multiple reinforcing biases around past investment and social dynamics. The focus on sunk costs and sponsor embarrassment is crowding out evidence-based evaluation of future value. Without intervention, the organization will likely continue funding low-adoption work while users maintain workarounds.",
+          "recommended_actions": [
+            "Reframe the decision around future value only: ask what the committee would do if starting fresh today with the same budget and no history.",
+            "Establish predefined exit criteria independent of past spend: define what adoption and usage metrics would justify continuation versus sunset.",
+            "Separate the decision from sponsor reputation: acknowledge past contributions while evaluating current performance objectively.",
+            "Conduct a blameless retrospective to extract learning: focus on what the organization learned rather than who to blame.",
+            "Calculate opportunity cost explicitly: identify what else could be done with the ongoing budget and compare expected value.",
+            "Use independent review: bring in someone with no stake in the original decision to evaluate current performance and future prospects."
+          ],
+          "alternative_perspectives": [
+            "The flat adoption may reflect a genuine mismatch between the tool and user needs rather than a failure of execution, suggesting pivot or sunset is appropriate.",
+            "Stopping now could free resources for a better-designed initiative that incorporates lessons learned and actual user preferences.",
+            "Continuing may signal to the organization that political considerations outweigh performance data, weakening future accountability.",
+            "The sponsor may actually prefer honest feedback and course correction over prolonged investment in a struggling initiative.",
+            "User preference for spreadsheets may indicate important workflow requirements that the analytics initiative did not address."
+          ]
+        },
+        "with_rag": {
+          "situation_summary": "A steering committee faces a decision about ending an eighteen-month customer analytics initiative with flat adoption and user preference for spreadsheets. Leaders resist stopping due to sunk investment and sponsor embarrassment concerns.",
+          "biases_identified": [
+            {
+              "bias_name": "sunk_cost_fallacy",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "Leaders are justifying continuation based on past investment rather than evaluating future value independently.",
+              "evidence": "Several leaders argue that stopping now would waste the investment",
+              "risk": "The organization continues funding a failing initiative, compounding losses and delaying reallocation to better opportunities."
+            },
+            {
+              "bias_name": "escalation_of_commitment",
+              "bias_layer": "human",
+              "confidence": "high",
+              "explanation": "Leaders are doubling down to defend the original decision and avoid admitting failure.",
+              "evidence": "Concern about embarrassing the sponsor drives continuation arguments",
+              "risk": "Political protection of the sponsor prevents objective evaluation and error correction, allowing poor decisions to persist."
+            },
+            {
+              "bias_name": "status_quo_bias",
+              "bias_layer": "human",
+              "confidence": "medium",
+              "explanation": "Continuing the current initiative feels safer than actively deciding to stop, even when evidence suggests stopping is better.",
+              "evidence": "Committee debates continuation despite clear adoption failure",
+              "risk": "The default path of continuation is chosen not because it is optimal but because active termination feels more blameworthy."
+            },
+            {
+              "bias_name": "outcome_bias",
+              "bias_layer": "human",
+              "confidence": "medium",
+              "explanation": "The decision quality is being judged by the current poor outcome rather than whether the original decision process was sound.",
+              "evidence": "Leaders frame stopping as waste rather than evaluating whether the initiative was a reasonable bet given initial information",
+              "risk": "Teams learn the wrong lesson that all unsuccessful initiatives were mistakes, discouraging future experimentation."
+            },
+            {
+              "bias_name": "diffusion_of_responsibility",
+              "bias_layer": "system",
+              "confidence": "medium",
+              "explanation": "A steering committee structure may allow individual members to avoid personal accountability for the termination decision.",
+              "evidence": "Committee-based decision making on a politically sensitive choice",
+              "risk": "No single leader takes ownership of the stop decision, allowing the initiative to drift without clear accountability."
+            }
+          ],
+          "noise_considerations": {
+            "present": true,
+            "explanation": "Different committee members likely weigh sponsor embarrassment, sunk costs, and user adoption differently based on their relationship to the sponsor and their own risk tolerance, creating pattern noise in how they evaluate the same evidence."
+          },
+          "overall_risk_assessment": "High risk of continued resource waste driven by backward-looking justification rather than forward-looking value assessment. Political concerns about sponsor embarrassment are crowding out evidence-based evaluation. The committee structure may enable accountability avoidance.",
+          "recommended_actions": [
+            "Reframe the decision using future value only: What would we invest in this initiative if starting today with current knowledge?",
+            "Separate the decision quality from the outcome: Was the original bet reasonable given what was known then?",
+            "Assign a single named decision owner rather than relying on committee consensus to diffuse responsibility.",
+            "Use a premortem: Assume the initiative continues for another year with similar results\u2014what will the retrospective say?",
+            "Establish predefined exit criteria for future initiatives to avoid repeating this pattern.",
+            "Protect the sponsor by framing termination as learning rather than failure, and document what was learned for future initiatives."
+          ],
+          "alternative_perspectives": [
+            "The initiative may have generated valuable organizational learning about user needs even if adoption failed\u2014this learning has value independent of continuation.",
+            "Stopping now and reallocating resources may be the best way to honor the original investment by putting remaining budget toward higher-value work.",
+            "User preference for spreadsheets may signal a gap in the analytics tool's design rather than user resistance\u2014a pivot rather than full termination might be worth exploring.",
+            "The sponsor's reputation may be better protected by decisive termination and clear communication than by prolonging a visible failure."
+          ]
+        },
+        "retrieval": [
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_224",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.1932990849018097,
+            "concepts": [
+              "anchoring_bias",
+              "judgment",
+              "structured_interviewing"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "procurement",
+              "recruiting",
+              "strategy"
+            ],
+            "chapter_title": "CHAPTER 25 The Mediating Assessments Protocol",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "close. \u201cI see a clear similarity between the evaluation of candidates and the evaluation of options in big decisions: options are like candidates . And this similarity leads me to the idea that we should adapt the method that works for evaluating candidates to our task, which is..."
+          },
+          {
+            "id": "superforecasting-rag-dossier_chunk_0",
+            "source": "superforecasting-rag-dossier",
+            "author": "Philip E. Tetlock, Dan Gardner",
+            "score": 0.172932967543602,
+            "concepts": [
+              "calibration",
+              "judgment",
+              "uncertainty_management"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "risk",
+              "strategy"
+            ],
+            "chapter_title": "",
+            "passage_type": "prescription",
+            "decision_phase": "review",
+            "summary": "Superforecasting: The Art and Science of Prediction Authors: Philip E. Tetlock, Dan Gardner Publication context: 2015 Corpus priority: Phase 1 Document type: Synthesized RAG source dossier built from publicly available online material Purpose In This RAG Corpus \u2022 One of the stron..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_182",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.18485195934772491,
+            "concepts": [
+              "confirmation_bias",
+              "decision_hygiene",
+              "judgment",
+              "noise",
+              "noise_audit",
+              "occasion_noise"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "investigations",
+              "leadership",
+              "legal",
+              "management",
+              "strategy"
+            ],
+            "chapter_title": "CHAPTER 20 Sequencing Information in Forensic Science",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "their analyses. For example, the PCAST report commended the FBI laboratory for redesigning its procedures to minimize the risk of confirmation bias. The necessary methodological steps are relatively simple. They illustrate a decision hygiene strategy that has applicability in man..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_236",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.16969476640224457,
+            "concepts": [
+              "decision_hygiene",
+              "judgment",
+              "noise",
+              "noise_audit",
+              "occasion_noise"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management"
+            ],
+            "chapter_title": "CHAPTER 26 The Costs of Noise Reduction",
+            "passage_type": "prescription",
+            "decision_phase": "diagnose",
+            "summary": "people are reading every paper. Perhaps the teacher could accomplish the same goal by spending more time reading each essay, structuring the relatively complex process of assessment, or by reading the essays more than once and in different orders. A detailed grading guideline use..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_171",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.18954619765281677,
+            "concepts": [
+              "decision_hygiene",
+              "estimate_talk_estimate",
+              "noise"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "risk"
+            ],
+            "chapter_title": "CHAPTER 19 Debiasing and Decision Hygiene",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "dynamics. This makes the observer alert to biases that may have affected the proposal\u2019s development. Other organizations might assign a member of each working team to be the team\u2019s \u201cbias buster\u201d; this guardian of the decision process reminds teammates in real time of the biases t..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_270",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.17982007563114166,
+            "concepts": [
+              "decision_hygiene",
+              "judgment",
+              "noise",
+              "noise_audit"
+            ],
+            "decision_domains": [
+              "ai",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management"
+            ],
+            "chapter_title": "CHAPTER 28 Rules or Standards?",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "we call singular decisions. The existence of noise in singular decisions may seem counterintuitive: by definition, there is no variability to measure if you decide only once. Yet noise is there, causing errors. The noise in a team of shooters is invisible if we see only the first..."
+          },
+          {
+            "id": "noise-a-flaw-in-human-judgment-9780316451383_chunk_231",
+            "source": "noise-a-flaw-in-human-judgment-9780316451383",
+            "author": "Daniel Kahneman, Olivier Sibony, and Cass R. Sunstein",
+            "score": 0.17248624563217163,
+            "concepts": [
+              "decision_hygiene",
+              "independent_assessment",
+              "judgment",
+              "outside_view"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "governance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "program_management",
+              "risk",
+              "strategy"
+            ],
+            "chapter_title": "chapter in the deal team\u2019s report should end with a rating that answers a simple",
+            "passage_type": "prescription",
+            "decision_phase": "decide",
+            "summary": "in addition to evaluating a specific target, is challenging. Comparative judgments become much easier in the context of a recurring decision. If you have evaluated the management teams of dozens, even hundreds of companies, you can use this shared experience as a reference class...."
+          },
+          {
+            "id": "superforecasting-rag-dossier_chunk_1",
+            "source": "superforecasting-rag-dossier",
+            "author": "Philip E. Tetlock, Dan Gardner",
+            "score": 0.1699850708246231,
+            "concepts": [
+              "judgment",
+              "uncertainty_management"
+            ],
+            "decision_domains": [
+              "ai",
+              "finance",
+              "hr",
+              "leadership",
+              "legal",
+              "management",
+              "risk",
+              "strategy"
+            ],
+            "chapter_title": "",
+            "passage_type": "framework",
+            "decision_phase": "review",
+            "summary": "prompts, confidence communication, and structured uncertainty handling. \u2022 Strengthens retrieval for scenarios involving forecasting, strategic bets, and model-evaluation tradeoffs. \u2022 Provides a practical counterweight to purely diagnostic bias content. Limitations And Cautions \u2022..."
+          }
+        ]
+      },
+      "metrics": {
+        "without_rag": {
+          "schema_ok": true,
+          "errors": [],
+          "bias_count": 5,
+          "taxonomy_violations": []
+        },
+        "with_rag": {
+          "schema_ok": true,
+          "errors": [],
+          "bias_count": 5,
+          "taxonomy_violations": []
+        },
+        "retrieval": {
+          "chunk_count": 8,
+          "avg_score": 0.1790770459920168
+        },
+        "aggregate_schema_ok": true
+      }
+    }
+  ],
+  "aggregate_metrics": {
+    "scenario_count": 3,
+    "all_schema_ok": true,
+    "schema_ok_count": 3,
+    "bias_count_delta_with_minus_without_rag": [
+      0,
+      0,
+      0
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "baseline_hiring_rubric",
+    "title": "Hiring — ambiguous culture-fit without rubric",
+    "domain": "hiring",
+    "scenario": "A hiring panel is split on two finalists. Interviewers were asked to assess culture fit with no scoring rubric. One finalist shares several interviewers' hobbies and alma mater; the other has stronger documented outcomes but is quieter in conversation. The panel wants to decide today."
+  },
+  {
+    "id": "baseline_ai_governance_proxy",
+    "title": "AI governance — proxy risk in screening",
+    "domain": "ai_governance",
+    "scenario": "A risk committee is about to approve an applicant screening model. The model uses zip code and commute time as inputs because they correlate with past hiring outcomes. Compliance has not run a disparate-impact review, and reviewers say they trust the vendor's accuracy claims."
+  },
+  {
+    "id": "baseline_strategy_sunk_cost",
+    "title": "Strategy — escalation after heavy investment",
+    "domain": "strategy",
+    "scenario": "A steering committee is deciding whether to sunset a customer analytics initiative. The team has spent eighteen months and a large budget; adoption is flat and internal users prefer spreadsheets. Several leaders argue that stopping now would waste the investment and embarrass the sponsor."
+  }
+]

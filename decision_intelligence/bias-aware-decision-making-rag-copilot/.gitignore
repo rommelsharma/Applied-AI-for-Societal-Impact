@@ -2,6 +2,7 @@
 # Environment, secrets, and runtime artefacts
 # --------------------------------------------------------------------------
 .env
+.venv/
 __pycache__/
 *.pyc
 .DS_Store

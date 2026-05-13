@@ -182,7 +182,13 @@ User scenario (string)
 |------|---------------|
 | `evaluation/test_scenarios.json` | ~30 realistic decision-making scenarios spanning hiring, performance review, sunk cost, automation bias, groupthink, base-rate neglect, AI alignment, sentencing, narrative fallacy, instrumental convergence, and more. |
 | `evaluation/run_evaluation.py` | Iterates through the scenarios, calls `detect_bias_comparison`, prints lightweight diff stats, and persists `latest_results.json`. Honours `CORPUS_NAME` so it can be aimed at any corpus. |
+| `evaluation/baseline_scenarios.json` | Three frozen scenarios used for longitudinal baseline-vs-RAG captures under `response/`. |
+| `evaluation/connectivity.py` | Bedrock + embedding + vector-store + retrieval smoke checks before expensive eval runs. |
+| `evaluation/metrics.py` | Schema and taxonomy validation for `without_rag` / `with_rag` payloads plus per-run aggregates. |
+| `evaluation/run_card.py` | Reproducibility metadata (timestamps, git commit, file hashes, model/RAG settings) for eval captures. |
 | `notebooks/test_bias_detection.py` | Interactive walkthrough of the same scenarios, designed to run in PyCharm or a notebook for visual inspection of baseline vs RAG output. |
+| `scripts/record_response_run.py` | Connectivity check, runs `baseline_scenarios.json` through `detect_bias_comparison`, attaches metrics + run card, writes `response/<timestamp>_<label>_rag_eval.json`. |
+| `scripts/rebuild_solution_design_docx.py` | Regenerates `docs/Solution Design Document.docx` in playbook-aligned order (requires `python-docx`). |
 | `scripts/run_sample_comparison.py` | Runs two illustrative scenarios end-to-end and writes both raw JSON and a reviewer-facing markdown report under `evaluation/` and `docs/`. |
 | `scripts/compare_versions.py` | Runs the full scenario suite (or any subset) against multiple corpus versions side-by-side. Emits both a JSON sidecar (full payloads, kept locally) and a markdown summary (counts and named biases only - safe to share). |
 | `scripts/generate_book_dossiers.py` | Generates retrieval-friendly book dossiers (Markdown + HTML + PDF) from a JSON manifest in `data/metadata/book_dossiers/`. The PDFs land in `data/corpora/public/raw/` and feed the offline pipeline. |

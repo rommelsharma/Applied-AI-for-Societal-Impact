@@ -114,7 +114,7 @@ For the full architecture, see [`docs/Solution Design Document.docx`](docs/Solut
 
 | Document | What it covers |
 |---|---|
-| [`docs/Solution Design Document.docx`](docs/Solution%20Design%20Document.docx) | The complete solution design — architecture, validation, infrastructure, ML-Ops, LLM provider portability, risks, roadmap. |
+| [`docs/Solution Design Document.docx`](docs/Solution%20Design%20Document.docx) | Solution design (v1.1+) ordered to match `docs/rag_solution_design_best_practices.docx`, plus architecture snapshot, gaps, and phased roadmap. Regenerate with `python scripts/rebuild_solution_design_docx.py`. |
 | [`docs/fundamental-concepts.md`](docs/fundamental-concepts.md) | Why this stack — explained in plain English with a worked example tracing a single book through the whole pipeline. |
 | [`docs/sample_results_comparison.md`](docs/sample_results_comparison.md) | Real outputs side-by-side: same scenario answered without and with the curated knowledge base. |
 | [`docs/code-flow.md`](docs/code-flow.md) | What every file does and how data moves through the system. |
