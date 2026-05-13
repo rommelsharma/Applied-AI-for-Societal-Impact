@@ -24,7 +24,7 @@ Conventional MLOps assumes a *trained* model. Here the LLMs are pre-trained and 
 
 ### 2.1 Environment
 
-- `requirements.txt` pins the floors for `boto3`, `faiss-cpu`, `numpy`, `PyMuPDF`, `python-dotenv`, `python-docx`, `reportlab`.
+- `requirements.txt` pins the floors for `boto3`, `faiss-cpu`, `numpy`, `PyMuPDF`, `python-dotenv`, `python-docx`.
 - `.env.example` declares every environment variable the runtime reads. `.env` is gitignored.
 - `shared_components/settings.py` is the **only** module that reads environment variables; every other file imports `BEDROCK_SETTINGS` and `RAG_SETTINGS`.
 - `shared_components/utilities/path_utils.py` is the **only** module that resolves filesystem paths.
@@ -34,7 +34,7 @@ Conventional MLOps assumes a *trained* model. Here the LLMs are pre-trained and 
 - Chunking parameters (`PROFILES`, `_FRONT_HEADING`, `_BACK_HEADING`, `_TRIM_SAFETY_THRESHOLD`) are module-level constants.
 - The taxonomy (`bias-taxonomy.json`) and support-concepts catalog (`retrieval-concepts.json`) are committed JSON files.
 - Bedrock chat is invoked at temperature `0.1` so the same scenario produces near-identical output across runs.
-- Bedrock Titan v2 embeddings are deterministic for a given input string.
+- Bedrock Titan v2 embeddings are deterministic for a given **input string**; the **index vector** for a chunk is the pooled result of **all chosen sentence-window strings**, so it changes if `RAG_EMBED_SENTENCE_RADIUS`, `RAG_EMBEDDING_MAX_WINDOWS`, or `RAG_EMBED_SENTENCE_WINDOWS` changes.
 - FAISS `IndexFlatIP` returns ranked candidates in stable order for a given query vector.
 
 ### 2.3 Build manifests
@@ -47,7 +47,10 @@ Every vector index writes a `manifest.json` next to the FAISS file:
   "count": 301,
   "dimension": 1024,
   "index_type": "IndexFlatIP",
-  "chunking_profile_distribution": {"dossier": 22, "book": 279}
+  "chunking_profile_distribution": {"dossier": 29, "book": 272},
+  "embedding_sentence_windows": true,
+  "embedding_sentence_radius": 3,
+  "embedding_max_windows_per_chunk": 0
 }
 ```
 
@@ -57,7 +60,7 @@ The runtime can refuse to start when the corpus name, chunk count, or dimension 
 
 ## 3. Versioning
 
-Five things move on independent clocks. Each gets an explicit version handle.
+The following artefacts move on independent clocks. Each gets an explicit version handle.
 
 | Versioned thing | Where it lives | How it advances |
 |---|---|---|
@@ -66,6 +69,7 @@ Five things move on independent clocks. Each gets an explicit version handle.
 | Bedrock embedding model | `BEDROCK_EMBEDDING_MODEL_ID` in `.env` | Forces a full re-embed of the corpus |
 | Bias taxonomy | `data/metadata/bias-taxonomy.json` (committed) | PR with reviewer sign-off |
 | Corpus snapshot | `data/corpora/<name>/vector_store/manifest.json` + git tag of the build commit | Per ingestion run |
+| Embedding **window** policy | `RAG_EMBED_SENTENCE_WINDOWS`, `RAG_EMBED_SENTENCE_RADIUS`, `RAG_EMBEDDING_MAX_WINDOWS` in `.env` (mirrored in `manifest.json`) | Any change requires **`build_vector_index.py` re-run** (invalidates vectors like an embedding-model swap) |
 
 A change to the embedding model id is the most disruptive and is flagged as such in code review: it invalidates every existing `embeddings.npy`.
 
@@ -82,7 +86,7 @@ raw PDF
        └─ chunks.json (cleaning_notes, chunking_profile, chapter_title)
             └─ chunks_with_concepts.json (concept tags, concept_confidence)
                  └─ knowledge_base.json (passage_type, decision_phase, classifier, importance, decision_domains, summary, keywords)
-                      └─ embeddings.npy + index_metadata.json (1:1 row alignment, dimension stamped in manifest)
+                      └─ embeddings.npy + index_metadata.json (1:1 row alignment; manifest records embed model + sentence-window pooling policy)
                            └─ retrieval result (similarity score, chunk id, source, chapter, concepts, passage_type)
                                 └─ bias_detector response payload (`retrieval` array preserved alongside `with_rag` JSON)
 ```
@@ -184,7 +188,7 @@ Distributed tracing (AWS X-Ray) wraps each request in spans for `embed_query`, `
 
 Bedrock cost is the dominant operating expense. The plan controls it through five levers:
 
-1. **Cache embeddings.** Each chunk is embedded exactly once, persisted in `embeddings.npy`, and reused at every query. A query is embedded once per request — no per-token chat cost.
+1. **Cache pooled chunk vectors.** At index build, each chunk produces **one** row in `embeddings.npy` (sentence-window Titan calls are pooled offline). Queries embed the scenario once per request — no per-token chat cost for retrieval.
 2. **Two-layer retrieval.** FAISS returns a wide candidate pool and the optional reranker is invoked only on a fixed top-N (default 24), not on the full corpus.
 3. **MMR before reranker.** When the optional reranker is enabled it runs after MMR, so the LLM scores at most a constant number of candidates.
 4. **Off-by-default LLM enrichment.** `passage_type` and `decision_phase` are derived rule-based for free; the LLM-enrichment path (`ENRICHMENT_USE_LLM=true`) is opt-in.

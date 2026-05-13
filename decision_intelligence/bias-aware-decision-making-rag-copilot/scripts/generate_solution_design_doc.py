@@ -558,7 +558,7 @@ def build_detailed_design(doc: Document) -> None:
             "Stage 2 (Chunking): trims known front-matter and back-matter markers past appropriate floors, normalises whitespace, and splits the body into ~350-word chunks with 60-word overlap. Each chunk inherits source metadata and gets a stable id.",
             "Stage 3 (Concept extraction): builds a unified concept catalog from ``bias-taxonomy.json`` and ``retrieval-concepts.json`` and tags each chunk with concepts whose canonical name or aliases appear in the text.",
             "Stage 4 (Enrichment): generates summaries, derives importance and decision_domains from concept metadata, and extracts top keywords. Output is the retrieval-ready ``knowledge_base.json``.",
-            "Stage 5 (Vector index build): embeds each chunk via Amazon Titan v2 (1024 dims, normalised), persists ``embeddings.npy``, builds a FAISS ``IndexFlatIP``, and writes aligned ``index_metadata.json`` plus a ``manifest.json``.",
+            "Stage 5 (Vector index build): for each chunk, ``build_vector_index.py`` forms sentence-centred text windows (±radius sentences, default radius 3), embeds each window with Amazon Titan v2 (1024 dims, normalised), mean-pools the vectors, L2-normalises the result, and writes one row per chunk to ``embeddings.npy``; builds a FAISS ``IndexFlatIP``; writes aligned ``index_metadata.json`` plus ``manifest.json`` (including ``embedding_sentence_windows``, ``embedding_sentence_radius``, ``embedding_max_windows_per_chunk``). Set ``RAG_EMBED_SENTENCE_WINDOWS=false`` for a single full-text embed per chunk.",
         ],
     )
 

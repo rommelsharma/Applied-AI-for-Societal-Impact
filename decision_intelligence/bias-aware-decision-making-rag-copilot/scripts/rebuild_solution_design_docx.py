@@ -191,12 +191,16 @@ def main() -> None:
 
     doc.add_heading("8. Select and evaluate the embedding model (playbook §8)", level=1)
     doc.add_paragraph(
-        "Amazon Titan Text Embeddings v2 at 1024 dimensions with ``normalize=true``. The same model "
-        "embeds corpus chunks at index time and user scenarios at query time via ``BedrockProvider."
-        "embed_text()``—no asymmetric dual-encoder unless deliberately introduced later."
+        "Amazon Titan Text Embeddings v2 at 1024 dimensions with ``normalize=true``. At **query** time "
+        "the full user scenario is embedded once via ``BedrockProvider.embed_text()``. At **index** time "
+        "``build_vector_index.py`` (default) splits each chunk into sentences, embeds overlapping "
+        "windows of up to ``2*RAG_EMBED_SENTENCE_RADIUS+1`` sentences (default radius 3), mean-pools "
+        "those vectors, and L2-normalises so each chunk still has one FAISS row. Disable windowing "
+        "with ``RAG_EMBED_SENTENCE_WINDOWS=false`` for legacy single-string chunk embeds. "
+        "Optional ``RAG_EMBEDDING_MAX_WINDOWS`` subsamples windows to cap Bedrock cost."
     )
     doc.add_paragraph(
-        "Rationale: managed Bedrock surface, inner-product on unit vectors equals cosine similarity "
+        "Rationale: managed Bedrock surface; inner-product on unit vectors equals cosine similarity "
         "matching ``IndexFlatIP``. Gap / next: benchmark an alternate embedding on held-out queries "
         "with identical eval harness before switching ``BEDROCK_EMBEDDING_MODEL_ID``."
     )
@@ -258,7 +262,9 @@ def main() -> None:
     doc.add_paragraph(
         "``evaluation/run_card.py`` records UTC and local timestamps, git commit and dirty flag, "
         "SHA-256 of the scenario file and system prompt, Bedrock model ids, embedding dimensions, "
-        "corpus name, chunk profile, ``RAG_TOP_K``, MMR lambda, reranker mode and candidate depth. "
+        "corpus name, chunk profile, ``RAG_TOP_K``, MMR lambda, reranker mode and candidate depth, "
+        "and index-time flags ``rag_embed_sentence_windows``, ``rag_embed_sentence_radius``, "
+        "``rag_embed_max_windows_per_chunk``. "
         "Paired with label-based filenames under ``response/``, teams can change one knob at a time "
         "and keep an audit trail."
     )

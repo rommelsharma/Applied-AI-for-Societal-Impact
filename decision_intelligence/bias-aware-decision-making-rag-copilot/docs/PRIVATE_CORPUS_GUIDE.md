@@ -53,6 +53,17 @@ python data_pipeline/build_knowledge_base.py --corpus private --profile book
 python data_pipeline/build_vector_index.py --corpus private
 ```
 
+### Index-time embedding behaviour (public and private)
+
+`build_vector_index.py` uses the same logic for every corpus. **By default** (`RAG_EMBED_SENTENCE_WINDOWS=true`):
+
+- Each chunk’s `text` is split into sentences; for each sentence position the code builds a **local window** of up to **2×`RAG_EMBED_SENTENCE_RADIUS`+1** sentences (default radius **3** → up to **seven** sentences, fewer at chunk edges).
+- Each window is embedded with **Titan v2**; vectors are **mean-pooled** and **L2-normalised** so the chunk still has **one row** in `embeddings.npy` / FAISS (aligned with `index_metadata.json`).
+- **`RAG_EMBEDDING_MAX_WINDOWS`** (integer, default `0` = no cap) subsamples windows evenly when you need to limit Bedrock cost on long chunks or large private corpora.
+- **`RAG_EMBED_SENTENCE_WINDOWS=false`** restores a **single** Titan call per chunk on the full `text` (legacy behaviour).
+
+`vector_store/manifest.json` stores the effective window settings. Changing radius, window toggle, or max-windows **requires re-running** `build_vector_index.py` (same class of change as switching `BEDROCK_EMBEDDING_MODEL_ID`).
+
 For the public dossier corpus the equivalent commands are:
 
 ```bash

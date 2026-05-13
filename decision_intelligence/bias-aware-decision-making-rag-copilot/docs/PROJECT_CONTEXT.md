@@ -27,7 +27,12 @@ A user submits a complex scenario. The system responds with:
 - supporting evidence from the knowledge base
 - suggested mitigation steps
 - a recommendation framed as decision support, not authoritative advice
-- a baseline vs RAG comparison when requested
+- a **baseline vs RAG** comparison on every `detect_bias_comparison` call (same JSON schema, retrieval trace included)
+
+## Index and evaluation artefacts
+- **Vector index:** FAISS `IndexFlatIP` over Titan v2 vectors. **Chunks** are embedded with **sentence-centred windows** (±3 sentences by default), mean-pooled and normalised—see `data_pipeline/build_vector_index.py` and `docs/fundamental-concepts.md`. **Queries** embed the full scenario string.
+- **Frozen scenarios:** `evaluation/baseline_scenarios.json` (three cases) plus the broader `evaluation/test_scenarios.json`.
+- **Captures:** `scripts/record_response_run.py` writes `response/<timestamp>_<label>_rag_eval.json` with connectivity results, **run cards** (`evaluation/run_card.py`), and **schema/taxonomy metrics** (`evaluation/metrics.py`).
 
 ## Principles
 - explainability first

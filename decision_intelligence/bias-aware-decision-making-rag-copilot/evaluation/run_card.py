@@ -84,6 +84,9 @@ def build_run_card(
         "rag_mmr_lambda": RAG_SETTINGS.mmr_lambda,
         "rag_reranker": RAG_SETTINGS.reranker,
         "rag_reranker_candidates": RAG_SETTINGS.reranker_candidates,
+        "rag_embed_sentence_windows": RAG_SETTINGS.embed_sentence_windows,
+        "rag_embed_sentence_radius": RAG_SETTINGS.embed_sentence_radius,
+        "rag_embed_max_windows_per_chunk": RAG_SETTINGS.embed_max_windows_per_chunk,
     }
     if extra:
         card["extra"] = extra

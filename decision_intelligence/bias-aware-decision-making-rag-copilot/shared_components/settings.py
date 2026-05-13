@@ -70,6 +70,16 @@ class RAGSettings:
     )
     reranker_candidates: int = int(os.getenv("RAG_RERANKER_CANDIDATES", "24"))
     enrichment_use_llm: bool = os.getenv("ENRICHMENT_USE_LLM", "false").lower() in {"1", "true", "yes"}
+    # Index-time embedding: mean-pool vectors of sentence-centred windows (±N sentences)
+    # for richer retrieval semantics. Query embeddings stay full user text (retriever).
+    embed_sentence_windows: bool = os.getenv("RAG_EMBED_SENTENCE_WINDOWS", "true").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    embed_sentence_radius: int = int(os.getenv("RAG_EMBED_SENTENCE_RADIUS", "3"))
+    # 0 = embed every sentence-centred window (most Bedrock calls). Set e.g. 20 to subsample evenly.
+    embed_max_windows_per_chunk: int = int(os.getenv("RAG_EMBEDDING_MAX_WINDOWS", "0"))
 
 
 # Single shared instances imported by every module that needs them.

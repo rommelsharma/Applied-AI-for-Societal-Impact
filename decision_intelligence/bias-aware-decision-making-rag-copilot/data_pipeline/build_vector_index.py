@@ -5,6 +5,14 @@ Embeds every record in ``<corpus>/knowledge/knowledge_base.json`` using
 Amazon Titan Text Embeddings v2 and persists four aligned artefacts in
 ``<corpus>/vector_store/``:
 
+By default each chunk is embedded using **sentence-centred windows**: for every
+sentence, Titan embeds that sentence plus up to ``RAG_EMBED_SENTENCE_RADIUS``
+sentences before and after (clamped at chunk edges); vectors are **mean-pooled**
+and L2-normalised so each chunk still maps to **one** FAISS row aligned with
+``index_metadata.json``. Set ``RAG_EMBED_SENTENCE_WINDOWS=false`` to embed raw
+``chunk['text']`` as a single call. Optional ``RAG_EMBEDDING_MAX_WINDOWS`` caps
+Bedrock calls per chunk when subsampling windows.
+
     * ``embeddings.npy``       - the raw float32 matrix (rows aligned with the index)
     * ``knowledge.index``      - a FAISS ``IndexFlatIP`` over the same vectors
     * ``index_metadata.json``  - the enriched chunk payload, in matching row order
@@ -33,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import Counter
 
 import numpy as np
@@ -50,12 +59,76 @@ except ModuleNotFoundError:  # pragma: no cover - direct script execution path
 add_project_root_to_sys_path()
 
 from app.services.bedrock_provider import BedrockProvider
+from shared_components.settings import RAG_SETTINGS
 from shared_components.utilities.path_utils import (
     ensure_directory,
     get_corpus_name,
     get_knowledge_dir,
     get_vector_store_dir,
 )
+
+
+def _split_sentences(text: str) -> list[str]:
+    """Split on sentence-ending punctuation followed by whitespace.
+
+    Falls back to a single segment when no boundaries are found so short or
+    unpunctuated passages still embed sensibly.
+    """
+    text = (text or "").strip()
+    if not text:
+        return []
+    parts = re.split(r"(?<=[.!?])\s+", text)
+    out = [p.strip() for p in parts if p.strip()]
+    return out if out else [text]
+
+
+def _sentence_centered_windows(sentences: list[str], radius: int) -> list[str]:
+    """For each sentence index ``i``, join ``sentences[i-radius : i+radius+1]`` (clamped)."""
+    n = len(sentences)
+    windows: list[str] = []
+    for i in range(n):
+        lo = max(0, i - radius)
+        hi = min(n, i + radius + 1)
+        windows.append(" ".join(sentences[lo:hi]))
+    return windows
+
+
+def _maybe_subsample_windows(windows: list[str], max_windows: int) -> list[str]:
+    """Evenly subsample when ``max_windows > 0`` and len(windows) exceeds the cap."""
+    if max_windows <= 0 or len(windows) <= max_windows:
+        return windows
+    positions = np.linspace(0, len(windows) - 1, num=max_windows)
+    pick = sorted({int(round(float(p))) for p in positions})
+    return [windows[i] for i in pick]
+
+
+def _embedding_vector_for_chunk(provider: BedrockProvider, chunk: dict) -> list[float]:
+    """Return a single L2-normalised embedding vector for one knowledge-base row.
+
+    When ``RAG_EMBED_SENTENCE_WINDOWS`` is true, builds one text window per sentence
+    (``radius`` sentences before and after, inclusive), optionally subsamples windows,
+    embeds each window with Titan, then mean-pools and re-normalises so FAISS IP
+    still matches cosine similarity. Otherwise embeds ``chunk['text']`` as before.
+    """
+    text = chunk.get("text") or ""
+    if not RAG_SETTINGS.embed_sentence_windows:
+        return provider.embed_text(text)
+
+    sentences = _split_sentences(text)
+    if len(sentences) <= 1:
+        return provider.embed_text(text)
+
+    windows = _sentence_centered_windows(sentences, RAG_SETTINGS.embed_sentence_radius)
+    windows = _maybe_subsample_windows(windows, RAG_SETTINGS.embed_max_windows_per_chunk)
+    if not windows:
+        return provider.embed_text(text)
+
+    stacked = np.asarray([provider.embed_text(w) for w in windows], dtype=np.float32)
+    mean_v = stacked.mean(axis=0)
+    norm = float(np.linalg.norm(mean_v))
+    if norm > 0:
+        mean_v = mean_v / norm
+    return mean_v.tolist()
 
 
 def _resolve_paths(corpus: str | None):
@@ -107,6 +180,9 @@ def build_index(corpus: str | None = None, metadata_only: bool = False):
             "index_type": _detect_index_type(paths, faiss is not None),
             "chunking_profile_distribution": dict(profile_distribution),
             "metadata_only_refresh": True,
+            "embedding_sentence_windows": RAG_SETTINGS.embed_sentence_windows,
+            "embedding_sentence_radius": RAG_SETTINGS.embed_sentence_radius,
+            "embedding_max_windows_per_chunk": RAG_SETTINGS.embed_max_windows_per_chunk,
         }
         with paths["manifest_file"].open("w", encoding="utf-8") as handle:
             json.dump(manifest, handle, indent=2)
@@ -116,12 +192,15 @@ def build_index(corpus: str | None = None, metadata_only: bool = False):
     provider = BedrockProvider()
 
     print(f"Generating embeddings for {len(knowledge_base)} chunks (corpus: {resolved_corpus})...")
-    # Each call hits Bedrock; this is the most expensive part of the build
-    # and the reason this script is run independently of the rest of the pipeline.
-    embeddings = np.asarray(
-        [provider.embed_text(chunk["text"]) for chunk in knowledge_base],
-        dtype=np.float32,
-    )
+    # Each call hits Bedrock; sentence-window mode issues multiple embed calls per
+    # chunk then mean-pools (see ``_embedding_vector_for_chunk``).
+    rows: list[list[float]] = []
+    total = len(knowledge_base)
+    for idx, chunk in enumerate(knowledge_base):
+        if idx == 0 or (idx + 1) % 10 == 0 or idx == total - 1:
+            print(f"  … chunk {idx + 1}/{total}", flush=True)
+        rows.append(_embedding_vector_for_chunk(provider, chunk))
+    embeddings = np.asarray(rows, dtype=np.float32)
 
     dimension = embeddings.shape[1]
     np.save(paths["embeddings_file"], embeddings)
@@ -146,6 +225,9 @@ def build_index(corpus: str | None = None, metadata_only: bool = False):
                 "dimension": dimension,
                 "index_type": index_type,
                 "chunking_profile_distribution": dict(profile_distribution),
+                "embedding_sentence_windows": RAG_SETTINGS.embed_sentence_windows,
+                "embedding_sentence_radius": RAG_SETTINGS.embed_sentence_radius,
+                "embedding_max_windows_per_chunk": RAG_SETTINGS.embed_max_windows_per_chunk,
             },
             handle,
             indent=2,

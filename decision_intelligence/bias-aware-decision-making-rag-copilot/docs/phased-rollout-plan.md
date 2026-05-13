@@ -12,8 +12,8 @@ This document operationalises **Section 6** of the earlier "Books as a Knowledge
 |---|---|---|
 | Synthesised dossiers (~10 books) | Built, indexed, public | `data/corpora/public/raw/*.pdf` |
 | Full books (6) | Built, indexed, private only | `data/corpora/private/raw/*.pdf` |
-| Public vector index | 301 chunks, IndexFlatIP, 1024 dims | `data/corpora/public/vector_store/` |
-| Private vector index | 1,161 chunks, IndexFlatIP, 1024 dims | `data/corpora/private/vector_store/` |
+| Public vector index | 301 chunks, IndexFlatIP, 1024 dims; **manifest records sentence-window embedding policy** | `data/corpora/public/vector_store/` |
+| Private vector index | 1,161 chunks, IndexFlatIP, 1024 dims; same embedding builder | `data/corpora/private/vector_store/` |
 | Public sample evaluation | Refreshed for the new corpus | `docs/sample_results_comparison.md` |
 | Public-vs-private A/B harness | Implemented | `scripts/compare_versions.py` |
 
@@ -62,7 +62,7 @@ Where licence cannot be obtained for author content but a clear public summary, 
 
 When the public corpus passes ~3,000 chunks:
 
-- Enable the LLM-as-judge reranker (`RAG_RERANKER=llm`) since the candidate pool will be large enough to benefit.
+- Enable the LLM-as-judge reranker (`RAG_RERANKER=claude_haiku`) since the candidate pool will be large enough to benefit.
 - Tune `RAG_RERANKER_CANDIDATES` and `RAG_TOP_K` against the evaluation harness.
 
 When the public corpus passes ~50,000 chunks:

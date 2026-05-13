@@ -83,7 +83,16 @@ User scenarios are paraphrases. They never quote the books. Keyword search would
 
 ### How they are produced in this project
 
-Every chunk and every user query is embedded by **Amazon Titan Text Embeddings v2** (`amazon.titan-embed-text-v2:0`) at 1024 dimensions, with `normalize=true`. Normalised vectors mean inner product equals cosine similarity, which is what FAISS `IndexFlatIP` uses internally.
+**Query side (runtime):** the user’s full scenario string is embedded once with **Amazon Titan Text Embeddings v2** (`amazon.titan-embed-text-v2:0`) at 1024 dimensions with `normalize=true`, via `BedrockProvider.embed_text()`.
+
+**Corpus side (index build):** `data_pipeline/build_vector_index.py` embeds each **knowledge-base chunk** as follows (unless `RAG_EMBED_SENTENCE_WINDOWS=false`):
+
+1. Split chunk `text` into sentences (simple punctuation-based splitter).
+2. For each sentence index *i*, form a **window** of up to **`RAG_EMBED_SENTENCE_RADIUS`** sentences before *i*, sentence *i*, and up to **`RAG_EMBED_SENTENCE_RADIUS`** after (default radius **3** → up to **seven** sentences, fewer at edges).
+3. Embed each window with Titan (`normalize=true`). Optionally subsample windows when `RAG_EMBEDDING_MAX_WINDOWS` > 0 to cap Bedrock cost.
+4. **Mean-pool** the window vectors and **L2-normalise** the result so each chunk still occupies **one row** in `embeddings.npy` / FAISS—inner product search remains **cosine-equivalent** on unit vectors.
+
+Normalised vectors mean inner product equals cosine similarity, which is what FAISS `IndexFlatIP` uses internally.
 
 ### Why not sentence-transformers locally?
 
@@ -108,14 +117,14 @@ This project uses `IndexFlatIP`:
 - **Flat** — every vector is stored verbatim and the search is exhaustive.
 - **IP** — the comparison metric is **inner product**. Combined with normalised embeddings, this is mathematically equivalent to cosine similarity.
 
-For ~250 chunks, exhaustive search is not just acceptable — it is preferable: zero approximation error, deterministic ordering, no training step. When the corpus grows past tens of thousands of chunks, the index can be swapped for `IndexIVFFlat` or `IndexHNSWFlat` without changing any other code, because the retriever only depends on the `search(query_vector, k)` interface.
+For a few hundred chunks (the public dossier index is on the order of **300** rows), exhaustive search is not just acceptable — it is preferable: zero approximation error, deterministic ordering, no training step. When the corpus grows past tens of thousands of chunks, the index can be swapped for `IndexIVFFlat` or `IndexHNSWFlat` without changing any other code, because the retriever only depends on the `search(query_vector, k)` interface.
 
 ### Why FAISS over alternatives
 
 | Option | Why not (for this project) |
 |--------|----------------------------|
 | Pinecone, Weaviate, Qdrant Cloud | Network round-trips, billing setup, and a managed service are overkill for a portfolio-scale corpus. |
-| pgvector | Excellent at scale, but adds a Postgres dependency for ~250 vectors. |
+| pgvector | Excellent at scale, but adds a Postgres dependency for a few hundred vectors. |
 | Pure numpy (dot product) | Works (and is the fallback), but has no path to scale or to ANN indexes. |
 | FAISS `IndexFlatIP` | Zero approximation, microsecond latency at this size, drop-in upgrade path to ANN indexes later. |
 
@@ -249,15 +258,22 @@ This is the row that the embedder reads next.
 
 ### Step 5 — Bedrock embeddings (`amazon.titan-embed-text-v2:0`)
 
-Every chunk is sent to Amazon Bedrock with `normalize=true`. Titan v2 returns a **1,024-dimensional float32 vector** that carries the meaning of the chunk in a way that survives paraphrase:
+At **index build** time, `build_vector_index.py` does **not** simply embed the entire chunk string once (unless `RAG_EMBED_SENTENCE_WINDOWS=false`). The default path is:
 
 ```text
-input        : the text of one chunk (~500 words)
-output       : numpy array of shape (1024,), dtype float32
-L2 norm      : 1.0  (Bedrock returns unit vectors)
-value range  : roughly -0.16 to +0.16
-cost         : ~$0.00002 per chunk
-runtime      : ~50-150 ms per chunk over the public internet
+1. Split chunk text into sentences.
+2. For each sentence index i, build a window: up to R sentences before, sentence i, up to R after
+   (R = RAG_EMBED_SENTENCE_RADIUS, default 3 → up to 7 sentences per window).
+3. Embed each window with Titan v2, normalize=true.
+4. Mean-pool window vectors, L2-normalise → one 1024-dim row per chunk in embeddings.npy.
+```
+
+So the **input** to the pooling step is many short, locally coherent strings; the **stored** vector is still one row per chunk, aligned with `index_metadata.json`.
+
+```text
+per-window input : up to ~7 sentences (~tens to low-hundreds of words)
+per-chunk output   : numpy array of shape (1024,), dtype float32, unit L2 norm after pooling
+cost               : ~one Titan call per sentence-window per chunk (use RAG_EMBEDDING_MAX_WINDOWS to cap)
 ```
 
 The unit-norm property is what lets us treat **inner product** as **cosine similarity** in the next step — they are mathematically equivalent for normalised vectors.
@@ -318,7 +334,7 @@ Consider the question:
 
 The runtime path is:
 
-1. **Embed the query** — same Titan v2 call, same 1,024-dim normalised vector.
+1. **Embed the query** — Titan v2 on the **full** scenario text (same API as index time, but no sentence-window pooling on the query).
 2. **FAISS top-k search** — inner-product search returns the 24 candidate rows whose vectors point closest to the query vector. The raw top-5 (cosine scores) for this query against the private index:
 
    ```text

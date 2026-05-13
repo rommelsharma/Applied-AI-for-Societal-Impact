@@ -99,7 +99,7 @@ A full side-by-side baseline-vs-this-system comparison on real scenarios is in [
 The system is a Retrieval-Augmented Generation (RAG) pipeline with closed-taxonomy constraints and strict structured output:
 
 - **LLM**: Anthropic Claude Sonnet 4.5 via Amazon Bedrock (`us.anthropic.claude-sonnet-4-5-20250929-v1:0`).
-- **Embeddings**: Amazon Titan v2 (`amazon.titan-embed-text-v2:0`, 1024 dims, normalised).
+- **Embeddings**: Amazon Titan v2 (`amazon.titan-embed-text-v2:0`, 1024 dims, normalised). **Chunks** use **sentence-centred windows** (default ±3 sentences per window, mean-pooled to one vector per chunk at index build; configurable via `RAG_EMBED_*` / `RAG_EMBEDDING_MAX_WINDOWS` in `.env`). **User scenarios** embed as a **single** string at query time.
 - **Retrieval**: FAISS `IndexFlatIP` over a curated knowledge base, with concept and decision-domain filtering, MMR diversification, and an optional LLM-as-judge reranker.
 - **Knowledge base**: 300+ chunks today across hiring, performance, leadership, legal, AI governance, strategy, and compliance contexts — assembled from seminal decision-science literature.
 - **Bias taxonomy**: 60+ entries across cognitive biases (anchoring, halo, similarity, etc.), systemic biases (process ambiguity, level noise, algorithmic, historical), and AI-alignment biases (instrumental convergence, specification gaming, etc.).
@@ -114,6 +114,7 @@ For the full architecture, see [`docs/Solution Design Document.docx`](docs/Solut
 
 | Document | What it covers |
 |---|---|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Pipeline and runtime diagram (offline ingestion, sentence-window index embeddings, RAG runtime, eval capture). |
 | [`docs/Solution Design Document.docx`](docs/Solution%20Design%20Document.docx) | Solution design (v1.1+) ordered to match `docs/rag_solution_design_best_practices.docx`, plus architecture snapshot, gaps, and phased roadmap. Regenerate with `python scripts/rebuild_solution_design_docx.py`. |
 | [`docs/fundamental-concepts.md`](docs/fundamental-concepts.md) | Why this stack — explained in plain English with a worked example tracing a single book through the whole pipeline. |
 | [`docs/sample_results_comparison.md`](docs/sample_results_comparison.md) | Real outputs side-by-side: same scenario answered without and with the curated knowledge base. |

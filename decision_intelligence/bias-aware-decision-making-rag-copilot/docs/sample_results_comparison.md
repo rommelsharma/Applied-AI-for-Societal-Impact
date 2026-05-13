@@ -9,8 +9,8 @@ This document captures end-to-end outputs from the bias-aware decision-making RA
 **Models:**
 
 - Chat: `us.anthropic.claude-sonnet-4-5-20250929-v1:0` (Amazon Bedrock)
-- Embeddings: `amazon.titan-embed-text-v2:0` (1024 dims, normalised)
-- Retrieval index: FAISS `IndexFlatIP` over 301 chunks
+- Embeddings: `amazon.titan-embed-text-v2:0` (1024 dims, normalised). **Chunks** at index time use **sentence-centred windows** (±`RAG_EMBED_SENTENCE_RADIUS` sentences, mean-pooled per chunk) unless `RAG_EMBED_SENTENCE_WINDOWS=false`; **queries** embed the full scenario text.
+- Retrieval index: FAISS `IndexFlatIP` over 301 chunk rows (`embeddings.npy` aligned with `index_metadata.json`). See `data_pipeline/build_vector_index.py` and `vector_store/manifest.json` for the exact policy used when this report was generated.
 
 ---
 

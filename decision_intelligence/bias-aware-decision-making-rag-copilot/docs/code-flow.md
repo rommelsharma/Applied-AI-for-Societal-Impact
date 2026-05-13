@@ -119,13 +119,13 @@ PDFs (data/corpora/<corpus>/raw/)
 | `data_pipeline/passage_classifier.py` | Lightweight per-chunk classifier producing `passage_type` (prescription / framework / study / case_study / anecdote / definition) and `decision_phase` (diagnose / design / decide / review). Heuristic by default; routes through Claude Haiku when `ENRICHMENT_USE_LLM=true`, with automatic fallback to the rule-based path on failure. |
 | `data_pipeline/enrich_chunks.py` | Final pre-embedding enrichment: generates a short summary, derives `importance`, `decision_domains`, top keywords, and the `passage_type` / `decision_phase` tags from the classifier above. Writes `<corpus>/knowledge/knowledge_base.json` with every traceability field preserved (parser notes, cleaning notes, chapter title, chunking profile). |
 | `data_pipeline/build_knowledge_base.py` | Orchestrator that runs parse → chunk → extract concepts → enrich in sequence with progress banners. Supports `--corpus` and `--profile`. |
-| `data_pipeline/build_vector_index.py` | Reads `knowledge_base.json`, calls Bedrock Titan v2 (`amazon.titan-embed-text-v2:0`) for each chunk, stacks the vectors into a `float32` matrix, persists `embeddings.npy`, builds a FAISS `IndexFlatIP` (cosine-equivalent on normalised embeddings), and writes `index_metadata.json` plus `manifest.json` (corpus name, chunk count, dimension, index type, profile distribution). `--metadata-only` refreshes only the alignment metadata when chunk text is unchanged - useful after extending enrichment without re-embedding. |
+| `data_pipeline/build_vector_index.py` | Reads `knowledge_base.json`, calls Bedrock Titan v2 (`amazon.titan-embed-text-v2:0`) for each chunk. **Default:** sentence-centred windows (±`RAG_EMBED_SENTENCE_RADIUS` sentences per sentence in the chunk, mean-pooled and L2-normalised) for stronger retrieval context; disable with `RAG_EMBED_SENTENCE_WINDOWS=false` for a single embed of full `text`. Optional `RAG_EMBEDDING_MAX_WINDOWS` subsamples windows to cap Bedrock cost. Stacks vectors into `embeddings.npy`, builds FAISS `IndexFlatIP`, writes `index_metadata.json` and `manifest.json` (includes embedding window settings). `--metadata-only` refreshes metadata when chunk text is unchanged. |
 
 ### Cross-cutting helpers used by the pipeline
 
 | File | Responsibility |
 |------|---------------|
-| `shared_components/settings.py` | Loads `.env` and exposes two frozen dataclasses: `BEDROCK_SETTINGS` (region, chat / embedding model ids, endpoint URL, embedding dimensions) and `RAG_SETTINGS` (corpus name, chunking profile, default `top_k`, MMR lambda, reranker config, LLM-enrichment toggle). Single source of truth for configuration. |
+| `shared_components/settings.py` | Loads `.env` and exposes two frozen dataclasses: `BEDROCK_SETTINGS` (region, chat / embedding model ids, endpoint URL, embedding dimensions) and `RAG_SETTINGS` (corpus name, chunking profile, default `top_k`, MMR lambda, reranker config, LLM-enrichment toggle, **index-time sentence-window embedding flags**: `embed_sentence_windows`, `embed_sentence_radius`, `embed_max_windows_per_chunk`). Single source of truth for configuration. |
 | `shared_components/utilities/path_utils.py` | Corpus-aware path resolution for `data/corpora/<corpus>/{raw,parsed_text,chunks,knowledge,vector_store}`, plus the corpus-independent `data/metadata`, `prompts/`, `evaluation/`. Optional `corpus` argument lets a single process address multiple corpora simultaneously (used by `compare_versions.py`). |
 | `shared_components/utilities/taxonomy_utils.py` | Lazy-cached loaders for `bias-taxonomy.json` and `retrieval-concepts.json`, plus a unified `build_concept_catalog()` that merges both into a single dict keyed by concept name. |
 
@@ -216,6 +216,11 @@ RAG_RERANKER=none            # 'none' | 'claude_haiku'
 RAG_RERANKER_MODEL_ID=us.anthropic.claude-haiku-4-5-20251001-v1:0
 RAG_RERANKER_CANDIDATES=24
 ENRICHMENT_USE_LLM=false     # rule-based passage classifier when false
+
+# Index-time chunk embeddings (build_vector_index.py). Queries always embed full scenario text.
+RAG_EMBED_SENTENCE_WINDOWS=true   # false = one Titan call on full chunk text (legacy)
+RAG_EMBED_SENTENCE_RADIUS=3       # sentences before / after each centre sentence in a window
+RAG_EMBEDDING_MAX_WINDOWS=0       # 0 = no subsampling; set e.g. 24 to cap Bedrock calls per chunk
 ```
 
 `shared_components/settings.py` is the only place that reads these values. `BedrockProvider.__init__` validates that the bearer token is present before building a boto3 client.
