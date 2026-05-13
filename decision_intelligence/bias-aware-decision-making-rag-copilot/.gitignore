@@ -7,6 +7,9 @@ __pycache__/
 *.pyc
 .DS_Store
 
+# Microsoft Word lock files (appear when a .docx is open in Word)
+**/~$*.docx
+
 # Per-run evaluation outputs (regenerated locally; not part of the design)
 evaluation/latest_results.json
 evaluation/sample_results.json

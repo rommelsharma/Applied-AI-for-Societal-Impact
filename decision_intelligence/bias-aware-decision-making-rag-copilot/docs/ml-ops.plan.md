@@ -1,6 +1,6 @@
 # ML-Ops Plan
 
-This document describes the ML-Ops practices used (and planned) for the Bias-Aware Decision Making RAG Copilot. It is the source of truth for the "ML-Ops Best Practices" section of the Solution Design Document.
+This document describes the ML-Ops practices used (and planned) for the Bias-Aware Decision Making RAG Copilot. It aligns with the ML-Ops narrative in the validated portfolio SDD ([`Solution_Design_Document.docx`](Solution_Design_Document.docx), externally maintained — not overwritten by repo scripts).
 
 The system is small (one runtime path, two corpora, one chat model, one embedding model) but the operational practices below are deliberately enterprise-shaped so the same patterns scale when the corpus, traffic, or team grow.
 
@@ -24,7 +24,7 @@ Conventional MLOps assumes a *trained* model. Here the LLMs are pre-trained and 
 
 ### 2.1 Environment
 
-- `requirements.txt` pins the floors for `boto3`, `faiss-cpu`, `numpy`, `PyMuPDF`, `python-dotenv`, `python-docx`.
+- `requirements.txt` pins the floors for `boto3`, `faiss-cpu`, `numpy`, `PyMuPDF`, `python-dotenv`.
 - `.env.example` declares every environment variable the runtime reads. `.env` is gitignored.
 - `shared_components/settings.py` is the **only** module that reads environment variables; every other file imports `BEDROCK_SETTINGS` and `RAG_SETTINGS`.
 - `shared_components/utilities/path_utils.py` is the **only** module that resolves filesystem paths.

@@ -106,7 +106,7 @@ The system is a Retrieval-Augmented Generation (RAG) pipeline with closed-taxono
 - **Output**: Strict JSON schema constrained against the taxonomy — predictable, auditable, integrable.
 - **Hosting**: AWS-native — Bedrock, S3, KMS, CloudWatch, IAM.
 
-For the full architecture, see [`docs/Solution Design Document.docx`](docs/Solution%20Design%20Document.docx) and [`docs/fundamental-concepts.md`](docs/fundamental-concepts.md).
+For the full architecture, see the validated portfolio **Solution Design** ([`docs/Solution_Design_Document.docx`](docs/Solution_Design_Document.docx) — externally maintained; do not overwrite with repo scripts) and [`docs/fundamental-concepts.md`](docs/fundamental-concepts.md).
 
 ---
 
@@ -115,7 +115,7 @@ For the full architecture, see [`docs/Solution Design Document.docx`](docs/Solut
 | Document | What it covers |
 |---|---|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Pipeline and runtime diagram (offline ingestion, sentence-window index embeddings, RAG runtime, eval capture). |
-| [`docs/Solution Design Document.docx`](docs/Solution%20Design%20Document.docx) | Solution design (v1.1+) ordered to match `docs/rag_solution_design_best_practices.docx`, plus architecture snapshot, gaps, and phased roadmap. Regenerate with `python scripts/rebuild_solution_design_docx.py`. |
+| [`docs/Solution_Design_Document.docx`](docs/Solution_Design_Document.docx) | **Canonical** solution design (externally authored and QA’d). **Do not overwrite** from repository automation. |
 | [`docs/fundamental-concepts.md`](docs/fundamental-concepts.md) | Why this stack — explained in plain English with a worked example tracing a single book through the whole pipeline. |
 | [`docs/sample_results_comparison.md`](docs/sample_results_comparison.md) | Real outputs side-by-side: same scenario answered without and with the curated knowledge base. |
 | [`docs/code-flow.md`](docs/code-flow.md) | What every file does and how data moves through the system. |
