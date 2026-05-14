@@ -3,7 +3,11 @@ Run two illustrative scenarios through the baseline-vs-RAG bias detector.
 
 Produces:
     * ``evaluation/sample_results.json`` - raw payloads (without_rag, with_rag, retrieval).
-    * ``docs/sample_results_comparison.md`` - reviewer-facing markdown report.
+    * ``response/sample_results_comparison.md`` - markdown header plus append-only JSONL
+      lines (one JSON object per line).
+
+Connectivity is exercised first (and logged to ``response/connectivity_log.txt`` via
+``evaluation/connectivity.run_connectivity_check``).
 
 Run from the project root:
     python scripts/run_sample_comparison.py
@@ -11,28 +15,17 @@ Run from the project root:
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.append(str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.services.bias_detector import detect_bias_comparison
-from shared_components.utilities.path_utils import get_corpus_name, get_vector_store_dir
-
-
-def _read_index_manifest() -> dict:
-    """Return the active corpus's vector-store manifest as a dict.
-
-    Falls back to a minimal placeholder when the manifest is missing so the
-    report can still render against an unbuilt corpus during development.
-    """
-    manifest_path = get_vector_store_dir() / "manifest.json"
-    if not manifest_path.exists():
-        return {"corpus": get_corpus_name(), "count": 0, "dimension": 0, "index_type": "unknown"}
-    return json.loads(manifest_path.read_text(encoding="utf-8"))
+from evaluation.sample_results_log import append_sample_results_jsonl, migrate_docs_sample_if_present
 
 
 # Two deliberately distinct scenarios to exercise different parts of the taxonomy.
@@ -78,171 +71,27 @@ SCENARIOS = [
 ]
 
 
-def render_markdown(results: list[dict]) -> str:
-    """Render the per-scenario comparison results as a reviewer-facing markdown report."""
-
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M %Z").strip()
-    manifest = _read_index_manifest()
-    corpus_name = manifest.get("corpus", get_corpus_name())
-    chunk_count = manifest.get("count", 0)
-    embedding_dim = manifest.get("dimension", 1024)
-    index_type = manifest.get("index_type", "IndexFlatIP")
-
-    lines: list[str] = []
-    lines.append("# Sample Results - Baseline vs RAG Comparison")
-    lines.append("")
-    lines.append(
-        "This document captures end-to-end outputs from the bias-aware decision-making "
-        "RAG copilot for two representative scenarios. For each scenario the system was "
-        "called twice with the same locked JSON-schema system prompt and the same closed "
-        "bias taxonomy. The only difference between the two calls is whether retrieved "
-        "context from the curated knowledge base was injected into the system prompt."
-    )
-    lines.append("")
-    lines.append(f"**Generated:** {timestamp}")
-    lines.append("")
-    lines.append(f"**Corpus:** `{corpus_name}` (this is the public, committed corpus; "
-                 f"private full-book results are produced separately via "
-                 f"`scripts/compare_versions.py` and are not included in this report).")
-    lines.append("")
-    lines.append("**Models:**")
-    lines.append("")
-    lines.append("- Chat: `us.anthropic.claude-sonnet-4-5-20250929-v1:0` (Amazon Bedrock)")
-    lines.append(
-        f"- Embeddings: `amazon.titan-embed-text-v2:0` ({embedding_dim} dims, normalised)"
-    )
-    lines.append(
-        f"- Retrieval index: FAISS `{index_type}` over {chunk_count} chunks"
-    )
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-    lines.append("## Table of Contents")
-    lines.append("")
-    for i, entry in enumerate(results, start=1):
-        slug = entry["id"].replace("_", "-")
-        lines.append(f"{i}. [Scenario {i} - {entry['title']}](#scenario-{i}-{slug})")
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-
-    for index, entry in enumerate(results, start=1):
-        slug = entry["id"].replace("_", "-")
-        lines.append(f"## Scenario {index} - {entry['title']}")
-        lines.append("")
-        lines.append(f"<a id=\"scenario-{index}-{slug}\"></a>")
-        lines.append("")
-
-        lines.append("### Prompt")
-        lines.append("")
-        lines.append("> " + entry["scenario"].replace("\n", "\n> "))
-        lines.append("")
-
-        lines.append("### Retrieved Supporting Context (RAG Path)")
-        lines.append("")
-        retrieval = entry["result"].get("retrieval", [])
-        if not retrieval:
-            lines.append("_No retrieval results were returned for this scenario._")
-        else:
-            lines.append(
-                "| # | Source | Author | Score | Concepts | Decision Domains |"
-            )
-            lines.append(
-                "|---|--------|--------|-------|----------|------------------|"
-            )
-            for r_idx, item in enumerate(retrieval, start=1):
-                concepts = ", ".join(item.get("concepts", [])) or "_none_"
-                domains = ", ".join(item.get("decision_domains", [])) or "_none_"
-                lines.append(
-                    f"| {r_idx} | `{item.get('source', '')}` | {item.get('author', '')} | "
-                    f"{item.get('score', 0):.4f} | {concepts} | {domains} |"
-                )
-        lines.append("")
-
-        if retrieval:
-            lines.append("**Top retrieved excerpts (summaries):**")
-            lines.append("")
-            for r_idx, item in enumerate(retrieval, start=1):
-                lines.append(
-                    f"- **[{r_idx}] {item.get('source', '')}** - {item.get('summary', '')}"
-                )
-            lines.append("")
-
-        lines.append("### Baseline Output (without RAG)")
-        lines.append("")
-        lines.append("```json")
-        lines.append(json.dumps(entry["result"]["without_rag"], indent=2, ensure_ascii=False))
-        lines.append("```")
-        lines.append("")
-
-        lines.append("### RAG-Enhanced Output (with RAG)")
-        lines.append("")
-        lines.append("```json")
-        lines.append(json.dumps(entry["result"]["with_rag"], indent=2, ensure_ascii=False))
-        lines.append("```")
-        lines.append("")
-
-        baseline_biases = entry["result"]["without_rag"].get("biases_identified", [])
-        rag_biases = entry["result"]["with_rag"].get("biases_identified", [])
-        baseline_names = sorted({b.get("bias_name", "") for b in baseline_biases})
-        rag_names = sorted({b.get("bias_name", "") for b in rag_biases})
-
-        lines.append("### Comparison Summary")
-        lines.append("")
-        lines.append("| Dimension | Baseline (no RAG) | RAG-enhanced |")
-        lines.append("|-----------|-------------------|--------------|")
-        lines.append(f"| Biases identified (count) | {len(baseline_biases)} | {len(rag_biases)} |")
-        lines.append(
-            f"| Biases identified (names) | {', '.join(baseline_names) or '_none_'} | "
-            f"{', '.join(rag_names) or '_none_'} |"
-        )
-        only_in_rag = sorted(set(rag_names) - set(baseline_names))
-        only_in_baseline = sorted(set(baseline_names) - set(rag_names))
-        lines.append(
-            f"| Surfaced only with RAG | _n/a_ | {', '.join(only_in_rag) or '_none_'} |"
-        )
-        lines.append(
-            f"| Surfaced only without RAG | {', '.join(only_in_baseline) or '_none_'} | _n/a_ |"
-        )
-        lines.append(
-            f"| Recommended actions (count) | {len(entry['result']['without_rag'].get('recommended_actions', []))} | "
-            f"{len(entry['result']['with_rag'].get('recommended_actions', []))} |"
-        )
-        lines.append(
-            f"| Alternative perspectives (count) | {len(entry['result']['without_rag'].get('alternative_perspectives', []))} | "
-            f"{len(entry['result']['with_rag'].get('alternative_perspectives', []))} |"
-        )
-        lines.append("")
-
-        lines.append("---")
-        lines.append("")
-
-    lines.append("## Notes on Reading These Results")
-    lines.append("")
-    lines.append(
-        "- Both calls use temperature 0.1 for near-deterministic output."
-    )
-    lines.append(
-        "- The system prompt is identical between baseline and RAG paths; only the retrieved "
-        "context block differs."
-    )
-    lines.append(
-        "- The model is constrained to a closed taxonomy and may not invent bias names. "
-        "Differences between the two paths therefore reflect which biases the model judged "
-        "salient given (or without) the retrieved context."
-    )
-    lines.append(
-        "- The system is decision support only and is not legal, medical, or HR advice."
-    )
-    lines.append("")
-
-    return "\n".join(lines)
-
-
 def main() -> None:
-    """Run both scenarios, persist JSON, and write the markdown comparison report."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--skip-connectivity",
+        action="store_true",
+        help="Skip Bedrock + vector-store smoke checks (not recommended).",
+    )
+    args = parser.parse_args()
+
+    migrate_docs_sample_if_present(PROJECT_ROOT)
+
+    if not args.skip_connectivity:
+        from evaluation.connectivity import run_connectivity_check
+
+        connectivity = run_connectivity_check()
+        if not connectivity.get("ok"):
+            print(json.dumps(connectivity, indent=2), file=sys.stderr)
+            sys.exit(1)
 
     results: list[dict] = []
+    batch_ts = datetime.now(timezone.utc).isoformat()
 
     for scenario in SCENARIOS:
         print(f"\n>>> Running scenario: {scenario['id']} - {scenario['title']}")
@@ -271,10 +120,18 @@ def main() -> None:
         json.dump(results, handle, indent=2, ensure_ascii=False)
     print(f"\nSaved raw results to: {json_output}")
 
-    md_output = PROJECT_ROOT / "docs" / "sample_results_comparison.md"
-    md_output.parent.mkdir(parents=True, exist_ok=True)
-    md_output.write_text(render_markdown(results), encoding="utf-8")
-    print(f"Saved markdown report to: {md_output}")
+    jsonl_rows: list[dict] = []
+    for entry in results:
+        jsonl_rows.append(
+            {
+                "scenario_id": entry["id"],
+                "scenario_title": entry["title"],
+                "without_rag": entry["result"]["without_rag"],
+                "with_rag": entry["result"]["with_rag"],
+            }
+        )
+    log_path = append_sample_results_jsonl(jsonl_rows, batch_timestamp=batch_ts)
+    print(f"Appended JSONL rows to: {log_path}")
 
 
 if __name__ == "__main__":

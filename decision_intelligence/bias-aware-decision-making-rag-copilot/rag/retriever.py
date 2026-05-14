@@ -14,6 +14,10 @@ Design choices that matter:
       to unfiltered semantic results so a query never returns empty.
     * MMR (Maximal Marginal Relevance) re-ordering diversifies the top-k so
       a single book / chapter cannot monopolise the result set.
+    * Optional overlap-aware filtering (same ``source``, nearby ``chunk_index``)
+      with greedy backfill from a widened MMR pool.
+    * Optional bounded neighbour-chunk excerpts (same source, ``chunk_index ± N``)
+      attached for prompt context only (primary citations stay on the hit chunk).
     * An optional reranker stage (Claude Haiku as relevance judge) sits in
       front of the final cut. Off by default; toggled via env.
 
@@ -25,7 +29,7 @@ public-vs-private demo orchestration).
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Iterable
 
 import numpy as np
@@ -51,6 +55,7 @@ class RetrievalResult:
     chapter_title: str = ""
     passage_type: str = "unknown"
     decision_phase: str = "unknown"
+    neighbor_blocks: list[dict[str, str]] = field(default_factory=list)
 
 
 class KnowledgeRetriever:
@@ -101,9 +106,81 @@ class KnowledgeRetriever:
         with metadata_file.open("r", encoding="utf-8") as handle:
             self.metadata = json.load(handle)
 
+        # (source, chunk_index) -> FAISS row index — for overlap checks and neighbour expansion.
+        self._faiss_idx_by_source_chunk: dict[tuple[str, int], int] = {}
+        for row_i, chunk in enumerate(self.metadata):
+            src = chunk.get("source") or ""
+            ci = chunk.get("chunk_index")
+            if isinstance(ci, int) and ci >= 0 and src:
+                self._faiss_idx_by_source_chunk[(src, ci)] = row_i
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _chunk_overlap(self, row_a: int, row_b: int, radius: int) -> bool:
+        """True if same ``source`` and ``chunk_index`` within ``radius`` (both indices known)."""
+        if row_a < 0 or row_b < 0 or row_a == row_b:
+            return row_a == row_b
+        ca = self.metadata[row_a]
+        cb = self.metadata[row_b]
+        if (ca.get("source") or "") != (cb.get("source") or ""):
+            return False
+        ia = ca.get("chunk_index")
+        ib = cb.get("chunk_index")
+        if not isinstance(ia, int) or not isinstance(ib, int) or ia < 0 or ib < 0:
+            return False
+        return abs(ia - ib) <= radius
+
+    def _filter_overlap_greedy(self, ordered: list[int], limit: int, radius: int) -> list[int]:
+        """Prefer non-overlapping primaries; backfill from ``ordered`` allowing overlap if needed."""
+        kept: list[int] = []
+        for idx in ordered:
+            if len(kept) >= limit:
+                break
+            if any(self._chunk_overlap(idx, k, radius) for k in kept):
+                continue
+            kept.append(idx)
+        if len(kept) < limit:
+            for idx in ordered:
+                if len(kept) >= limit:
+                    break
+                if idx in kept:
+                    continue
+                kept.append(idx)
+        return kept[:limit]
+
+    def _neighbor_snippets(self, primary_row: int, neighbor_span: int, max_chars: int) -> list[dict[str, str]]:
+        """Return same-source neighbour chunk excerpts (not scored hits)."""
+        if neighbor_span <= 0 or max_chars <= 0:
+            return []
+        chunk = self.metadata[primary_row]
+        src = chunk.get("source") or ""
+        ci = chunk.get("chunk_index")
+        if not isinstance(ci, int) or ci < 0 or not src:
+            return []
+        blocks: list[dict[str, str]] = []
+        for delta in range(-neighbor_span, neighbor_span + 1):
+            if delta == 0:
+                continue
+            nci = ci + delta
+            row_j = self._faiss_idx_by_source_chunk.get((src, nci))
+            if row_j is None:
+                continue
+            meta = self.metadata[row_j]
+            text = (meta.get("text") or "").strip()
+            excerpt = text[:max_chars] if text else ""
+            if not excerpt:
+                continue
+            blocks.append(
+                {
+                    "chunk_id": str(meta.get("id", "")),
+                    "chunk_index_delta": str(delta),
+                    "excerpt": excerpt,
+                }
+            )
+        blocks.sort(key=lambda b: int(b.get("chunk_index_delta", "0")))
+        return blocks
 
     def _embed_query(self, query: str) -> np.ndarray:
         """Embed a single query and shape it for FAISS / numpy similarity ops."""
@@ -140,7 +217,13 @@ class KnowledgeRetriever:
             return False
         return True
 
-    def _build_result(self, chunk: dict, score: float) -> RetrievalResult:
+    def _build_result(
+        self,
+        chunk: dict,
+        score: float,
+        *,
+        neighbor_blocks: list[dict[str, str]] | None = None,
+    ) -> RetrievalResult:
         """Wrap a metadata row plus its similarity into a ``RetrievalResult``."""
         return RetrievalResult(
             id=chunk["id"],
@@ -155,6 +238,7 @@ class KnowledgeRetriever:
             chapter_title=chunk.get("chapter_title", ""),
             passage_type=chunk.get("passage_type", "unknown"),
             decision_phase=chunk.get("decision_phase", "unknown"),
+            neighbor_blocks=list(neighbor_blocks or []),
         )
 
     def _apply_mmr(
@@ -290,18 +374,25 @@ class KnowledgeRetriever:
         Pipeline:
             1. Embed the query via Bedrock Titan v2.
             2. Pull a wide candidate set (``top_k * 3`` or
-               ``RAG_RERANKER_CANDIDATES`` when reranking is enabled).
+               ``RAG_RERANKER_CANDIDATES`` when reranking is enabled), widened when
+               overlap filtering is enabled.
             3. Apply concept and decision-domain filters.
             4. Rerank with the configured reranker (no-op by default).
-            5. Diversify with MMR using ``mmr_lambda``.
-            6. Fall back to unfiltered semantic results if filtering left
+            5. Diversify with MMR using ``mmr_lambda`` (larger MMR cut when overlap
+               filter is on so backfill has depth).
+            6. Optionally drop same-source ``chunk_index`` neighbours, backfilling
+               from the MMR-ordered pool.
+            7. Optionally attach same-source neighbour excerpts for prompt context.
+            8. Fall back to unfiltered semantic results if filtering left
                nothing - the caller must always get usable context.
         """
         limit = max(top_k or RAG_SETTINGS.default_top_k, 1)
-        candidate_pool_size = max(
+        overlap_mult = max(1, int(RAG_SETTINGS.overlap_candidate_pool_multiplier)) if RAG_SETTINGS.overlap_filter else 1
+        base_pool = max(
             limit * 3,
             reranker_candidates or (RAG_SETTINGS.reranker_candidates if RAG_SETTINGS.reranker != "none" else 0),
         )
+        candidate_pool_size = max(base_pool * overlap_mult, limit * 3)
 
         query_vector = self._embed_query(query)
         scores, indices = self._semantic_candidates(query_vector, candidate_pool_size)
@@ -334,20 +425,43 @@ class KnowledgeRetriever:
             top_k=max(limit, candidate_pool_size // 2),
         )
 
-        # Diversify the final cut with MMR so several books/chapters can
-        # appear in the result set instead of one source dominating.
+        ranked_indices = [idx for _, idx in ranked]
+        mmr_k = limit
+        if RAG_SETTINGS.overlap_filter:
+            mmr_k = min(
+                len(ranked_indices),
+                max(limit, limit * max(2, int(RAG_SETTINGS.overlap_mmr_pool_multiplier))),
+            )
+
         ordered_indices = self._apply_mmr(
-            candidate_indices=[idx for _, idx in ranked],
+            candidate_indices=ranked_indices,
             candidate_scores={idx: score for score, idx in ranked},
             query_vector=query_vector,
-            k=limit,
+            k=mmr_k,
             lambda_value=mmr_lambda if mmr_lambda is not None else RAG_SETTINGS.mmr_lambda,
         )
+
+        if RAG_SETTINGS.overlap_filter:
+            ordered_indices = self._filter_overlap_greedy(
+                ordered_indices,
+                limit,
+                max(0, int(RAG_SETTINGS.overlap_chunk_radius)),
+            )
+        else:
+            ordered_indices = ordered_indices[:limit]
+
+        expand_n = max(0, int(RAG_SETTINGS.context_expand_neighbors))
+        max_side = max(0, int(RAG_SETTINGS.expand_max_chars_per_side))
 
         results: list[RetrievalResult] = []
         for idx in ordered_indices:
             chunk = self.metadata[idx]
             score = candidate_scores.get(idx, 0.0)
-            results.append(self._build_result(chunk, score))
+            neighbors = (
+                self._neighbor_snippets(idx, expand_n, max_side)
+                if expand_n and max_side
+                else []
+            )
+            results.append(self._build_result(chunk, score, neighbor_blocks=neighbors))
 
         return results

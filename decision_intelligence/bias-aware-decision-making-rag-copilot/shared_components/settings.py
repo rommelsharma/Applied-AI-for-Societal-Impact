@@ -80,6 +80,14 @@ class RAGSettings:
     embed_sentence_radius: int = int(os.getenv("RAG_EMBED_SENTENCE_RADIUS", "3"))
     # 0 = embed every sentence-centred window (most Bedrock calls). Set e.g. 20 to subsample evenly.
     embed_max_windows_per_chunk: int = int(os.getenv("RAG_EMBEDDING_MAX_WINDOWS", "0"))
+    # Runtime: suppress multiple primaries from the same source within ±chunk_index (greedy + backfill).
+    overlap_filter: bool = os.getenv("RAG_OVERLAP_FILTER", "false").lower() in {"1", "true", "yes"}
+    overlap_chunk_radius: int = int(os.getenv("RAG_OVERLAP_CHUNK_RADIUS", "2"))
+    overlap_candidate_pool_multiplier: int = int(os.getenv("RAG_OVERLAP_POOL_MULTIPLIER", "2"))
+    overlap_mmr_pool_multiplier: int = int(os.getenv("RAG_OVERLAP_MMR_POOL_MULTIPLIER", "8"))
+    # Runtime: attach same-source neighbour chunk excerpts to the prompt (not extra primary citations).
+    context_expand_neighbors: int = int(os.getenv("RAG_CONTEXT_EXPAND_NEIGHBORS", "0"))
+    expand_max_chars_per_side: int = int(os.getenv("RAG_EXPAND_MAX_CHARS_PER_SIDE", "450"))
 
 
 # Single shared instances imported by every module that needs them.

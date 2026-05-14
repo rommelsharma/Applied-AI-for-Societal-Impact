@@ -108,6 +108,11 @@ def get_evaluation_dir() -> Path:
     return get_project_root() / "evaluation"
 
 
+def get_response_dir() -> Path:
+    """Return ``<root>/response`` — timestamped eval JSON, ``connectivity_log.txt``, ``sample_results_comparison.md``."""
+    return get_project_root() / "response"
+
+
 def ensure_directory(path: Path | str) -> Path:
     """Create the directory if it does not exist and return it as a ``Path``.
 

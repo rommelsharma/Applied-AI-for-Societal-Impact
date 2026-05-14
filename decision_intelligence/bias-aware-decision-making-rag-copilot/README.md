@@ -90,7 +90,7 @@ For the hiring scenario above, the system surfaces (excerpt, abbreviated):
 > **Sources retrieved**
 >  - *Noise: A Flaw in Human Judgment* — Kahneman, Sibony, Sunstein (5 chunks; concepts: structured interviewing, decision hygiene, similarity bias)
 
-A full side-by-side baseline-vs-this-system comparison on real scenarios is in [`docs/sample_results_comparison.md`](docs/sample_results_comparison.md).
+A full side-by-side baseline-vs-this-system comparison on real scenarios is appended to [`response/sample_results_comparison.md`](response/sample_results_comparison.md) when you run `scripts/run_sample_comparison.py` (JSONL rows after a short header). A legacy narrative copy may have been migrated from `docs/sample_results_comparison.md` once.
 
 ---
 
@@ -117,7 +117,7 @@ For the full architecture, see the validated portfolio **Solution Design** ([`do
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Pipeline and runtime diagram (offline ingestion, sentence-window index embeddings, RAG runtime, eval capture). |
 | [`docs/Solution_Design_Document.docx`](docs/Solution_Design_Document.docx) | **Canonical** solution design (externally authored and QA’d). **Do not overwrite** from repository automation. |
 | [`docs/fundamental-concepts.md`](docs/fundamental-concepts.md) | Why this stack — explained in plain English with a worked example tracing a single book through the whole pipeline. |
-| [`docs/sample_results_comparison.md`](docs/sample_results_comparison.md) | Real outputs side-by-side: same scenario answered without and with the curated knowledge base. |
+| [`response/sample_results_comparison.md`](response/sample_results_comparison.md) | Append-only JSONL log: same scenario answered without and with the curated knowledge base (`scripts/run_sample_comparison.py` or `scripts/record_response_run.py`). |
 | [`docs/code-flow.md`](docs/code-flow.md) | What every file does and how data moves through the system. |
 | [`docs/ml-ops.plan.md`](docs/ml-ops.plan.md) | How the system is run in production: reproducibility, CI/CD, observability, drift, cost, governance. |
 | [`docs/phased-rollout-plan.md`](docs/phased-rollout-plan.md) | How the curated knowledge base grows safely, in phases, while protecting copyright. |
@@ -132,9 +132,18 @@ The `data/corpora/public/raw/` folder holds the **synthesised, project-authored 
 - Foundation build complete and runnable.
 - Public corpus rebuilt with profile-aware chunking (300+ chunks, 1024-dim Titan v2 vectors).
 - Private full-book research corpus available locally for evaluation lift studies.
-- Sample comparison report (`docs/sample_results_comparison.md`) refreshed against the current knowledge base.
+- Sample comparison log (`response/sample_results_comparison.md`, append-only JSONL) updated when you run the sample or record-response scripts.
 - Phase 2 (author-published essays in the public corpus) scaffolding shipped — manifest empty, awaiting curation.
 - Demo surface for non-technical reviewers is the immediate next deliverable.
+
+**Quick checks (local):**
+
+```bash
+python -m unittest discover -s tests -p 'test_*.py' -v
+python -c "from evaluation.connectivity import run_connectivity_check; print(run_connectivity_check()['ok'])"
+```
+
+See **`docs/ARCHITECTURE.md` → QA and Testing** and **`docs/code-flow.md` §10–11** for where logs and JSON captures are written under `response/`.
 
 ---
 

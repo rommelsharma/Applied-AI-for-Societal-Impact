@@ -92,6 +92,18 @@ class BedrockProvider:
 
         self.client = boto3.client(**client_kwargs)
 
+        # Auditable record: each materialised boto3 client is one logical Bedrock connection.
+        try:
+            from evaluation.connectivity import append_connectivity_log_line
+
+            append_connectivity_log_line(
+                True,
+                f"bedrock_runtime_client_initialized region={BEDROCK_SETTINGS.region}",
+            )
+        except Exception:
+            # Never break construction if logging fails (e.g. read-only cwd).
+            pass
+
     def converse(
         self,
         *,

@@ -87,6 +87,12 @@ def build_run_card(
         "rag_embed_sentence_windows": RAG_SETTINGS.embed_sentence_windows,
         "rag_embed_sentence_radius": RAG_SETTINGS.embed_sentence_radius,
         "rag_embed_max_windows_per_chunk": RAG_SETTINGS.embed_max_windows_per_chunk,
+        "rag_overlap_filter": RAG_SETTINGS.overlap_filter,
+        "rag_overlap_chunk_radius": RAG_SETTINGS.overlap_chunk_radius,
+        "rag_overlap_pool_multiplier": RAG_SETTINGS.overlap_candidate_pool_multiplier,
+        "rag_overlap_mmr_pool_multiplier": RAG_SETTINGS.overlap_mmr_pool_multiplier,
+        "rag_context_expand_neighbors": RAG_SETTINGS.context_expand_neighbors,
+        "rag_expand_max_chars_per_side": RAG_SETTINGS.expand_max_chars_per_side,
     }
     if extra:
         card["extra"] = extra

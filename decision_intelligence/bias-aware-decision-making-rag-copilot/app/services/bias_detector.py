@@ -92,6 +92,17 @@ def format_retrieved_context(retrieval_results) -> str:
                 ]
             )
         )
+        neighbors = getattr(item, "neighbor_blocks", None) or []
+        if neighbors:
+            nb_lines = [
+                "Adjacent context (same book, supporting continuation only — cite the primary Chunk ID above):"
+            ]
+            for nb in neighbors:
+                nb_lines.append(
+                    f"  — Neighbour chunk {nb.get('chunk_id', '')} (Δindex {nb.get('chunk_index_delta', '')}): "
+                    f"{nb.get('excerpt', '')}"
+                )
+            blocks.append("\n".join(nb_lines))
 
     return "\n\n".join(blocks)
 
@@ -190,6 +201,7 @@ def detect_bias_comparison(scenario: str, *, corpus: str | None = None) -> dict[
                 "passage_type": getattr(item, "passage_type", "unknown"),
                 "decision_phase": getattr(item, "decision_phase", "unknown"),
                 "summary": item.summary,
+                "neighbor_blocks": list(getattr(item, "neighbor_blocks", None) or []),
             }
             for item in retrieval_results
         ],

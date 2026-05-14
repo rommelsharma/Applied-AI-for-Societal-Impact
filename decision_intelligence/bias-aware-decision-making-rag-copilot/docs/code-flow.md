@@ -57,7 +57,14 @@ bias-aware-decision-making-rag-copilot/
 ├── notebooks/                # Interactive demo entry point
 │   └── test_bias_detection.py
 │
-├── scripts/                  # Auxiliary utilities (dossier generation, HTML→PDF)
+├── tests/                    # Stdlib unittest (e.g. retriever overlap helpers)
+│
+├── response/                 # Local-only captures: *_rag_eval.json, connectivity_log.txt,
+│                             # sample_results_comparison.md (append-only JSONL after header)
+│
+├── scripts/                  # Eval capture, sample comparison, dossiers, compare_versions, …
+│   ├── record_response_run.py
+│   ├── run_sample_comparison.py
 │   ├── generate_book_dossiers.py
 │   └── render_html_to_pdf.mjs
 │
@@ -125,8 +132,8 @@ PDFs (data/corpora/<corpus>/raw/)
 
 | File | Responsibility |
 |------|---------------|
-| `shared_components/settings.py` | Loads `.env` and exposes two frozen dataclasses: `BEDROCK_SETTINGS` (region, chat / embedding model ids, endpoint URL, embedding dimensions) and `RAG_SETTINGS` (corpus name, chunking profile, default `top_k`, MMR lambda, reranker config, LLM-enrichment toggle, **index-time sentence-window embedding flags**: `embed_sentence_windows`, `embed_sentence_radius`, `embed_max_windows_per_chunk`). Single source of truth for configuration. |
-| `shared_components/utilities/path_utils.py` | Corpus-aware path resolution for `data/corpora/<corpus>/{raw,parsed_text,chunks,knowledge,vector_store}`, plus the corpus-independent `data/metadata`, `prompts/`, `evaluation/`. Optional `corpus` argument lets a single process address multiple corpora simultaneously (used by `compare_versions.py`). |
+| `shared_components/settings.py` | Loads `.env` and exposes `BEDROCK_SETTINGS` and `RAG_SETTINGS` (corpus, chunk profile, `top_k`, MMR, reranker, index-time sentence-window flags, **runtime** `overlap_filter`, `overlap_chunk_radius`, pool multipliers, `context_expand_neighbors`, `expand_max_chars_per_side`). |
+| `shared_components/utilities/path_utils.py` | Corpus-aware paths under `data/corpora/<corpus>/…`, plus `data/metadata`, `prompts/`, `evaluation/`, and **`response/`** (`get_response_dir()`). |
 | `shared_components/utilities/taxonomy_utils.py` | Lazy-cached loaders for `bias-taxonomy.json` and `retrieval-concepts.json`, plus a unified `build_concept_catalog()` that merges both into a single dict keyed by concept name. |
 
 ---
@@ -146,14 +153,15 @@ User scenario (string)
    ▼
 [B] KnowledgeRetriever.search(scenario, preferred_concepts=…)
        │  • embed scenario via Bedrock Titan v2
-       │  • FAISS IP search over knowledge_base vectors (top_k * 3 or reranker_candidates)
-       │  • optional concept / domain filtering
+       │  • FAISS IP search (candidate pool widened when RAG_OVERLAP_FILTER=true)
+       │  • optional concept / domain filtering + unfiltered fallback if empty
        │  • optional Claude-Haiku reranker (off by default)
-       │  • MMR diversification across remaining candidates
-       │  • unfiltered fallback if filters yield nothing
+       │  • MMR (larger cut when overlap filter on, for backfill depth)
+       │  • optional same-source chunk_index overlap filter + backfill (RAG_OVERLAP_*)
+       │  • optional same-source neighbour excerpts on each hit (RAG_CONTEXT_EXPAND_*)
    ▼
 [C] format_retrieved_context(results)
-       │  → numbered context blocks with source, author, concepts, summary, excerpt
+       │  → numbered context blocks + optional “Adjacent context” neighbour lines
    ▼
 [D] build_system_prompt(base_prompt, taxonomy, rag_context=None)   ← baseline
 [D] build_system_prompt(base_prompt, taxonomy, rag_context=ctx)    ← RAG
@@ -169,8 +177,8 @@ User scenario (string)
 
 | File | Responsibility |
 |------|---------------|
-| `app/services/bedrock_provider.py` | Thin Bedrock client wrapper. Constructs `bedrock-runtime` boto3 client using region + optional endpoint URL, exposes `converse()` for chat completion against Claude Sonnet 4.5 and `embed_text()` for Titan v2 embeddings. Surfaces `BedrockConfigurationError` and `BedrockInferenceError` for clean upstream handling. |
-| `rag/retriever.py` | Corpus-aware retriever. Loads the FAISS index (or numpy fallback) plus the aligned metadata for the chosen corpus at construction time. `search()` embeds the query, pulls a wide candidate pool, applies concept / decision-domain filters with an unfiltered fallback, optionally reranks the candidates with Claude Haiku as a relevance judge, and diversifies the final cut with Maximal Marginal Relevance so a single book or chapter cannot monopolise the result set. Returns `RetrievalResult` dataclasses with chapter, passage type, decision phase, and similarity score. |
+| `app/services/bedrock_provider.py` | Thin Bedrock client wrapper. Constructs `bedrock-runtime` boto3 client using region + optional endpoint URL, exposes `converse()` for chat completion against Claude Sonnet 4.5 and `embed_text()` for Titan v2 embeddings. On successful client construction, appends one **OK** row to `response/connectivity_log.txt` (`evaluation.connectivity.append_connectivity_log_line`) so each materialised client is auditable. Surfaces `BedrockConfigurationError` and `BedrockInferenceError`. |
+| `rag/retriever.py` | Corpus-aware retriever. Loads FAISS (or numpy fallback) and `index_metadata.json`; builds a `(source, chunk_index) → row` map for overlap checks and neighbour expansion. `search()` runs filters, optional reranker, MMR, optional **overlap-aware greedy filter** with backfill, then attaches optional **neighbour_blocks** per hit. Returns `RetrievalResult` (chapter, passage type, decision phase, score, `neighbor_blocks`). |
 | `app/services/bias_detector.py` | The orchestration brain. Loads the taxonomy and prompt template, extracts concepts from the user scenario, runs retrieval, formats context, builds two system prompts (no-RAG baseline and RAG-enhanced), invokes Claude twice via the provider, parses strict JSON (with one fenced-code-aware retry), and returns a comparison dict ready for evaluation or UI rendering. |
 | `prompts/bias_detection_system_prompt.txt` | The locked output contract for the LLM: role, allowed taxonomy use, JSON schema, quality expectations, and a worked example. Kept outside code so prompt iteration does not require code changes. |
 
@@ -183,12 +191,13 @@ User scenario (string)
 | `evaluation/test_scenarios.json` | ~30 realistic decision-making scenarios spanning hiring, performance review, sunk cost, automation bias, groupthink, base-rate neglect, AI alignment, sentencing, narrative fallacy, instrumental convergence, and more. |
 | `evaluation/run_evaluation.py` | Iterates through the scenarios, calls `detect_bias_comparison`, prints lightweight diff stats, and persists `latest_results.json`. Honours `CORPUS_NAME` so it can be aimed at any corpus. |
 | `evaluation/baseline_scenarios.json` | Three frozen scenarios used for longitudinal baseline-vs-RAG captures under `response/`. |
-| `evaluation/connectivity.py` | Bedrock + embedding + vector-store + retrieval smoke checks before expensive eval runs. |
+| `evaluation/connectivity.py` | Bedrock + embedding + vector-store + retrieval smoke checks. Every run appends one tab-separated row to `response/connectivity_log.txt` (timestamp, OK/FAIL, detail). Successful `BedrockProvider()` construction also appends its own row from `bedrock_provider.py`. |
+| `evaluation/sample_results_log.py` | Append-only JSONL writer for `response/sample_results_comparison.md`; migrates legacy `docs/sample_results_comparison.md` into `response/` once if present. |
 | `evaluation/metrics.py` | Schema and taxonomy validation for `without_rag` / `with_rag` payloads plus per-run aggregates. |
 | `evaluation/run_card.py` | Reproducibility metadata (timestamps, git commit, file hashes, model/RAG settings) for eval captures. |
 | `notebooks/test_bias_detection.py` | Interactive walkthrough of the same scenarios, designed to run in PyCharm or a notebook for visual inspection of baseline vs RAG output. |
 | `scripts/record_response_run.py` | Connectivity check, runs `baseline_scenarios.json` through `detect_bias_comparison`, attaches metrics + run card, writes `response/<timestamp>_<label>_rag_eval.json`. |
-| `scripts/run_sample_comparison.py` | Runs two illustrative scenarios end-to-end and writes both raw JSON and a reviewer-facing markdown report under `evaluation/` and `docs/`. |
+| `scripts/run_sample_comparison.py` | Runs two illustrative scenarios end-to-end; writes `evaluation/sample_results.json` and **appends** JSONL rows (timestamp + `without_rag` / `with_rag` payloads) to `response/sample_results_comparison.md`. |
 | `scripts/compare_versions.py` | Runs the full scenario suite (or any subset) against multiple corpus versions side-by-side. Emits both a JSON sidecar (full payloads, kept locally) and a markdown summary (counts and named biases only - safe to share). |
 | `scripts/generate_book_dossiers.py` | Generates retrieval-friendly book dossiers (Markdown + HTML + PDF) from a JSON manifest in `data/metadata/book_dossiers/`. The PDFs land in `data/corpora/public/raw/` and feed the offline pipeline. |
 | `scripts/render_html_to_pdf.mjs` | Optional Playwright-based pipeline that renders the generated HTML to high-fidelity PDF when the ReportLab path is not preferred. |
@@ -220,9 +229,17 @@ ENRICHMENT_USE_LLM=false     # rule-based passage classifier when false
 RAG_EMBED_SENTENCE_WINDOWS=true   # false = one Titan call on full chunk text (legacy)
 RAG_EMBED_SENTENCE_RADIUS=3       # sentences before / after each centre sentence in a window
 RAG_EMBEDDING_MAX_WINDOWS=0       # 0 = no subsampling; set e.g. 24 to cap Bedrock calls per chunk
+
+# Runtime overlap filter + neighbour expansion (rag/retriever.py)
+RAG_OVERLAP_FILTER=false
+RAG_OVERLAP_CHUNK_RADIUS=2
+RAG_OVERLAP_POOL_MULTIPLIER=2
+RAG_OVERLAP_MMR_POOL_MULTIPLIER=8
+RAG_CONTEXT_EXPAND_NEIGHBORS=0
+RAG_EXPAND_MAX_CHARS_PER_SIDE=450
 ```
 
-`shared_components/settings.py` is the only place that reads these values. `BedrockProvider.__init__` validates that the bearer token is present before building a boto3 client.
+`shared_components/settings.py` is the only place that reads these values. `BedrockProvider.__init__` validates that the bearer token is present before building a boto3 client and appends a connectivity log row on success.
 
 ---
 
@@ -253,6 +270,12 @@ Run the evaluation suite:
 
 ```bash
 python evaluation/run_evaluation.py
+```
+
+Run unit tests (no Bedrock calls):
+
+```bash
+python -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
 Compare two corpus versions side-by-side:
@@ -298,3 +321,49 @@ Every artefact preserves the chain from PDF to LLM output:
 - The bias detector's response payload includes a `corpus` field plus a `retrieval` array so the calling layer can show *which* chunks - and from *which* corpus - shaped the answer.
 
 This contract is what allows the system to satisfy the explainability and source-attribution principles stated in `docs/PROJECT_CONTEXT.md`.
+
+---
+
+## 10. QA and Testing
+
+### 10.1 Automated unit tests
+
+| Item | Detail |
+|------|--------|
+| **Command** | `python -m unittest discover -s tests -p 'test_*.py' -v` (project root; no extra packages beyond `requirements.txt`). |
+| **What is covered** | `tests/test_retriever_overlap.py` — overlap detection (`_chunk_overlap`), greedy backfill filtering (`_filter_overlap_greedy`), and neighbour excerpt assembly (`_neighbor_snippets`) on `KnowledgeRetriever` using `__new__` + synthetic `metadata` (no Bedrock, no FAISS files). |
+| **Where results go** | **Stdout only** — unittest prints per-test OK/FAIL; exit code `0` means all tests passed. No XML/HTML report is generated unless you add a runner. |
+
+### 10.2 Connectivity and Bedrock smoke
+
+| Item | Detail |
+|------|--------|
+| **Command** | `python -c "from evaluation.connectivity import run_connectivity_check; print(run_connectivity_check())"` or the connectivity phase of `scripts/record_response_run.py` (omit `--skip-connectivity`). |
+| **What is covered** | Bearer token present, Titan embedding dimension check, vector store load for `CORPUS_NAME`, single `search` probe. |
+| **Where results go** | **`response/connectivity_log.txt`** — append-only TSV lines: UTC ISO timestamp, `OK` or `FAIL`, short message. Each successful **`BedrockProvider()`** also appends an `OK` row (`bedrock_runtime_client_initialized …`). |
+
+### 10.3 Scenario / end-to-end runs (paid LLM)
+
+| Item | Detail |
+|------|--------|
+| **Sample comparison** | `python scripts/run_sample_comparison.py` (optional `--skip-connectivity`). Writes **`evaluation/sample_results.json`** and **appends** JSONL rows to **`response/sample_results_comparison.md`**. |
+| **Frozen baseline capture** | `python scripts/record_response_run.py --label <tag>` — writes **`response/<timestamp>_<label>_rag_eval.json`** (connectivity, run_card, scenarios, aggregate metrics) and appends to **`response/sample_results_comparison.md`** unless `--no-append-sample-log`. |
+
+### 10.4 Local artefact summary
+
+All paths below are under **`response/`** (see `get_response_dir()` in `path_utils.py`):
+
+- **`connectivity_log.txt`** — longitudinal connectivity and client-init audit.
+- **`sample_results_comparison.md`** — header plus one JSON object per appended line (`timestamp`, `without_rag`, `with_rag`, optional `scenario_id`, `label`).
+- **`*_rag_eval.json`** — full structured captures for regression or diff tooling.
+
+For a concise architecture-level view of the same QA flow, see **`docs/ARCHITECTURE.md` → QA and Testing**.
+
+---
+
+## 11. Document updates (2026-05-14)
+
+- **Runtime retrieval:** `rag/retriever.py` documents and implements overlap-aware primary selection (`RAG_OVERLAP_*`) and optional same-book neighbour excerpts (`RAG_CONTEXT_EXPAND_*`, `neighbor_blocks` on `RetrievalResult`).
+- **Connectivity audit:** `BedrockProvider` appends a row to `response/connectivity_log.txt` on each successful boto3 client construction; `evaluation/connectivity.run_connectivity_check` still appends a summary row per full smoke run.
+- **Sample results log:** `response/sample_results_comparison.md` is the canonical append-only log (JSONL lines after a short header); `evaluation/sample_results_log.migrate_docs_sample_if_present` moves a legacy `docs/` copy once.
+- **Tests:** `tests/test_retriever_overlap.py` — run via **§10.1** above.

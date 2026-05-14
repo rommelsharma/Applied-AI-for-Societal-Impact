@@ -12,7 +12,7 @@ import argparse
 import json
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -42,6 +42,13 @@ def main() -> None:
         action="store_true",
         help="Skip Bedrock/vector checks (not recommended for baseline capture).",
     )
+    parser.add_argument(
+        "--no-append-sample-log",
+        dest="append_sample_log",
+        action="store_false",
+        default=True,
+        help="Do not append JSONL rows to response/sample_results_comparison.md (default: append).",
+    )
     args = parser.parse_args()
 
     scenario_path = Path(args.scenarios) if args.scenarios else PROJECT_ROOT / "evaluation" / "baseline_scenarios.json"
@@ -52,6 +59,7 @@ def main() -> None:
     from evaluation.connectivity import run_connectivity_check
     from evaluation.metrics import aggregate_run_metrics, score_comparison_result
     from evaluation.run_card import build_run_card
+    from evaluation.sample_results_log import append_sample_results_jsonl, migrate_docs_sample_if_present
 
     if args.skip_connectivity:
         connectivity: dict = {"skipped": True}
@@ -110,6 +118,22 @@ def main() -> None:
         json.dump(payload, handle, indent=2)
 
     print(out_path)
+
+    if args.append_sample_log:
+        migrate_docs_sample_if_present(PROJECT_ROOT)
+        batch_ts = datetime.now(timezone.utc).isoformat()
+        jsonl_rows = [
+            {
+                "scenario_id": r.get("scenario_id") or r.get("title") or "unknown",
+                "scenario_title": r.get("title"),
+                "label": args.label,
+                "without_rag": r["result"]["without_rag"],
+                "with_rag": r["result"]["with_rag"],
+            }
+            for r in rows
+        ]
+        log_path = append_sample_results_jsonl(jsonl_rows, batch_timestamp=batch_ts)
+        print(log_path)
 
 
 if __name__ == "__main__":

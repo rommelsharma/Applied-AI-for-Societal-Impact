@@ -25,6 +25,9 @@ A user submits a complex, real-world scenario. The system responds with a struct
                   │                       │  Embed scenario (Titan v2)   │
                   │                       │  FAISS top-k similarity       │
                   │                       │  Concept / domain filters     │
+                  │                       │  MMR diversification          │
+                  │                       │  overlap-aware filter (opt.)    │
+                  │                       │  neighbour expansion (opt.)     │
                   │                       │  Format context blocks        │
                   │                       └──────────────┬───────────────┘
                   │                                      │
@@ -68,6 +71,16 @@ Not raw books — a structured, traceable derivative:
 - ~1,160 chunks for the **private** corpus (six full books at ~500 words each, local-only).
 - Each chunk carries source metadata, concept tags, decision domains, importance, chapter title, passage type, decision phase, and a short summary.
 - The chunk text plus its metadata is what the LLM sees in the system prompt.
+
+### 2.1 Overlap-aware top-k and bounded context expansion (implemented)
+
+Two retrieval refinements run after semantic search, filters, optional reranking, and **MMR** in `rag/retriever.py`, with neighbour text rendered in `format_retrieved_context`. They are **not a substitute** for MMR; they address different failure modes. Both are **env-gated** (see `.env.example`).
+
+**Overlap-aware top-k.** MMR penalises chunks whose **embedding vectors** are too similar to chunks already chosen. It does not explicitly encode **document structure**: the same book and **adjacent `chunk_index`** values can still yield several hits that paraphrase the same passage. When `RAG_OVERLAP_FILTER=true`, a **greedy filter** treats two chunks as overlapping when they share the same `source` and `chunk_index` lies within **`RAG_OVERLAP_CHUNK_RADIUS`**; the retriever skips overlapping primaries and **backfills** from deeper in the MMR-ordered pool (widened by `RAG_OVERLAP_MMR_POOL_MULTIPLIER` and a larger FAISS pool via `RAG_OVERLAP_POOL_MULTIPLIER`) until `top_k` is filled.
+
+**Bounded expansion.** Index-time **sentence-window pooling** already enriches each vector. At **runtime**, optional **`RAG_CONTEXT_EXPAND_NEIGHBORS`** loads same-`source` rows at `chunk_index ± N` from `index_metadata.json`, capped by **`RAG_EXPAND_MAX_CHARS_PER_SIDE`**, and appends excerpts under **continuation** labels so citations stay on the **primary** chunk ID.
+
+**Evaluation discipline.** Compare runs with the same frozen index and scenarios, toggling only these env flags; store timestamped JSON under `response/` and append JSONL rows to `response/sample_results_comparison.md`.
 
 ---
 
@@ -350,6 +363,8 @@ The runtime path is:
 5. **Optional Claude-Haiku reranker** — disabled by default; a place to plug in an LLM-as-judge stage once the corpus exceeds ~3,000 chunks.
 6. **Format as system-prompt context** — each retrieved chunk is rendered as a numbered block with source, author, chapter, passage type, decision phase, concepts, summary, and a 900-character excerpt. That bundle is concatenated into the system prompt and sent to Claude Sonnet 4.5.
 
+**Optional (env-gated):** **overlap-aware filtering** after MMR suppresses multiple primaries from the same `source` within a small `chunk_index` window, with backfill from the ranked pool; **bounded neighbour expansion** adds same-book excerpts for prompt coherence only (primary chunk IDs remain the citation anchors). See [`ARCHITECTURE.md`](ARCHITECTURE.md) and §2.1 above.
+
 ### Why this end-to-end matters
 
 | Tool | What it actually buys this project |
@@ -471,3 +486,41 @@ To set expectations honestly:
 - It is **not** a finished product — it is a portfolio-grade, evaluable foundation that is intentionally explainable end-to-end.
 
 Everything in the design — the taxonomy, the strict JSON, the comparison mode, the source attribution — exists so the system can be honest about what it knows and where that knowledge came from.
+
+---
+
+## QA and Testing (how we validate behaviour)
+
+This section complements the **worked Sibony example** (runtime retrieval in practice): it states *how* the repository is tested and *where* evidence is kept.
+
+**1. Fast, local unit tests (no cloud spend)**  
+Run from the project root:
+
+```bash
+python -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+These tests target the **overlap filter** and **neighbour expansion** helpers in `rag/retriever.py` (`tests/test_retriever_overlap.py`). They use synthetic chunk metadata only. **Results:** printed on the terminal; **exit code `0`** means success. Nothing is written under `response/` for this step.
+
+**2. Connectivity smoke (Bedrock + index on disk)**  
+`evaluation.connectivity.run_connectivity_check()` embeds a probe string, loads the active corpus vector store, and runs one retrieval. It is invoked directly or as the first step of `scripts/record_response_run.py`. **Results:** a structured dict on stdout when run inline; **append-only** lines in **`response/connectivity_log.txt`** (timestamp, OK/FAIL, short detail). Each new **`BedrockProvider()`** also appends one line when the boto3 client is created successfully.
+
+**3. Scenario-level runs (baseline vs RAG, uses Claude)**  
+- `scripts/run_sample_comparison.py` — two illustrative scenarios; appends one **JSON line per scenario** to **`response/sample_results_comparison.md`** (after the header) and saves raw payloads to **`evaluation/sample_results.json`**.  
+- `scripts/record_response_run.py` — three frozen scenarios by default; writes **`response/<timestamp>_<label>_rag_eval.json`** and can append the same markdown log.
+
+**4. Where to look after a QA pass**
+
+| Location | What it contains |
+|----------|------------------|
+| `response/connectivity_log.txt` | TSV audit trail for connectivity checks and Bedrock client construction. |
+| `response/sample_results_comparison.md` | Append-only JSONL (each line: `timestamp`, `without_rag`, `with_rag`, …). |
+| `response/*_rag_eval.json` | Full capture: connectivity report, run_card, per-scenario metrics and payloads. |
+
+For file-level navigation of scripts and modules, see **`docs/code-flow.md` §10–11**; for a pipeline-level summary, see **`docs/ARCHITECTURE.md` → QA and Testing**.
+
+---
+
+## Document updates (2026-05-14)
+
+Section **2.1** and the **§1 diagram** now describe **implemented** overlap-aware filtering and neighbour expansion (env-gated). **Step 8** in the Sibony walkthrough notes the same optional stages. **QA and Testing** (section above) documents unittest, connectivity, scenario scripts, and `response/` artefacts; cross-links to `docs/code-flow.md` and `docs/ARCHITECTURE.md`.
