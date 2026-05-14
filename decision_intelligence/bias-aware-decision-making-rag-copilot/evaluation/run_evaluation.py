@@ -1,7 +1,7 @@
 """
 Evaluation harness entry point.
 
-Iterates over ``evaluation/test_scenarios.json``, runs the baseline-vs-RAG
+Iterates over ``data/eval/gold/scenarios_catalog.json`` (``extended_suite``), runs the baseline-vs-RAG
 comparison for every scenario, prints lightweight diff stats, and persists
 the full per-scenario results to ``evaluation/latest_results.json``.
 
@@ -21,15 +21,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 from app.services.bias_detector import compare_outputs, detect_bias_comparison
+from evaluation.scenario_catalog import get_extended_test_scenarios
 
 
 def main():
     """Run the evaluation suite end-to-end and persist results to disk."""
-    scenarios_path = PROJECT_ROOT / "evaluation" / "test_scenarios.json"
+    scenarios = get_extended_test_scenarios()
     output_path = PROJECT_ROOT / "evaluation" / "latest_results.json"
-
-    with scenarios_path.open("r", encoding="utf-8") as handle:
-        scenarios = json.load(handle)
 
     results = []
 

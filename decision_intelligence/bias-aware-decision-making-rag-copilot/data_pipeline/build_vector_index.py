@@ -1,9 +1,10 @@
 """
 Vector-index builder - step 5 of the offline pipeline.
 
-Embeds every record in ``<corpus>/knowledge/knowledge_base.json`` using
-Amazon Titan Text Embeddings v2 and persists four aligned artefacts in
-``<corpus>/vector_store/``:
+Embeds every record in ``<corpus>/processed/enriched/knowledge_base.json`` (or
+legacy ``<corpus>/knowledge/knowledge_base.json``) using Amazon Titan Text
+Embeddings v2 and persists aligned artefacts in ``<corpus>/processed/index/``
+(legacy: ``<corpus>/vector_store/``):
 
 By default each chunk is embedded using **sentence-centred windows**: for every
 sentence, Titan embeds that sentence plus up to ``RAG_EMBED_SENTENCE_RADIUS``
@@ -63,9 +64,10 @@ from shared_components.settings import RAG_SETTINGS
 from shared_components.utilities.path_utils import (
     ensure_directory,
     get_corpus_name,
-    get_knowledge_dir,
-    get_vector_store_dir,
+    get_processed_index_dir,
+    resolve_knowledge_base_json,
 )
+from shared_components.utilities.taxonomy_utils import get_ontology_version
 
 
 def _split_sentences(text: str) -> list[str]:
@@ -132,9 +134,9 @@ def _embedding_vector_for_chunk(provider: BedrockProvider, chunk: dict) -> list[
 
 
 def _resolve_paths(corpus: str | None):
-    """Return ``(input_file, output_dir, individual artefact paths)`` for a corpus."""
-    input_file = get_knowledge_dir(corpus) / "knowledge_base.json"
-    output_dir = ensure_directory(get_vector_store_dir(corpus))
+    """Return artefact paths for a corpus (v4 ``processed/index`` layout)."""
+    input_file = resolve_knowledge_base_json(corpus)
+    output_dir = ensure_directory(get_processed_index_dir(corpus))
     return {
         "input_file": input_file,
         "output_dir": output_dir,
@@ -183,6 +185,7 @@ def build_index(corpus: str | None = None, metadata_only: bool = False):
             "embedding_sentence_windows": RAG_SETTINGS.embed_sentence_windows,
             "embedding_sentence_radius": RAG_SETTINGS.embed_sentence_radius,
             "embedding_max_windows_per_chunk": RAG_SETTINGS.embed_max_windows_per_chunk,
+            "ontology_version": get_ontology_version(),
         }
         with paths["manifest_file"].open("w", encoding="utf-8") as handle:
             json.dump(manifest, handle, indent=2)
@@ -228,6 +231,7 @@ def build_index(corpus: str | None = None, metadata_only: bool = False):
                 "embedding_sentence_windows": RAG_SETTINGS.embed_sentence_windows,
                 "embedding_sentence_radius": RAG_SETTINGS.embed_sentence_radius,
                 "embedding_max_windows_per_chunk": RAG_SETTINGS.embed_max_windows_per_chunk,
+                "ontology_version": get_ontology_version(),
             },
             handle,
             indent=2,

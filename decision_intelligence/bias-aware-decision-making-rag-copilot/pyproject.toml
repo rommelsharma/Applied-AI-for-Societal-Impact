@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bias-aware-rag-copilot"
+version = "4.0.0"
+description = "Bias-aware decision-making RAG copilot (ontology-first hybrid retrieval)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "boto3>=1.28.57",
+  "faiss-cpu>=1.8.0",
+  "numpy>=1.26.0",
+  "PyMuPDF>=1.24.0",
+  "python-dotenv>=1.0.0",
+  "rank-bm25>=0.2.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "rag*", "data_pipeline*", "shared_components*", "evaluation*"]

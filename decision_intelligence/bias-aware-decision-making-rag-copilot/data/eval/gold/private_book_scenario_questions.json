@@ -1,0 +1,200 @@
+[
+  {
+    "id": "political_turbulence_001",
+    "source_book": "Political Turbulence: How Social Media Shape Collective Action",
+    "source_file": "Political TurbulenceByHelen.pdf",
+    "domain": "public_policy",
+    "question": "A city government sees thousands of petition signatures, hashtags, short videos, and one-click endorsements against a proposed transport charge. Most campaigns like this fade within days, but this one suddenly appears to be moving from online attention into street protests and agenda-setting pressure. How should the city distinguish noisy low-cost participation from a genuine collective-action tipping point, and what response should it design without overreacting to turbulence?",
+    "expected_retrieval_concepts": [
+      "tiny acts of political participation",
+      "social information",
+      "visibility",
+      "thresholds and tipping points",
+      "political turbulence",
+      "chaotic pluralism"
+    ],
+    "why_this_book": "This question depends on the book's treatment of digital collective action as many small, low-cost acts that can unpredictably scale through social information, visibility, and threshold dynamics."
+  },
+  {
+    "id": "political_turbulence_002",
+    "source_book": "Political Turbulence: How Social Media Shape Collective Action",
+    "source_file": "Political TurbulenceByHelen.pdf",
+    "domain": "civic_technology",
+    "question": "A nonprofit is redesigning a civic action platform and must choose whether to display real-time participant counts, trending actions, named supporters, anonymous participation, or no popularity signals at all. The goal is to mobilize underrepresented citizens while avoiding manipulation, herd behavior, and campaigns that surge briefly but cannot sustain policy influence. How should the platform's design use social information and visibility, and what tradeoffs should it anticipate?",
+    "expected_retrieval_concepts": [
+      "social information",
+      "visibility versus social information",
+      "personality differences",
+      "conditional cooperation",
+      "online petition design",
+      "mobilization sustainability"
+    ],
+    "why_this_book": "This question is specific to the book's experimental and platform-design focus on how social information and visibility change participation in digital collective action."
+  },
+  {
+    "id": "noise_001",
+    "source_book": "Noise: A Flaw in Human Judgment",
+    "source_file": "noise-a-flaw-in-human-judgment-9780316451383.pdf",
+    "domain": "insurance",
+    "question": "An insurer discovers that experienced underwriters, given the same case files, quote materially different premiums and claim reserves. Leaders initially frame the problem as individual bias or poor training, but they do not know the true correct answer for each case. How should the organization run a noise audit, decompose the disagreement, and decide which decision-hygiene interventions to implement?",
+    "expected_retrieval_concepts": [
+      "noise audit",
+      "system noise",
+      "level noise",
+      "pattern noise",
+      "occasion noise",
+      "decision hygiene"
+    ],
+    "why_this_book": "This question maps directly to the book's distinction between bias and noise, its audit method, and its framework for reducing unwanted variability in professional judgment."
+  },
+  {
+    "id": "noise_002",
+    "source_book": "Noise: A Flaw in Human Judgment",
+    "source_file": "noise-a-flaw-in-human-judgment-9780316451383.pdf",
+    "domain": "hiring",
+    "question": "A global company wants to reduce unfairness in senior hiring without turning the process into a rigid algorithm. Interviewers currently discuss candidates as a group, hear the CEO's view early, and make broad holistic judgments that vary by office. How should the company redesign the sequence of information, scoring scales, independent assessments, aggregation, and final discussion so it reduces noise while preserving legitimate judgment?",
+    "expected_retrieval_concepts": [
+      "structure in hiring",
+      "independent judgments",
+      "aggregation",
+      "decision hygiene",
+      "mediating assessments protocol",
+      "rules versus standards"
+    ],
+    "why_this_book": "This question uses the book's practical prescriptions for reducing noise in evaluative decisions while considering the costs and limits of rule-like standardization."
+  },
+  {
+    "id": "thinking_fast_slow_001",
+    "source_book": "Thinking, Fast and Slow",
+    "source_file": "Thinking, Fast and Slow-Daniel Kahneman.pdf",
+    "domain": "strategy",
+    "question": "A leadership team is convinced a new platform can be built in six months because the prototype demo was impressive and the sponsor has a coherent story about market demand. Comparable projects in the industry usually take eighteen months and often miss adoption targets, but the team treats those base rates as irrelevant because this case feels special. How should a decision adviser diagnose the cognitive errors and force an outside-view forecast before the investment is approved?",
+    "expected_retrieval_concepts": [
+      "inside view",
+      "outside view",
+      "planning fallacy",
+      "base-rate neglect",
+      "WYSIATI",
+      "illusion of validity"
+    ],
+    "why_this_book": "This question depends on the book's account of intuitive coherence, neglect of base rates, overconfidence, and reference-class forecasting."
+  },
+  {
+    "id": "thinking_fast_slow_002",
+    "source_book": "Thinking, Fast and Slow",
+    "source_file": "Thinking, Fast and Slow-Daniel Kahneman.pdf",
+    "domain": "risk_policy",
+    "question": "After a vivid safety incident receives heavy media coverage, a regulator considers banning a low-probability activity even though aggregate harm data suggest other hazards are much larger. Public comments are emotionally intense, politicians anchor on a severe penalty, and stakeholders frame the decision as avoiding any loss rather than improving total welfare. How should the regulator analyze the judgment traps and reframe the policy choice?",
+    "expected_retrieval_concepts": [
+      "availability heuristic",
+      "availability cascade",
+      "anchoring",
+      "prospect theory",
+      "loss aversion",
+      "framing effects",
+      "risk policy"
+    ],
+    "why_this_book": "This question draws on the book's integrated treatment of availability, anchoring, framing, loss aversion, and risk decisions under emotional salience."
+  },
+  {
+    "id": "wiser_001",
+    "source_book": "Wiser: Getting Beyond Groupthink to Make Groups Smarter",
+    "source_file": "Wiser_Getting_Beyond_Groupthink_to_Make_Groups_Smarter_-_Cass_R_Sunstein_and_Reid_Hastie.pdf",
+    "domain": "team_dynamics",
+    "question": "A product-risk committee is reviewing a high-stakes launch. The most senior leader speaks first, two confident members agree, and specialists with contrary evidence stay quiet because they do not want to look disloyal. The group leaves with high confidence but has not surfaced dispersed information. How should the meeting be redesigned so it avoids informational and reputational cascades and actually aggregates what members know?",
+    "expected_retrieval_concepts": [
+      "informational cascades",
+      "reputational cascades",
+      "self-silencing leaders",
+      "role assignment",
+      "information aggregation",
+      "happy talk"
+    ],
+    "why_this_book": "This question is tailored to the book's analysis of how groups suppress private information and how leaders can structure deliberation to prevent cascades."
+  },
+  {
+    "id": "wiser_002",
+    "source_book": "Wiser: Getting Beyond Groupthink to Make Groups Smarter",
+    "source_file": "Wiser_Getting_Beyond_Groupthink_to_Make_Groups_Smarter_-_Cass_R_Sunstein_and_Reid_Hastie.pdf",
+    "domain": "innovation",
+    "question": "A government agency needs ideas for reducing disaster-response delays, but internal meetings recycle familiar proposals and outside experts disagree sharply. The agency is considering a red team, a Delphi process, a prediction market, a public challenge tournament, or ordinary deliberation. How should it choose among these group-intelligence mechanisms, and what design choices determine whether the crowd or expert process will improve the decision?",
+    "expected_retrieval_concepts": [
+      "red teams",
+      "Delphi method",
+      "prediction markets",
+      "tournaments",
+      "crowd wisdom",
+      "expert aggregation",
+      "divergent and convergent stages"
+    ],
+    "why_this_book": "This question uses the book's practical comparison of structured deliberation, expert aggregation, tournaments, prediction markets, and public input."
+  },
+  {
+    "id": "terrible_mistake_001",
+    "source_book": "You're About to Make a Terrible Mistake!",
+    "source_file": "Youre_About_to_Make_a_Terrible_Mistake_by_Olivier_Sibony.pdf",
+    "domain": "corporate_strategy",
+    "question": "A CEO wants to acquire a fast-growing competitor at a premium price. The deal has a compelling story, bankers and internal champions are enthusiastic, dissenters are treated as blockers, competitors' likely reactions are barely modeled, and prior integration failures are dismissed as not comparable. How should the leadership team decide how to decide before making the acquisition call?",
+    "expected_retrieval_concepts": [
+      "strategic decision traps",
+      "confirmation bias",
+      "champion bias",
+      "experience bias",
+      "competitor reaction",
+      "decision architecture",
+      "dialogue"
+    ],
+    "why_this_book": "This question reflects the book's focus on behavioral strategy, recurring strategic traps, and the leader's role as architect of the decision process rather than heroic solo decider."
+  },
+  {
+    "id": "terrible_mistake_002",
+    "source_book": "You're About to Make a Terrible Mistake!",
+    "source_file": "Youre_About_to_Make_a_Terrible_Mistake_by_Olivier_Sibony.pdf",
+    "domain": "portfolio_management",
+    "question": "A mature company keeps funding legacy business units because historical budgets anchor next year's allocations, unit heads defend their turf, failed initiatives are reframed as needing one more push, and no one wants to be seen as disloyal to past strategy. How should a decision architect use dialogue, divergence, and decision-process dynamics to reallocate resources more rationally?",
+    "expected_retrieval_concepts": [
+      "anchoring",
+      "status quo bias",
+      "sunk cost fallacy",
+      "self-interest bias",
+      "divergence",
+      "changing defaults",
+      "decision dynamics"
+    ],
+    "why_this_book": "This question is specific to the book's strategic-decision toolkit: orchestrating dialogue, creating divergent views, and changing organizational decision routines."
+  },
+  {
+    "id": "clinical_vs_mechanical_001",
+    "source_book": "Clinical Versus Mechanical Prediction: A Meta-Analysis",
+    "source_file": "ClinicalVsMetaAnalysis-WilliamGrove.pdf",
+    "domain": "healthcare",
+    "question": "A hospital's triage board must decide whether to rely on senior clinicians' informal judgments or a validated scoring rule for predicting which patients need intensive follow-up. Clinicians argue that interviews reveal nuance the model misses, while administrators worry about inconsistency, reproducibility, and preventable errors. How should the board compare clinical and mechanical prediction methods and set rules for overrides?",
+    "expected_retrieval_concepts": [
+      "clinical prediction",
+      "mechanical prediction",
+      "actuarial rules",
+      "same predictor variables",
+      "accuracy comparison",
+      "clinical interview data",
+      "reproducibility"
+    ],
+    "why_this_book": "This question depends on the meta-analysis's evidence comparing informal expert data combination with formal statistical or actuarial data combination."
+  },
+  {
+    "id": "clinical_vs_mechanical_002",
+    "source_book": "Clinical Versus Mechanical Prediction: A Meta-Analysis",
+    "source_file": "ClinicalVsMetaAnalysis-WilliamGrove.pdf",
+    "domain": "justice",
+    "question": "A parole agency is replacing an expert-panel process with a simple actuarial risk tool. Advocates say the tool is more consistent and cheaper; critics say it is too mechanical, may encode error costs unevenly, and should not displace experienced judgment. What evaluation design should the agency use to decide whether the mechanical rule, clinical panel, or a constrained hybrid process should govern release recommendations?",
+    "expected_retrieval_concepts": [
+      "meta-analysis",
+      "mechanical versus clinical accuracy",
+      "cost-weighted errors",
+      "judge experience",
+      "formal data combination",
+      "actuarial prediction",
+      "decision costs"
+    ],
+    "why_this_book": "This question is grounded in the article's claims about the comparative accuracy, cost, and practical burden of proof when clinical and mechanical predictions disagree."
+  }
+]

@@ -2,11 +2,11 @@
 Run two illustrative scenarios through the baseline-vs-RAG bias detector.
 
 Produces:
-    * ``evaluation/sample_results.json`` - raw payloads (without_rag, with_rag, retrieval).
-    * ``response/sample_results_comparison.md`` - markdown header plus append-only JSONL
+    * ``data/eval/runs/sample_results.json`` - raw payloads (without_rag, with_rag, retrieval).
+    * ``data/eval/runs/sample_results_comparison.md`` - markdown header plus append-only JSONL
       lines (one JSON object per line).
 
-Connectivity is exercised first (and logged to ``response/connectivity_log.txt`` via
+Connectivity is exercised first (and logged to ``data/eval/runs/connectivity_log.txt`` via
 ``evaluation/connectivity.run_connectivity_check``).
 
 Run from the project root:
@@ -26,6 +26,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.services.bias_detector import detect_bias_comparison
 from evaluation.sample_results_log import append_sample_results_jsonl, migrate_docs_sample_if_present
+from shared_components.utilities.path_utils import ensure_directory, get_response_dir
 
 
 # Two deliberately distinct scenarios to exercise different parts of the taxonomy.
@@ -114,8 +115,7 @@ def main() -> None:
             f"retrieved chunks: {retrieval_count}"
         )
 
-    json_output = PROJECT_ROOT / "evaluation" / "sample_results.json"
-    json_output.parent.mkdir(parents=True, exist_ok=True)
+    json_output = ensure_directory(get_response_dir()) / "sample_results.json"
     with json_output.open("w", encoding="utf-8") as handle:
         json.dump(results, handle, indent=2, ensure_ascii=False)
     print(f"\nSaved raw results to: {json_output}")

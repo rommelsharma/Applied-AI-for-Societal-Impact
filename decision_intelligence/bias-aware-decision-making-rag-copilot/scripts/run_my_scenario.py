@@ -26,7 +26,7 @@ Where to find results
 * Console output  - readable summary (situation summary, biases, recommended
   actions, alternative perspectives, retrieved sources).
 * JSON payload    - full machine-readable payload (without_rag, with_rag,
-  retrieval) is written to ``evaluation/my_scenario_result.json`` by default
+  retrieval) is written to ``data/eval/runs/my_scenario_result.json`` by default
   and can be redirected with ``--output``.
 
 Disclaimer
@@ -47,9 +47,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 from app.services.bias_detector import detect_bias_comparison
+from shared_components.utilities.path_utils import ensure_directory, get_response_dir
 
 
-DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "evaluation" / "my_scenario_result.json"
+DEFAULT_OUTPUT_PATH = ensure_directory(get_response_dir()) / "my_scenario_result.json"
 MIN_SCENARIO_CHARS = 30
 
 

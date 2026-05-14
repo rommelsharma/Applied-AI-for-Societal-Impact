@@ -1,5 +1,0 @@
-2026-05-14T03:25:49.752725+00:00	OK	bedrock_runtime_client_initialized region=us-west-2
-2026-05-14T03:25:51.885944+00:00	OK	embedding+vector_store+retrieval_probe ok
-2026-05-14T03:26:09.576704+00:00	OK	bedrock_runtime_client_initialized region=us-west-2
-2026-05-14T03:26:17.259978+00:00	OK	bedrock_runtime_client_initialized region=us-west-2
-2026-05-14T03:28:33.390046+00:00	OK	bedrock_runtime_client_initialized region=us-west-2

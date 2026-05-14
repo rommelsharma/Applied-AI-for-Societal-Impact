@@ -90,7 +90,7 @@ For the hiring scenario above, the system surfaces (excerpt, abbreviated):
 > **Sources retrieved**
 >  - *Noise: A Flaw in Human Judgment* — Kahneman, Sibony, Sunstein (5 chunks; concepts: structured interviewing, decision hygiene, similarity bias)
 
-A full side-by-side baseline-vs-this-system comparison on real scenarios is appended to [`response/sample_results_comparison.md`](response/sample_results_comparison.md) when you run `scripts/run_sample_comparison.py` (JSONL rows after a short header). A legacy narrative copy may have been migrated from `docs/sample_results_comparison.md` once.
+A full side-by-side baseline-vs-this-system comparison on real scenarios is appended to [`data/eval/runs/sample_results_comparison.md`](data/eval/runs/sample_results_comparison.md) when you run `scripts/run_sample_comparison.py` (JSONL rows after a short header). A legacy narrative copy may have been migrated from `docs/sample_results_comparison.md` once.
 
 ---
 
@@ -106,7 +106,56 @@ The system is a Retrieval-Augmented Generation (RAG) pipeline with closed-taxono
 - **Output**: Strict JSON schema constrained against the taxonomy — predictable, auditable, integrable.
 - **Hosting**: AWS-native — Bedrock, S3, KMS, CloudWatch, IAM.
 
-For the full architecture, see the validated portfolio **Solution Design** ([`docs/Solution_Design_Document.docx`](docs/Solution_Design_Document.docx) — externally maintained; do not overwrite with repo scripts) and [`docs/fundamental-concepts.md`](docs/fundamental-concepts.md).
+For architecture, paths, pipelines, evaluation, and operations in one place, see [`docs/DESIGN.md`](docs/DESIGN.md). The validated portfolio **Solution Design** is [`docs/Solution_Design_Document.docx`](docs/Solution_Design_Document.docx) (externally maintained; do not overwrite with repo scripts). Superseded long-form Markdown lives under [`archived/docs/`](archived/docs/).
+
+---
+
+## Quickstart: run the code
+
+**Prerequisites:** Python 3.10+, an AWS Bedrock–enabled environment, and credentials (see [`.env.example`](.env.example): bearer token or IAM, region, model IDs).
+
+From the project root:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -e .
+cp .env.example .env               # then fill in real values
+python -c "from evaluation.connectivity import run_connectivity_check; print(run_connectivity_check()['ok'])"
+```
+
+**Common commands**
+
+| What you want | Command |
+|----------------|---------|
+| **One custom scenario** (CLI, file, or stdin) | `python scripts/run_my_scenario.py --scenario "…"` or `--file path.txt` — writes `data/eval/runs/my_scenario_result.json` by default. |
+| **Frozen baseline trio** (from the catalog) | `python scripts/record_response_run.py --label my_run` — writes `data/eval/runs/<timestamp>_my_run_rag_eval.json` and can append `sample_results_comparison.md`. |
+| **Same baseline, your own JSON list** | `python scripts/record_response_run.py --label x --scenarios path/to/scenarios.json` (array of objects with at least `scenario` text; optional `id`, `title`, `domain`). |
+| **Two fixed demo scenarios** (hardcoded in script) | `python scripts/run_sample_comparison.py` — edits live in `scripts/run_sample_comparison.py` (`SCENARIOS`). |
+| **Print every extended-suite scenario** (verbose) | `python examples/run_bias_scenarios_demo.py` — reads **`extended_suite`** from the catalog. |
+| **Full extended suite → JSON report** | `python evaluation/run_evaluation.py` — reads **`extended_suite`** from the catalog; writes `evaluation/latest_results.json` (gitignored by default). |
+| **Unit tests (no Bedrock)** | `python -m unittest discover -s tests -p 'test_*.py' -v` |
+
+**Corpus:** set `CORPUS_NAME=public` or `private` in `.env` (or pass `corpus=` where the API allows). Ingestion/index scripts accept `--corpus`.
+
+---
+
+## Scenarios: where they live and how to change them
+
+| Layer | Path | Purpose |
+|--------|------|--------|
+| **Source JSON (edit these)** | [`data/eval/gold/baseline_scenarios.json`](data/eval/gold/baseline_scenarios.json), [`test_scenarios.json`](data/eval/gold/test_scenarios.json), [`private_book_scenario_questions.json`](data/eval/gold/private_book_scenario_questions.json), [`gold_labels.json`](data/eval/gold/gold_labels.json) | Human-edited scenario definitions and gold hints. |
+| **Merged catalog (generated)** | [`data/eval/gold/scenarios_catalog.json`](data/eval/gold/scenarios_catalog.json) | Single file the app loads at runtime (`evaluation/scenario_catalog.py`). Rebuild after editing sources. |
+
+**Rebuild the catalog** after you change any source JSON:
+
+```bash
+python scripts/build_scenarios_catalog.py
+```
+
+**In code**, use `get_baseline_scenarios()`, `get_extended_test_scenarios()`, `get_private_book_questions()`, and `scenario_text_for_detection()` from [`evaluation/scenario_catalog.py`](evaluation/scenario_catalog.py).
+
+**Not** in the gold files: `scripts/run_sample_comparison.py` embeds its two demo scenarios in the `SCENARIOS` list at the top of that file — change that list only for those ad-hoc demos.
 
 ---
 
@@ -114,14 +163,12 @@ For the full architecture, see the validated portfolio **Solution Design** ([`do
 
 | Document | What it covers |
 |---|---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Pipeline and runtime diagram (offline ingestion, sentence-window index embeddings, RAG runtime, eval capture). |
-| [`docs/Solution_Design_Document.docx`](docs/Solution_Design_Document.docx) | **Canonical** solution design (externally authored and QA’d). **Do not overwrite** from repository automation. |
-| [`docs/fundamental-concepts.md`](docs/fundamental-concepts.md) | Why this stack — explained in plain English with a worked example tracing a single book through the whole pipeline. |
-| [`response/sample_results_comparison.md`](response/sample_results_comparison.md) | Append-only JSONL log: same scenario answered without and with the curated knowledge base (`scripts/run_sample_comparison.py` or `scripts/record_response_run.py`). |
-| [`docs/code-flow.md`](docs/code-flow.md) | What every file does and how data moves through the system. |
-| [`docs/ml-ops.plan.md`](docs/ml-ops.plan.md) | How the system is run in production: reproducibility, CI/CD, observability, drift, cost, governance. |
-| [`docs/phased-rollout-plan.md`](docs/phased-rollout-plan.md) | How the curated knowledge base grows safely, in phases, while protecting copyright. |
-| [`docs/PRIVATE_CORPUS_GUIDE.md`](docs/PRIVATE_CORPUS_GUIDE.md) | Runbook for the private (local-only) full-book research corpus. |
+| [`README.md`](README.md) | **Start here:** quickstart (venv, install, connectivity), commands to run analyses, and **where scenario JSON lives** vs the merged catalog. |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | **Canonical** technical design: layout, v4 data paths, offline + runtime pipelines, eval artefacts table, private corpus summary, operations pointers. |
+| [`docs/Solution_Design_Document.docx`](docs/Solution_Design_Document.docx) | **Canonical** portfolio solution design (externally authored). **Do not overwrite** from repository automation. |
+| [`docs/rag_solution_design_best_practices.docx`](docs/rag_solution_design_best_practices.docx) | RAG design reference (binary). |
+| [`data/eval/runs/sample_results_comparison.md`](data/eval/runs/sample_results_comparison.md) | Append-only JSONL log (`scripts/run_sample_comparison.py` or `scripts/record_response_run.py`). |
+| [`archived/docs/`](archived/docs/) | Retired splits (`ARCHITECTURE.md`, `code-flow.md`, `fundamental-concepts.md`, rollout and ML-ops plans, private corpus guide, Codex handbook). |
 
 The `data/corpora/public/raw/` folder holds the **synthesised, project-authored research dossiers** that ship with the public repository (~5–8 KB each). **Full source books are never committed** — they live only in the private, gitignored research corpus on the operator's machine.
 
@@ -130,20 +177,20 @@ The `data/corpora/public/raw/` folder holds the **synthesised, project-authored 
 ## Status
 
 - Foundation build complete and runnable.
-- Public corpus rebuilt with profile-aware chunking (300+ chunks, 1024-dim Titan v2 vectors).
+- Public dossier corpus indexed for retrieval (see `docs/DESIGN.md` for layout and rebuild commands).
 - Private full-book research corpus available locally for evaluation lift studies.
-- Sample comparison log (`response/sample_results_comparison.md`, append-only JSONL) updated when you run the sample or record-response scripts.
+- Sample comparison log (`data/eval/runs/sample_results_comparison.md`, append-only JSONL) updated when you run the sample or record-response scripts.
 - Phase 2 (author-published essays in the public corpus) scaffolding shipped — manifest empty, awaiting curation.
 - Demo surface for non-technical reviewers is the immediate next deliverable.
 
-**Quick checks (local):**
+**Smoke checks (after `.env` is configured):**
 
 ```bash
 python -m unittest discover -s tests -p 'test_*.py' -v
 python -c "from evaluation.connectivity import run_connectivity_check; print(run_connectivity_check()['ok'])"
 ```
 
-See **`docs/ARCHITECTURE.md` → QA and Testing** and **`docs/code-flow.md` §10–11** for where logs and JSON captures are written under `response/`.
+For artefact paths, pipelines, and archived docs policy, see **[`docs/DESIGN.md`](docs/DESIGN.md)** (especially §2 layout, §5 evaluation, §6 private corpus). **Operator commands and where to edit scenarios** are in this file under **Quickstart** and **Scenarios** above.
 
 ---
 

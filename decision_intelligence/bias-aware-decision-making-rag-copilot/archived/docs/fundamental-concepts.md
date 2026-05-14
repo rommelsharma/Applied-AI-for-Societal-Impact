@@ -80,7 +80,7 @@ Two retrieval refinements run after semantic search, filters, optional reranking
 
 **Bounded expansion.** Index-time **sentence-window pooling** already enriches each vector. At **runtime**, optional **`RAG_CONTEXT_EXPAND_NEIGHBORS`** loads same-`source` rows at `chunk_index ± N` from `index_metadata.json`, capped by **`RAG_EXPAND_MAX_CHARS_PER_SIDE`**, and appends excerpts under **continuation** labels so citations stay on the **primary** chunk ID.
 
-**Evaluation discipline.** Compare runs with the same frozen index and scenarios, toggling only these env flags; store timestamped JSON under `response/` and append JSONL rows to `response/sample_results_comparison.md`.
+**Evaluation discipline.** Compare runs with the same frozen index and scenarios, toggling only these env flags; store timestamped JSON under `data/eval/runs/` and append JSONL rows to `data/eval/runs/sample_results_comparison.md`.
 
 ---
 
@@ -500,22 +500,22 @@ Run from the project root:
 python -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-These tests target the **overlap filter** and **neighbour expansion** helpers in `rag/retriever.py` (`tests/test_retriever_overlap.py`). They use synthetic chunk metadata only. **Results:** printed on the terminal; **exit code `0`** means success. Nothing is written under `response/` for this step.
+These tests target the **overlap filter** and **neighbour expansion** helpers in `rag/retriever.py` (`tests/test_retriever_overlap.py`). They use synthetic chunk metadata only. **Results:** printed on the terminal; **exit code `0`** means success. Nothing is written under `data/eval/runs/` for this step.
 
 **2. Connectivity smoke (Bedrock + index on disk)**  
-`evaluation.connectivity.run_connectivity_check()` embeds a probe string, loads the active corpus vector store, and runs one retrieval. It is invoked directly or as the first step of `scripts/record_response_run.py`. **Results:** a structured dict on stdout when run inline; **append-only** lines in **`response/connectivity_log.txt`** (timestamp, OK/FAIL, short detail). Each new **`BedrockProvider()`** also appends one line when the boto3 client is created successfully.
+`evaluation.connectivity.run_connectivity_check()` embeds a probe string, loads the active corpus vector store, and runs one retrieval. It is invoked directly or as the first step of `scripts/record_response_run.py`. **Results:** a structured dict on stdout when run inline; **append-only** lines in **`data/eval/runs/connectivity_log.txt`** (timestamp, OK/FAIL, short detail). Each new **`BedrockProvider()`** also appends one line when the boto3 client is created successfully.
 
 **3. Scenario-level runs (baseline vs RAG, uses Claude)**  
-- `scripts/run_sample_comparison.py` — two illustrative scenarios; appends one **JSON line per scenario** to **`response/sample_results_comparison.md`** (after the header) and saves raw payloads to **`evaluation/sample_results.json`**.  
-- `scripts/record_response_run.py` — three frozen scenarios by default; writes **`response/<timestamp>_<label>_rag_eval.json`** and can append the same markdown log.
+- `scripts/run_sample_comparison.py` — two illustrative scenarios; appends one **JSON line per scenario** to **`data/eval/runs/sample_results_comparison.md`** (after the header) and saves raw payloads to **`data/eval/runs/sample_results.json`**.  
+- `scripts/record_response_run.py` — three frozen scenarios by default (from `data/eval/gold/scenarios_catalog.json`); writes **`data/eval/runs/<timestamp>_<label>_rag_eval.json`** and can append the same markdown log.
 
 **4. Where to look after a QA pass**
 
 | Location | What it contains |
 |----------|------------------|
-| `response/connectivity_log.txt` | TSV audit trail for connectivity checks and Bedrock client construction. |
-| `response/sample_results_comparison.md` | Append-only JSONL (each line: `timestamp`, `without_rag`, `with_rag`, …). |
-| `response/*_rag_eval.json` | Full capture: connectivity report, run_card, per-scenario metrics and payloads. |
+| `data/eval/runs/connectivity_log.txt` | TSV audit trail for connectivity checks and Bedrock client construction. |
+| `data/eval/runs/sample_results_comparison.md` | Append-only JSONL (each line: `timestamp`, `without_rag`, `with_rag`, …). |
+| `data/eval/runs/*_rag_eval.json` | Full capture: connectivity report, run_card, per-scenario metrics and payloads. |
 
 For file-level navigation of scripts and modules, see **`docs/code-flow.md` §10–11**; for a pipeline-level summary, see **`docs/ARCHITECTURE.md` → QA and Testing**.
 
@@ -523,4 +523,4 @@ For file-level navigation of scripts and modules, see **`docs/code-flow.md` §10
 
 ## Document updates (2026-05-14)
 
-Section **2.1** and the **§1 diagram** now describe **implemented** overlap-aware filtering and neighbour expansion (env-gated). **Step 8** in the Sibony walkthrough notes the same optional stages. **QA and Testing** (section above) documents unittest, connectivity, scenario scripts, and `response/` artefacts; cross-links to `docs/code-flow.md` and `docs/ARCHITECTURE.md`.
+Section **2.1** and the **§1 diagram** now describe **implemented** overlap-aware filtering and neighbour expansion (env-gated). **Step 8** in the Sibony walkthrough notes the same optional stages. **QA and Testing** (section above) documents unittest, connectivity, scenario scripts, and `data/eval/runs/` artefacts; cross-links to `docs/code-flow.md` and `docs/ARCHITECTURE.md`.

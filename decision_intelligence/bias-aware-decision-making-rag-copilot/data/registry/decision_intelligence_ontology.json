@@ -1,0 +1,2527 @@
+{
+  "ontology_version": "1.0.0",
+  "description": "Bootstrapped from bias-taxonomy.json and retrieval-concepts.json; curate graph edges over time.",
+  "concepts": {
+    "anchoring_bias": {
+      "concept": "anchoring_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "anchoring",
+        "first impression",
+        "initial anchor",
+        "opening number"
+      ],
+      "related_concepts": [
+        "base_rate_neglect",
+        "framing_effect"
+      ],
+      "mitigated_by": [
+        "estimate_talk_estimate",
+        "pre_commitment",
+        "structured_analytic_techniques"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "hr",
+        "procurement",
+        "strategy"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "availability_heuristic": {
+      "concept": "availability_heuristic",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "availability bias",
+        "easy to recall",
+        "recent example",
+        "salient example"
+      ],
+      "related_concepts": [
+        "recency_bias",
+        "survivorship_bias"
+      ],
+      "mitigated_by": [
+        "pre_commitment",
+        "uncertainty_management"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "leadership",
+        "operations",
+        "risk",
+        "security"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "medium"
+    },
+    "representativeness_bias": {
+      "concept": "representativeness_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "representativeness",
+        "stereotype match",
+        "fits the pattern"
+      ],
+      "related_concepts": [
+        "base_rate_neglect",
+        "stereotyping_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "recruiting"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "high"
+    },
+    "affect_heuristic": {
+      "concept": "affect_heuristic",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "emotional reaction",
+        "gut feel",
+        "likeability effect"
+      ],
+      "related_concepts": [
+        "halo_effect",
+        "horn_effect"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "sales"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "medium"
+    },
+    "confirmation_bias": {
+      "concept": "confirmation_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "confirming evidence",
+        "looking for proof",
+        "evidence cherry-picking"
+      ],
+      "related_concepts": [
+        "anchoring_bias",
+        "belief_bias"
+      ],
+      "mitigated_by": [
+        "decision_quality_scorecard",
+        "evidence_quality",
+        "mandatory_dissent",
+        "red_teaming",
+        "structured_analytic_techniques"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "investigations",
+        "leadership",
+        "strategy"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "belief_bias": {
+      "concept": "belief_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "belief-driven reasoning",
+        "sounds right so it must be right"
+      ],
+      "related_concepts": [
+        "confirmation_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "leadership",
+        "legal",
+        "policy"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "medium"
+    },
+    "overconfidence_bias": {
+      "concept": "overconfidence_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "overconfident",
+        "certainty without evidence",
+        "predictive humility missing"
+      ],
+      "related_concepts": [
+        "optimism_bias",
+        "planning_fallacy"
+      ],
+      "mitigated_by": [
+        "calibration",
+        "decision_quality_scorecard",
+        "judgment",
+        "outside_view",
+        "premortem",
+        "uncertainty_management"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "leadership",
+        "product",
+        "strategy"
+      ],
+      "source_books": [
+        "Noise",
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "high"
+    },
+    "optimism_bias": {
+      "concept": "optimism_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "best-case thinking",
+        "too optimistic",
+        "rosy forecast"
+      ],
+      "related_concepts": [
+        "overconfidence_bias",
+        "planning_fallacy"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "operations",
+        "product",
+        "strategy"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "medium"
+    },
+    "hindsight_bias": {
+      "concept": "hindsight_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "we knew it all along",
+        "obvious in hindsight"
+      ],
+      "related_concepts": [
+        "outcome_bias"
+      ],
+      "mitigated_by": [
+        "after_action_review"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "leadership",
+        "operations",
+        "risk"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "medium"
+    },
+    "outcome_bias": {
+      "concept": "outcome_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "judged by result",
+        "lucky outcome",
+        "process ignored"
+      ],
+      "related_concepts": [
+        "hindsight_bias"
+      ],
+      "mitigated_by": [
+        "after_action_review"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "leadership",
+        "operations"
+      ],
+      "source_books": [
+        "Thinking in Bets",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "planning_fallacy": {
+      "concept": "planning_fallacy",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "underestimated timeline",
+        "too aggressive schedule",
+        "timeline optimism"
+      ],
+      "related_concepts": [
+        "optimism_bias",
+        "overconfidence_bias"
+      ],
+      "mitigated_by": [
+        "outside_view",
+        "premortem"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "product",
+        "program_management",
+        "strategy"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "medium"
+    },
+    "loss_aversion": {
+      "concept": "loss_aversion",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "fear of loss",
+        "losses loom larger",
+        "downside overweighted"
+      ],
+      "related_concepts": [
+        "omission_bias",
+        "status_quo_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "operations",
+        "strategy"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "medium"
+    },
+    "status_quo_bias": {
+      "concept": "status_quo_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "default preference",
+        "stick with current approach",
+        "resistance to change"
+      ],
+      "related_concepts": [
+        "loss_aversion",
+        "omission_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "operations",
+        "strategy"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "medium"
+    },
+    "sunk_cost_fallacy": {
+      "concept": "sunk_cost_fallacy",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "already invested too much",
+        "can't stop now",
+        "past spend justification"
+      ],
+      "related_concepts": [
+        "escalation_of_commitment"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "product",
+        "program_management"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "high"
+    },
+    "escalation_of_commitment": {
+      "concept": "escalation_of_commitment",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "doubling down",
+        "throwing good money after bad",
+        "commitment escalation"
+      ],
+      "related_concepts": [
+        "self_serving_bias",
+        "sunk_cost_fallacy"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "program_management",
+        "strategy"
+      ],
+      "source_books": [
+        "Behavioral Decision Theory",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "framing_effect": {
+      "concept": "framing_effect",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "how it was framed",
+        "presentation effect",
+        "gain-loss framing"
+      ],
+      "related_concepts": [
+        "anchoring_bias",
+        "loss_aversion"
+      ],
+      "mitigated_by": [
+        "pre_commitment"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "leadership",
+        "policy",
+        "sales"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "high"
+    },
+    "base_rate_neglect": {
+      "concept": "base_rate_neglect",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "ignoring base rates",
+        "prevalence ignored",
+        "statistics overlooked"
+      ],
+      "related_concepts": [
+        "anchoring_bias",
+        "representativeness_bias"
+      ],
+      "mitigated_by": [
+        "outside_view"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "product",
+        "risk",
+        "strategy"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "high"
+    },
+    "survivorship_bias": {
+      "concept": "survivorship_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "only seeing the winners",
+        "failures ignored",
+        "success stories only"
+      ],
+      "related_concepts": [
+        "availability_heuristic"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "recruiting",
+        "strategy"
+      ],
+      "source_books": [
+        "The Signal and the Noise"
+      ],
+      "importance": "medium"
+    },
+    "recency_bias": {
+      "concept": "recency_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "recent events dominate",
+        "latest incident",
+        "short-term memory effect"
+      ],
+      "related_concepts": [
+        "availability_heuristic",
+        "occasion_noise"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "operations"
+      ],
+      "source_books": [
+        "Behavioral Decision Theory"
+      ],
+      "importance": "high"
+    },
+    "omission_bias": {
+      "concept": "omission_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "doing nothing feels safer",
+        "inaction bias",
+        "harm from inaction ignored"
+      ],
+      "related_concepts": [
+        "loss_aversion",
+        "status_quo_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "leadership",
+        "policy",
+        "risk"
+      ],
+      "source_books": [
+        "Judgment and Decision Making"
+      ],
+      "importance": "medium"
+    },
+    "automation_bias": {
+      "concept": "automation_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "over-reliance on the model",
+        "tool says so",
+        "automation overtrust"
+      ],
+      "related_concepts": [
+        "algorithmic_bias",
+        "authority_bias"
+      ],
+      "mitigated_by": [
+        "human_in_the_loop"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "hr",
+        "operations"
+      ],
+      "source_books": [
+        "Human Factors",
+        "AI Governance"
+      ],
+      "importance": "high"
+    },
+    "halo_effect": {
+      "concept": "halo_effect",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "positive impression spillover",
+        "one strength colors everything"
+      ],
+      "related_concepts": [
+        "affect_heuristic",
+        "horn_effect"
+      ],
+      "mitigated_by": [
+        "structured_interviewing"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "sales"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "horn_effect": {
+      "concept": "horn_effect",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "negative impression spillover",
+        "one flaw dominates"
+      ],
+      "related_concepts": [
+        "halo_effect"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership"
+      ],
+      "source_books": [
+        "Organizational Behavior"
+      ],
+      "importance": "high"
+    },
+    "similarity_bias": {
+      "concept": "similarity_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "affinity bias",
+        "similar background",
+        "shared interests",
+        "like me"
+      ],
+      "related_concepts": [
+        "in_group_bias",
+        "representativeness_bias"
+      ],
+      "mitigated_by": [
+        "structured_interviewing"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "recruiting"
+      ],
+      "source_books": [
+        "Organizational Behavior",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "in_group_bias": {
+      "concept": "in_group_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "our people first",
+        "favoring insiders",
+        "ingroup preference"
+      ],
+      "related_concepts": [
+        "similarity_bias",
+        "stereotyping_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "policy"
+      ],
+      "source_books": [
+        "Behavioral Economics"
+      ],
+      "importance": "high"
+    },
+    "proximity_bias": {
+      "concept": "proximity_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "visibility bias",
+        "remote workers overlooked",
+        "who I see most"
+      ],
+      "related_concepts": [
+        "halo_effect",
+        "recency_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership"
+      ],
+      "source_books": [
+        "Workplace Research"
+      ],
+      "importance": "medium"
+    },
+    "stereotyping_bias": {
+      "concept": "stereotyping_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "stereotype",
+        "group assumption",
+        "category-based judgment"
+      ],
+      "related_concepts": [
+        "representativeness_bias",
+        "similarity_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "education",
+        "hr",
+        "leadership"
+      ],
+      "source_books": [
+        "Social Psychology",
+        "Organizational Behavior"
+      ],
+      "importance": "high"
+    },
+    "authority_bias": {
+      "concept": "authority_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "deference to the leader",
+        "because senior said so",
+        "authority figure"
+      ],
+      "related_concepts": [
+        "automation_bias",
+        "conformity_bias",
+        "groupthink"
+      ],
+      "mitigated_by": [
+        "independent_assessment",
+        "mandatory_dissent"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "leadership",
+        "operations"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "conformity_bias": {
+      "concept": "conformity_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "peer pressure",
+        "go along with the group",
+        "consensus pressure"
+      ],
+      "related_concepts": [
+        "authority_bias",
+        "groupthink"
+      ],
+      "mitigated_by": [
+        "estimate_talk_estimate",
+        "independent_assessment"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "leadership",
+        "operations"
+      ],
+      "source_books": [
+        "Decisive",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "groupthink": {
+      "concept": "groupthink",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "false consensus",
+        "avoid disagreement",
+        "team won't challenge"
+      ],
+      "related_concepts": [
+        "authority_bias",
+        "conformity_bias"
+      ],
+      "mitigated_by": [
+        "estimate_talk_estimate",
+        "independent_assessment",
+        "mandatory_dissent",
+        "premortem",
+        "red_teaming",
+        "structured_analytic_techniques"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "leadership",
+        "strategy"
+      ],
+      "source_books": [
+        "Decisive",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "fundamental_attribution_error": {
+      "concept": "fundamental_attribution_error",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "blaming the person not the system",
+        "trait over context"
+      ],
+      "related_concepts": [
+        "self_serving_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "operations"
+      ],
+      "source_books": [
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "high"
+    },
+    "self_serving_bias": {
+      "concept": "self_serving_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "takes credit for success",
+        "blames the context",
+        "defensive attribution"
+      ],
+      "related_concepts": [
+        "escalation_of_commitment",
+        "fundamental_attribution_error"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "leadership",
+        "operations"
+      ],
+      "source_books": [
+        "Behavioral Psychology"
+      ],
+      "importance": "medium"
+    },
+    "metric_fixation": {
+      "concept": "metric_fixation",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "goodhart",
+        "proxy becomes the target",
+        "metric gaming",
+        "optimize the metric"
+      ],
+      "related_concepts": [
+        "measurement_bias",
+        "proxy_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "hr",
+        "operations",
+        "product"
+      ],
+      "source_books": [
+        "Goodhart's Law",
+        "Measurement in Organizations"
+      ],
+      "importance": "high"
+    },
+    "normalization_of_deviance": {
+      "concept": "normalization_of_deviance",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "risky practice became normal",
+        "exception became standard",
+        "deviance normalized"
+      ],
+      "related_concepts": [
+        "process_ambiguity_bias",
+        "status_quo_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "operations",
+        "risk",
+        "security"
+      ],
+      "source_books": [
+        "Organizational Accidents Research"
+      ],
+      "importance": "high"
+    },
+    "process_ambiguity_bias": {
+      "concept": "process_ambiguity_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "unclear criteria",
+        "unstructured evaluation",
+        "vague process"
+      ],
+      "related_concepts": [
+        "noise",
+        "pattern_noise"
+      ],
+      "mitigated_by": [
+        "decision_quality_scorecard",
+        "structured_interviewing"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "legal",
+        "operations"
+      ],
+      "source_books": [
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "noise": {
+      "concept": "noise",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "inconsistency",
+        "variability in judgment",
+        "judgment lottery"
+      ],
+      "related_concepts": [
+        "level_noise",
+        "occasion_noise",
+        "pattern_noise"
+      ],
+      "mitigated_by": [
+        "decision_hygiene",
+        "judgment",
+        "noise_audit"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "hr",
+        "legal",
+        "management"
+      ],
+      "source_books": [
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "level_noise": {
+      "concept": "level_noise",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "severity difference",
+        "leniency difference",
+        "harsh reviewer"
+      ],
+      "related_concepts": [
+        "noise",
+        "pattern_noise"
+      ],
+      "mitigated_by": [
+        "calibration",
+        "noise_audit"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "education",
+        "hr",
+        "legal"
+      ],
+      "source_books": [
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "pattern_noise": {
+      "concept": "pattern_noise",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "idiosyncratic judgment pattern",
+        "different weighting of cues"
+      ],
+      "related_concepts": [
+        "noise",
+        "process_ambiguity_bias"
+      ],
+      "mitigated_by": [
+        "decision_hygiene",
+        "noise_audit"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "occasion_noise": {
+      "concept": "occasion_noise",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "mood-based judgment",
+        "same reviewer different day",
+        "occasion effect"
+      ],
+      "related_concepts": [
+        "noise",
+        "recency_bias"
+      ],
+      "mitigated_by": [
+        "decision_hygiene"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "historical_bias": {
+      "concept": "historical_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "past inequality in the data",
+        "historical discrimination",
+        "legacy bias"
+      ],
+      "related_concepts": [
+        "label_bias",
+        "representation_bias"
+      ],
+      "mitigated_by": [
+        "fairness_audit",
+        "model_card"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "governance",
+        "hr"
+      ],
+      "source_books": [
+        "AI Fairness",
+        "Weapons of Math Destruction"
+      ],
+      "importance": "high"
+    },
+    "representation_bias": {
+      "concept": "representation_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "underrepresentation",
+        "group missing from data",
+        "coverage gap"
+      ],
+      "related_concepts": [
+        "historical_bias",
+        "sampling_bias"
+      ],
+      "mitigated_by": [
+        "fairness_audit",
+        "model_card"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "health",
+        "hr"
+      ],
+      "source_books": [
+        "AI Fairness"
+      ],
+      "importance": "high"
+    },
+    "sampling_bias": {
+      "concept": "sampling_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "non-representative sample",
+        "biased sample",
+        "sampling problem"
+      ],
+      "related_concepts": [
+        "distribution_shift",
+        "representation_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "marketing",
+        "research"
+      ],
+      "source_books": [
+        "ML",
+        "AI Fairness"
+      ],
+      "importance": "high"
+    },
+    "measurement_bias": {
+      "concept": "measurement_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "bad proxy metric",
+        "poor measurement",
+        "measurement problem"
+      ],
+      "related_concepts": [
+        "label_bias",
+        "metric_fixation",
+        "proxy_bias"
+      ],
+      "mitigated_by": [
+        "evidence_quality"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "health",
+        "hr"
+      ],
+      "source_books": [
+        "ACM",
+        "AI Fairness"
+      ],
+      "importance": "high"
+    },
+    "proxy_bias": {
+      "concept": "proxy_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "proxy variable",
+        "indirect discrimination",
+        "zip code proxy"
+      ],
+      "related_concepts": [
+        "historical_bias",
+        "measurement_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "hr",
+        "insurance"
+      ],
+      "source_books": [
+        "ACM",
+        "AI Ethics"
+      ],
+      "importance": "high"
+    },
+    "label_bias": {
+      "concept": "label_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "biased labels",
+        "subjective labels",
+        "judgment-based labels"
+      ],
+      "related_concepts": [
+        "historical_bias",
+        "measurement_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "hr",
+        "risk"
+      ],
+      "source_books": [
+        "AI Fairness",
+        "Noise"
+      ],
+      "importance": "high"
+    },
+    "aggregation_bias": {
+      "concept": "aggregation_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "one-size-fits-all model",
+        "subgroup differences ignored",
+        "pooled model bias"
+      ],
+      "related_concepts": [
+        "evaluation_bias",
+        "representation_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "governance",
+        "health"
+      ],
+      "source_books": [
+        "ML Fairness"
+      ],
+      "importance": "medium"
+    },
+    "evaluation_bias": {
+      "concept": "evaluation_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "wrong evaluation metric",
+        "evaluation blind spot",
+        "test set mismatch"
+      ],
+      "related_concepts": [
+        "aggregation_bias",
+        "distribution_shift"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "product"
+      ],
+      "source_books": [
+        "AI Evaluation",
+        "ML Systems"
+      ],
+      "importance": "high"
+    },
+    "deployment_context_bias": {
+      "concept": "deployment_context_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "out-of-context deployment",
+        "wrong use case",
+        "misapplied model"
+      ],
+      "related_concepts": [
+        "distribution_shift",
+        "evaluation_bias"
+      ],
+      "mitigated_by": [
+        "model_card"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "hr",
+        "operations"
+      ],
+      "source_books": [
+        "ML Systems",
+        "AI Governance"
+      ],
+      "importance": "high"
+    },
+    "distribution_shift": {
+      "concept": "distribution_shift",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "data drift",
+        "concept drift",
+        "distribution changed"
+      ],
+      "related_concepts": [
+        "deployment_context_bias",
+        "sampling_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "operations",
+        "risk"
+      ],
+      "source_books": [
+        "ML Systems"
+      ],
+      "importance": "medium"
+    },
+    "algorithmic_bias": {
+      "concept": "algorithmic_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "model bias",
+        "biased algorithm",
+        "fairness issue in the model"
+      ],
+      "related_concepts": [
+        "automation_bias",
+        "feedback_loop_bias",
+        "historical_bias"
+      ],
+      "mitigated_by": [
+        "fairness_audit"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "governance",
+        "hr"
+      ],
+      "source_books": [
+        "AI Ethics",
+        "AI Fairness"
+      ],
+      "importance": "high"
+    },
+    "feedback_loop_bias": {
+      "concept": "feedback_loop_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "self-reinforcing system",
+        "bias loop",
+        "feedback loop"
+      ],
+      "related_concepts": [
+        "algorithmic_bias",
+        "historical_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "marketing",
+        "public_sector"
+      ],
+      "source_books": [
+        "AI Systems",
+        "Weapons of Math Destruction"
+      ],
+      "importance": "high"
+    },
+    "objective_misalignment": {
+      "concept": "objective_misalignment",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "wrong objective",
+        "optimized the wrong thing",
+        "goal mismatch"
+      ],
+      "related_concepts": [
+        "algorithmic_bias",
+        "metric_fixation"
+      ],
+      "mitigated_by": [
+        "human_in_the_loop"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "health",
+        "operations"
+      ],
+      "source_books": [
+        "AI Governance",
+        "Measurement in Organizations"
+      ],
+      "importance": "high"
+    },
+    "narrative_fallacy": {
+      "concept": "narrative_fallacy",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "narrative bias",
+        "story fallacy",
+        "causal storytelling",
+        "post-hoc narrative"
+      ],
+      "related_concepts": [
+        "hindsight_bias",
+        "outcome_bias",
+        "survivorship_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "investing",
+        "leadership",
+        "strategy"
+      ],
+      "source_books": [
+        "The Black Swan",
+        "Fooled by Randomness"
+      ],
+      "importance": "high"
+    },
+    "silent_evidence_bias": {
+      "concept": "silent_evidence_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "silent evidence",
+        "missing data bias",
+        "unseen evidence"
+      ],
+      "related_concepts": [
+        "selection_bias",
+        "survivorship_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "investing",
+        "research",
+        "strategy"
+      ],
+      "source_books": [
+        "The Black Swan"
+      ],
+      "importance": "high"
+    },
+    "ludic_fallacy": {
+      "concept": "ludic_fallacy",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "ludic fallacy",
+        "casino fallacy",
+        "false precision"
+      ],
+      "related_concepts": [
+        "model_misspecification_bias",
+        "overconfidence_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "risk",
+        "strategy"
+      ],
+      "source_books": [
+        "The Black Swan"
+      ],
+      "importance": "medium"
+    },
+    "selection_bias": {
+      "concept": "selection_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "selection effect",
+        "non-random sampling",
+        "biased sampling"
+      ],
+      "related_concepts": [
+        "deployment_context_bias",
+        "sampling_bias",
+        "survivorship_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "research",
+        "risk"
+      ],
+      "source_books": [
+        "Weapons of Math Destruction",
+        "Invisible Women"
+      ],
+      "importance": "high"
+    },
+    "model_misspecification_bias": {
+      "concept": "model_misspecification_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "misspecified model",
+        "wrong model",
+        "structural error"
+      ],
+      "related_concepts": [
+        "aggregation_bias",
+        "ludic_fallacy"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "research",
+        "risk"
+      ],
+      "source_books": [
+        "Weapons of Math Destruction",
+        "The Black Swan"
+      ],
+      "importance": "medium"
+    },
+    "specification_gaming": {
+      "concept": "specification_gaming",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "reward hacking",
+        "specification hacking",
+        "Goodhart's law",
+        "metric gaming"
+      ],
+      "related_concepts": [
+        "metric_fixation",
+        "objective_misalignment"
+      ],
+      "mitigated_by": [
+        "human_in_the_loop",
+        "model_card",
+        "red_teaming"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "risk"
+      ],
+      "source_books": [
+        "Human Compatible"
+      ],
+      "importance": "high"
+    },
+    "instrumental_convergence": {
+      "concept": "instrumental_convergence",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "power-seeking subgoals",
+        "convergent instrumental goals",
+        "agent self-preservation"
+      ],
+      "related_concepts": [
+        "objective_misalignment",
+        "specification_gaming"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "risk"
+      ],
+      "source_books": [
+        "Human Compatible"
+      ],
+      "importance": "medium"
+    },
+    "extractive_infrastructure_bias": {
+      "concept": "extractive_infrastructure_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "AI supply-chain harm",
+        "labour-extractive AI",
+        "hidden labour bias"
+      ],
+      "related_concepts": [
+        "historical_bias",
+        "representation_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "ethics",
+        "governance"
+      ],
+      "source_books": [
+        "Atlas of AI"
+      ],
+      "importance": "medium"
+    },
+    "contextual_priming_bias": {
+      "concept": "contextual_priming_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "priming",
+        "situational cue bias",
+        "environmental priming"
+      ],
+      "related_concepts": [
+        "affect_heuristic",
+        "occasion_noise"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [
+        "Behave",
+        "Noise"
+      ],
+      "importance": "medium"
+    },
+    "moral_licensing": {
+      "concept": "moral_licensing",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "moral credentialing",
+        "ethical credit bias"
+      ],
+      "related_concepts": [
+        "rationalization_bias",
+        "self_serving_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ethics",
+        "governance",
+        "hr",
+        "leadership"
+      ],
+      "source_books": [
+        "Behave",
+        "Mistakes Were Made"
+      ],
+      "importance": "medium"
+    },
+    "rationalization_bias": {
+      "concept": "rationalization_bias",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "self-justification",
+        "post-hoc justification",
+        "rationalisation"
+      ],
+      "related_concepts": [
+        "confirmation_bias",
+        "outcome_bias",
+        "self_serving_bias"
+      ],
+      "mitigated_by": [
+        "after_action_review"
+      ],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "hr",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [
+        "Mistakes Were Made",
+        "Thinking, Fast and Slow"
+      ],
+      "importance": "high"
+    },
+    "diffusion_of_responsibility": {
+      "concept": "diffusion_of_responsibility",
+      "kind": "cognitive_mechanism",
+      "aliases": [
+        "accountability gap",
+        "responsibility diffusion",
+        "collective deniability"
+      ],
+      "related_concepts": [
+        "automation_bias",
+        "groupthink",
+        "process_ambiguity_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [
+        "Groupthink",
+        "The Lucifer Effect"
+      ],
+      "importance": "high"
+    },
+    "decision_hygiene": {
+      "concept": "decision_hygiene",
+      "kind": "framework",
+      "aliases": [
+        "decision hygiene",
+        "structured decision process",
+        "decision checklist",
+        "better judgments"
+      ],
+      "related_concepts": [
+        "noise",
+        "occasion_noise",
+        "pattern_noise"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "hr",
+        "leadership",
+        "legal",
+        "management"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "noise_audit": {
+      "concept": "noise_audit",
+      "kind": "intervention",
+      "aliases": [
+        "noise audit",
+        "consistency audit",
+        "judgment audit"
+      ],
+      "related_concepts": [
+        "level_noise",
+        "noise",
+        "pattern_noise"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "hr",
+        "legal",
+        "management"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "structured_interviewing": {
+      "concept": "structured_interviewing",
+      "kind": "intervention",
+      "aliases": [
+        "structured interview",
+        "scoring rubric",
+        "rating criteria",
+        "interview rubric"
+      ],
+      "related_concepts": [
+        "halo_effect",
+        "process_ambiguity_bias",
+        "similarity_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [
+        "structured_interviewing"
+      ],
+      "evidence_type": [],
+      "decision_domains": [
+        "hr",
+        "leadership",
+        "recruiting"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "independent_assessment": {
+      "concept": "independent_assessment",
+      "kind": "framework",
+      "aliases": [
+        "independent judgment",
+        "independent assessment",
+        "silent first pass",
+        "estimate talk estimate"
+      ],
+      "related_concepts": [
+        "authority_bias",
+        "conformity_bias",
+        "groupthink"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "hr",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "outside_view": {
+      "concept": "outside_view",
+      "kind": "intervention",
+      "aliases": [
+        "outside view",
+        "reference class",
+        "similar cases",
+        "reference-class forecasting"
+      ],
+      "related_concepts": [
+        "base_rate_neglect",
+        "overconfidence_bias",
+        "planning_fallacy"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "program_management",
+        "risk",
+        "strategy"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "calibration": {
+      "concept": "calibration",
+      "kind": "framework",
+      "aliases": [
+        "calibration",
+        "calibrated judgment",
+        "rating calibration",
+        "probability calibration"
+      ],
+      "related_concepts": [
+        "level_noise",
+        "overconfidence_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "hr",
+        "management",
+        "risk"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "fairness_audit": {
+      "concept": "fairness_audit",
+      "kind": "intervention",
+      "aliases": [
+        "fairness audit",
+        "bias audit",
+        "equity review",
+        "disparate impact review"
+      ],
+      "related_concepts": [
+        "algorithmic_bias",
+        "historical_bias",
+        "representation_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "finance",
+        "governance",
+        "hr"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "uncertainty_management": {
+      "concept": "uncertainty_management",
+      "kind": "framework",
+      "aliases": [
+        "uncertainty",
+        "ambiguity",
+        "confidence range",
+        "scenario planning"
+      ],
+      "related_concepts": [
+        "availability_heuristic",
+        "overconfidence_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "leadership",
+        "risk",
+        "strategy"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "evidence_quality": {
+      "concept": "evidence_quality",
+      "kind": "framework",
+      "aliases": [
+        "quality of evidence",
+        "evidence quality",
+        "source quality",
+        "supporting evidence"
+      ],
+      "related_concepts": [
+        "confirmation_bias",
+        "measurement_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "judgment": {
+      "concept": "judgment",
+      "kind": "framework",
+      "aliases": [
+        "judgment",
+        "decision making",
+        "evaluation",
+        "assessment"
+      ],
+      "related_concepts": [
+        "noise",
+        "overconfidence_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "hr",
+        "leadership",
+        "legal",
+        "management"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "premortem": {
+      "concept": "premortem",
+      "kind": "framework",
+      "aliases": [
+        "premortem",
+        "pre-mortem",
+        "imagined failure analysis",
+        "prospective hindsight"
+      ],
+      "related_concepts": [
+        "groupthink",
+        "overconfidence_bias",
+        "planning_fallacy"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "leadership",
+        "program_management",
+        "risk",
+        "strategy"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "red_teaming": {
+      "concept": "red_teaming",
+      "kind": "framework",
+      "aliases": [
+        "red team",
+        "red teaming",
+        "adversarial review",
+        "challenge team"
+      ],
+      "related_concepts": [
+        "confirmation_bias",
+        "groupthink",
+        "specification_gaming"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "risk",
+        "strategy"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "structured_analytic_techniques": {
+      "concept": "structured_analytic_techniques",
+      "kind": "framework",
+      "aliases": [
+        "structured analytic techniques",
+        "SAT",
+        "key assumptions check",
+        "analysis of competing hypotheses",
+        "devil's advocacy"
+      ],
+      "related_concepts": [
+        "anchoring_bias",
+        "confirmation_bias",
+        "groupthink"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [
+        "structured_analytic_techniques"
+      ],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "intelligence",
+        "legal",
+        "risk",
+        "strategy"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "decision_quality_scorecard": {
+      "concept": "decision_quality_scorecard",
+      "kind": "framework",
+      "aliases": [
+        "decision quality scorecard",
+        "decision rubric",
+        "DQ scorecard",
+        "decision quality framework"
+      ],
+      "related_concepts": [
+        "confirmation_bias",
+        "overconfidence_bias",
+        "process_ambiguity_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "leadership",
+        "management",
+        "strategy"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "after_action_review": {
+      "concept": "after_action_review",
+      "kind": "framework",
+      "aliases": [
+        "after action review",
+        "AAR",
+        "blameless post-mortem",
+        "decision retrospective"
+      ],
+      "related_concepts": [
+        "hindsight_bias",
+        "outcome_bias",
+        "rationalization_bias"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "leadership",
+        "program_management"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "pre_commitment": {
+      "concept": "pre_commitment",
+      "kind": "framework",
+      "aliases": [
+        "pre-commitment",
+        "precommitment",
+        "Odysseus pact",
+        "decision pre-commitment",
+        "binding criterion"
+      ],
+      "related_concepts": [
+        "anchoring_bias",
+        "availability_heuristic",
+        "framing_effect"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "finance",
+        "governance",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [],
+      "importance": "high"
+    },
+    "mandatory_dissent": {
+      "concept": "mandatory_dissent",
+      "kind": "framework",
+      "aliases": [
+        "mandatory dissent",
+        "obligation to dissent",
+        "structured dissent",
+        "ten percent doubter"
+      ],
+      "related_concepts": [
+        "authority_bias",
+        "confirmation_bias",
+        "groupthink"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "governance",
+        "intelligence",
+        "leadership",
+        "legal"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "estimate_talk_estimate": {
+      "concept": "estimate_talk_estimate",
+      "kind": "framework",
+      "aliases": [
+        "estimate talk estimate",
+        "ETE",
+        "Delphi-style estimation",
+        "wisdom-of-crowds aggregation"
+      ],
+      "related_concepts": [
+        "anchoring_bias",
+        "conformity_bias",
+        "groupthink"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "leadership",
+        "risk"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "model_card": {
+      "concept": "model_card",
+      "kind": "framework",
+      "aliases": [
+        "model card",
+        "AI model card",
+        "model fact sheet",
+        "AI disclosure"
+      ],
+      "related_concepts": [
+        "deployment_context_bias",
+        "historical_bias",
+        "representation_bias",
+        "specification_gaming"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "ethics",
+        "governance",
+        "risk"
+      ],
+      "source_books": [],
+      "importance": "medium"
+    },
+    "human_in_the_loop": {
+      "concept": "human_in_the_loop",
+      "kind": "framework",
+      "aliases": [
+        "human in the loop",
+        "HITL",
+        "human oversight",
+        "meaningful human control"
+      ],
+      "related_concepts": [
+        "automation_bias",
+        "objective_misalignment",
+        "specification_gaming"
+      ],
+      "mitigated_by": [],
+      "failure_modes": [],
+      "group_dynamics": [],
+      "decision_phases": [],
+      "interventions": [],
+      "evidence_type": [],
+      "decision_domains": [
+        "ai",
+        "governance",
+        "legal",
+        "risk"
+      ],
+      "source_books": [],
+      "importance": "high"
+    }
+  }
+}

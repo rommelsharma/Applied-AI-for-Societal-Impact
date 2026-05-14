@@ -1,4 +1,4 @@
-"""Append-only log for ``response/sample_results_comparison.md`` (JSONL rows)."""
+"""Append-only log for ``data/eval/runs/sample_results_comparison.md`` (JSONL rows)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from shared_components.utilities.path_utils import get_response_dir
+from shared_components.utilities.path_utils import get_legacy_response_dir, get_response_dir
 
 SAMPLE_LOG_HEADER = """# Sample results comparison (append-only)
 
@@ -18,12 +18,14 @@ Optional keys: `scenario_id`, `scenario_title`, `label` (from `record_response_r
 Scripts append via `evaluation/sample_results_log.append_sample_results_jsonl` — run
 `scripts/run_sample_comparison.py` or `scripts/record_response_run.py` after connectivity.
 
+Outputs live under ``data/eval/runs/`` (legacy ``response/`` logs are migrated once).
+
 ---
 """
 
 
 def migrate_docs_sample_if_present(project_root: Path) -> None:
-    """Move legacy ``docs/sample_results_comparison.md`` into ``response/`` once."""
+    """Move legacy ``docs/sample_results_comparison.md`` into ``data/eval/runs/`` once."""
     docs_md = project_root / "docs" / "sample_results_comparison.md"
     if not docs_md.is_file():
         return
@@ -45,8 +47,22 @@ def migrate_docs_sample_if_present(project_root: Path) -> None:
     docs_md.unlink()
 
 
+def migrate_legacy_response_dir() -> None:
+    """Copy ``response/*`` logs into ``data/eval/runs`` once if the new tree is empty."""
+    new_dir = get_response_dir()
+    legacy = get_legacy_response_dir()
+    new_dir.mkdir(parents=True, exist_ok=True)
+    for name in ("sample_results_comparison.md", "connectivity_log.txt"):
+        src = legacy / name
+        dst = new_dir / name
+        if not src.is_file() or dst.exists():
+            continue
+        dst.write_bytes(src.read_bytes())
+
+
 def append_sample_results_jsonl(rows: list[dict[str, Any]], *, batch_timestamp: str | None = None) -> Path:
-    """Append one JSON line per row to ``response/sample_results_comparison.md``."""
+    """Append one JSON line per row to ``data/eval/runs/sample_results_comparison.md``."""
+    migrate_legacy_response_dir()
     path = get_response_dir() / "sample_results_comparison.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     if not path.exists():

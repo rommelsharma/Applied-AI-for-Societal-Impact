@@ -6,7 +6,7 @@ and produces three retrieval-friendly artefacts per book:
 
     * Markdown   - human-readable source dossier (``generated_markdown/``)
     * HTML       - styled rendering of the same content (``generated_html/``)
-    * PDF        - high-fidelity print-ready version (``data/raw/``)
+    * PDF        - high-fidelity print-ready version (``data/corpora/public/raw/``)
 
 These dossiers are intentionally written as *concise, retrieval-friendly
 syntheses* (named biases, mitigations, decision applications, AI/governance

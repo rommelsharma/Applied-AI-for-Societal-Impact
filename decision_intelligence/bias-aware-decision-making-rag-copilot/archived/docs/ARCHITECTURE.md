@@ -63,14 +63,14 @@ These stages **do not** change the vector index; they are toggled via `shared_co
 
 **Comparing before and after**
 
-Use the same corpus, index (`manifest.json`), Bedrock models, and frozen scenarios; toggle only the env flags. Capture runs via `scripts/record_response_run.py` into `response/` with distinct labels. `evaluation/run_card.py` records overlap and expansion settings. Compare distinct sources, adjacency among primaries, and qualitative JSON — alongside append-only `response/sample_results_comparison.md` (JSONL rows) and full `response/*_rag_eval.json` captures.
+Use the same corpus, index (`manifest.json`), Bedrock models, and frozen scenarios; toggle only the env flags. Capture runs via `scripts/record_response_run.py` into `data/eval/runs/` with distinct labels. `evaluation/run_card.py` records overlap and expansion settings. Compare distinct sources, adjacency among primaries, and qualitative JSON — alongside append-only `data/eval/runs/sample_results_comparison.md` (JSONL rows) and full `data/eval/runs/*_rag_eval.json` captures.
 
 ## Evaluation and response capture (implemented)
 
 ```text
-evaluation/baseline_scenarios.json
+data/eval/gold/scenarios_catalog.json
   -> scripts/record_response_run.py (connectivity + detect_bias_comparison + metrics + run_card)
-  -> response/<timestamp>_<label>_rag_eval.json
+  -> data/eval/runs/<timestamp>_<label>_rag_eval.json
 ```
 
 Supporting modules: `evaluation/connectivity.py`, `evaluation/metrics.py`, `evaluation/run_card.py`, full suite in `evaluation/run_evaluation.py`.
@@ -86,20 +86,20 @@ Supporting modules: `evaluation/connectivity.py`, `evaluation/metrics.py`, `eval
 **Integration / smoke (Bedrock + corpus index)**
 
 - **Connectivity:** `python -c "from evaluation.connectivity import run_connectivity_check; print(run_connectivity_check())"` or rely on the first step inside `scripts/record_response_run.py` when not using `--skip-connectivity`. Validates credentials, Titan embedding round-trip, vector store load, and a short `KnowledgeRetriever.search`.
-- **Where logged:** each successful `BedrockProvider()` construction appends one tab-separated row to `response/connectivity_log.txt`; each full `run_connectivity_check()` appends a final summary row (OK/FAIL + detail). Inspect that file for an audit trail over time.
+- **Where logged:** each successful `BedrockProvider()` construction appends one tab-separated row to `data/eval/runs/connectivity_log.txt`; each full `run_connectivity_check()` appends a final summary row (OK/FAIL + detail). Inspect that file for an audit trail over time.
 
 **Scenario-level QA (LLM calls, costs real tokens)**
 
-- **`scripts/run_sample_comparison.py`** — two fixed scenarios; writes `evaluation/sample_results.json` and **appends** one JSON line per scenario to `response/sample_results_comparison.md` (timestamp + `without_rag` / `with_rag` payloads after the file header).
-- **`scripts/record_response_run.py`** — runs `evaluation/baseline_scenarios.json` (three scenarios by default), metrics, run card; writes `response/<timestamp>_<label>_rag_eval.json` and can append the same JSONL log (unless `--no-append-sample-log`).
+- **`scripts/run_sample_comparison.py`** — two fixed scenarios; writes `data/eval/runs/sample_results.json` and **appends** one JSON line per scenario to `data/eval/runs/sample_results_comparison.md` (timestamp + `without_rag` / `with_rag` payloads after the file header).
+- **`scripts/record_response_run.py`** — runs the baseline slice from `data/eval/gold/scenarios_catalog.json` (three scenarios by default), metrics, run card; writes `data/eval/runs/<timestamp>_<label>_rag_eval.json` and can append the same JSONL log (unless `--no-append-sample-log`).
 
-**Where results are stored (local `response/` directory)**
+**Where results are stored (`data/eval/runs/`)**
 
 | Artefact | Purpose |
 |----------|---------|
-| `response/connectivity_log.txt` | Append-only connectivity / Bedrock client events (TSV: UTC timestamp, OK/FAIL, message). |
-| `response/sample_results_comparison.md` | Append-only log: markdown header, then **one JSON object per line** per scenario batch (includes `without_rag` and `with_rag`). |
-| `response/<timestamp>_<label>_rag_eval.json` | Full eval capture from `record_response_run.py` (connectivity payload, run_card, per-scenario results and metrics). |
+| `data/eval/runs/connectivity_log.txt` | Append-only connectivity / Bedrock client events (TSV: UTC timestamp, OK/FAIL, message). |
+| `data/eval/runs/sample_results_comparison.md` | Append-only log: markdown header, then **one JSON object per line** per scenario batch (includes `without_rag` and `with_rag`). |
+| `data/eval/runs/<timestamp>_<label>_rag_eval.json` | Full eval capture from `record_response_run.py` (connectivity payload, run_card, per-scenario results and metrics). |
 
 Re-run the same commands after changing `RAG_OVERLAP_*` or `RAG_CONTEXT_EXPAND_*` to compare behaviour; keep `manifest.json` and scenario files fixed when doing A/B retrieval checks.
 
@@ -108,13 +108,15 @@ Re-run the same commands after changing `RAG_OVERLAP_*` or `RAG_CONTEXT_EXPAND_*
 ```text
 bias-aware-decision-making-rag-copilot/
 ├── data/corpora/<corpus>/{raw,parsed_text,chunks,knowledge,vector_store}
+├── data/eval/{gold,runs}/            # gold: scenarios_catalog; runs: captures (runs/ gitignored)
 ├── data/metadata/                  # bias-taxonomy, retrieval-concepts, …
 ├── data_pipeline/
 ├── shared_components/
 ├── rag/
 ├── prompts/
 ├── evaluation/
-├── response/                       # eval JSON, connectivity_log.txt, sample_results_comparison.md (append-only)
+├── response/                       # legacy placeholder only (.gitkeep)
+├── archived/                       # old JSON sources + captures (see archived/README.md)
 ├── scripts/
 └── README.md
 ```
@@ -179,10 +181,10 @@ Scripts should work when run from:
 2. Query decomposition for multi-part scenarios.
 3. Richer eval: gold chunk labels, retrieval-precision metrics, CI regression on frozen baselines.
 4. Optional scaling: `IndexIVFFlat` / HNSW when chunk counts grow substantially.
-5. Tune overlap radius and MMR pool multipliers against frozen scenarios; document deltas in `response/sample_results_comparison.md` captures.
+5. Tune overlap radius and MMR pool multipliers against frozen scenarios; document deltas in `data/eval/runs/sample_results_comparison.md` captures.
 
 ---
 
 ## Document updates (2026-05-14)
 
-Runtime overlap filtering and bounded neighbour expansion are **implemented** (env-gated) in `rag/retriever.py` and reflected in `format_retrieved_context` / retrieval payloads. `response/connectivity_log.txt` records each Bedrock client construction and each `run_connectivity_check` outcome. `response/sample_results_comparison.md` is the append-only scenario log (JSONL). **QA and Testing** (this document, previous section) and **`docs/code-flow.md` §10–11** describe how tests were run and where outputs land.
+Runtime overlap filtering and bounded neighbour expansion are **implemented** (env-gated) in `rag/retriever.py` and reflected in `format_retrieved_context` / retrieval payloads. `data/eval/runs/connectivity_log.txt` records each Bedrock client construction and each `run_connectivity_check` outcome. `data/eval/runs/sample_results_comparison.md` is the append-only scenario log (JSONL). **QA and Testing** (this document, previous section) and **`docs/code-flow.md` §10–11** describe how tests were run and where outputs land.

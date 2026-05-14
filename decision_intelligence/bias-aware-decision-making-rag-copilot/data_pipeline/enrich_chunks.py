@@ -2,7 +2,7 @@
 Knowledge-base enricher - step 4 of the offline ingestion pipeline.
 
 Promotes concept-tagged chunks into the final retrieval-ready knowledge base
-written to ``<corpus>/knowledge/knowledge_base.json``.
+written to ``<corpus>/processed/enriched/knowledge_base.json`` (v4 layout).
 
 For every chunk this module derives:
     * ``summary``                     - short truncated text used in retrieved-context blocks
@@ -44,7 +44,7 @@ from data_pipeline.passage_classifier import classify_passage
 from shared_components.utilities.path_utils import (
     ensure_directory,
     get_chunks_dir,
-    get_knowledge_dir,
+    get_processed_enriched_dir,
 )
 from shared_components.utilities.taxonomy_utils import build_concept_catalog
 
@@ -124,6 +124,16 @@ def extract_keywords(text: str, max_keywords: int = 10) -> list[str]:
     return [word for word, _ in sorted_words[:max_keywords]]
 
 
+def _ontology_field(chunk: dict, key: str, default):
+    """Carry forward ontology tagging from ``concept_extractor`` with safe defaults."""
+    if key not in chunk:
+        return list(default) if isinstance(default, (list, tuple, set)) else default
+    val = chunk.get(key)
+    if isinstance(default, list) and not isinstance(val, list):
+        return list(default)
+    return val if val is not None else default
+
+
 def enrich(corpus: str | None = None):
     """Apply all enrichment steps and write the final knowledge base file.
 
@@ -131,7 +141,7 @@ def enrich(corpus: str | None = None):
     in the next step iterates this file directly.
     """
     chunks_dir = get_chunks_dir(corpus)
-    output_dir = ensure_directory(get_knowledge_dir(corpus))
+    output_dir = ensure_directory(get_processed_enriched_dir(corpus))
     input_file = chunks_dir / "chunks_with_concepts.json"
     output_file = output_dir / "knowledge_base.json"
 
@@ -161,6 +171,17 @@ def enrich(corpus: str | None = None):
                 "summary": generate_summary(chunk["text"]),
                 "concepts": concepts,
                 "concept_confidence": chunk.get("concept_confidence", {}),
+                "biases": _ontology_field(chunk, "biases", []),
+                "cognitive_mechanisms": _ontology_field(chunk, "cognitive_mechanisms", []),
+                "failure_modes": _ontology_field(chunk, "failure_modes", []),
+                "group_dynamics": _ontology_field(chunk, "group_dynamics", []),
+                "ontology_decision_phases": _ontology_field(chunk, "ontology_decision_phases", []),
+                "interventions": _ontology_field(chunk, "interventions", []),
+                "ontology_evidence_type": chunk.get("ontology_evidence_type") or "",
+                "ontology_confidence_level": chunk.get("ontology_confidence_level") or "low",
+                "related_concepts": _ontology_field(chunk, "related_concepts", []),
+                "mitigated_by_concepts": _ontology_field(chunk, "mitigated_by_concepts", []),
+                "ontology_query_expansion": _ontology_field(chunk, "ontology_query_expansion", []),
                 "importance": determine_importance(concepts),
                 "decision_domains": derive_decision_domains(concepts),
                 "keywords": extract_keywords(chunk["text"]),

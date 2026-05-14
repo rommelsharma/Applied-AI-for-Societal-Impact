@@ -88,6 +88,12 @@ class RAGSettings:
     # Runtime: attach same-source neighbour chunk excerpts to the prompt (not extra primary citations).
     context_expand_neighbors: int = int(os.getenv("RAG_CONTEXT_EXPAND_NEIGHBORS", "0"))
     expand_max_chars_per_side: int = int(os.getenv("RAG_EXPAND_MAX_CHARS_PER_SIDE", "450"))
+    bm25_enabled: bool = os.getenv("RAG_BM25_ENABLED", "true").lower() in {"1", "true", "yes"}
+    bm25_top_k: int = int(os.getenv("RAG_BM25_TOP_K", "20"))
+    rrf_k: int = int(os.getenv("RAG_RRF_K", "60"))
+    ontology_filter_min_results: int = int(os.getenv("RAG_ONTOLOGY_FILTER_MIN_RESULTS", "2"))
+    query_classification_enabled: bool = os.getenv("RAG_QUERY_CLASSIFICATION", "true").lower() in {"1", "true", "yes"}
+    synthesis_context_enabled: bool = os.getenv("RAG_SYNTHESIS_CONTEXT", "true").lower() in {"1", "true", "yes"}
 
 
 # Single shared instances imported by every module that needs them.

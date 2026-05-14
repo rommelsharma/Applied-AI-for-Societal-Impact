@@ -8,15 +8,20 @@ the codebase. Moving a directory is a one-line change in this file.
 Layout::
 
     data/
-      metadata/                       # taxonomies (corpus-independent, committed)
+      registry/                       # decision_intelligence_ontology.json
+      eval/
+        gold/                         # frozen ``scenarios_catalog.json`` (canonical eval scenarios)
+        runs/                         # connectivity_log, eval JSON, sample_results JSONL
+      metadata/                       # legacy bias-taxonomy (LLM closed vocabulary)
       corpora/
-        public/                       # synthesised dossiers (committed raw, derived gitignored)
-          raw/                        # source PDFs
-          parsed_text/                # parsed text + metadata sidecars
-          chunks/                     # chunk-level artefacts
-          knowledge/                  # retrieval-ready knowledge base
-          vector_store/               # embeddings + FAISS index
-        private/                      # full-book PDFs (local-only, fully gitignored)
+        public/
+          raw/  parsed_text/  chunks/
+          knowledge/                  # legacy KB path (optional)
+          vector_store/               # legacy index (optional)
+          processed/
+            enriched/                 # knowledge_base.json, synthesis.json
+            index/                    # FAISS, embeddings.npy, bm25_index.pkl
+        private/
           raw/  ...
 
 Every path resolver accepts an optional ``corpus`` argument so a single
@@ -52,6 +57,59 @@ def get_metadata_dir() -> Path:
     Corpus-independent: shared across every corpus version.
     """
     return get_data_dir() / "metadata"
+
+
+def get_registry_dir() -> Path:
+    """Return ``<root>/data/registry`` — ontology brain (``decision_intelligence_ontology.json``)."""
+    return get_data_dir() / "registry"
+
+
+def get_eval_gold_dir() -> Path:
+    """Frozen scenarios and gold labels (``data/eval/gold``)."""
+    return get_data_dir() / "eval" / "gold"
+
+
+def get_processed_root(corpus: str | None = None) -> Path:
+    """Return ``<corpus>/processed`` for v4-style artefact layout."""
+    return get_corpus_dir(corpus) / "processed"
+
+
+def get_processed_enriched_dir(corpus: str | None = None) -> Path:
+    """``<corpus>/processed/enriched`` — ``knowledge_base.json``, ``synthesis.json``."""
+    return get_processed_root(corpus) / "enriched"
+
+
+def get_processed_index_dir(corpus: str | None = None) -> Path:
+    """``<corpus>/processed/index`` — FAISS, embeddings, BM25 pickle."""
+    return get_processed_root(corpus) / "index"
+
+
+def resolve_knowledge_base_json(corpus: str | None = None) -> Path:
+    """Prefer ``processed/enriched/knowledge_base.json``, else legacy ``knowledge/knowledge_base.json``."""
+    new_p = get_processed_enriched_dir(corpus) / "knowledge_base.json"
+    if new_p.is_file():
+        return new_p
+    return get_knowledge_dir(corpus) / "knowledge_base.json"
+
+
+def resolve_vector_index_dir(corpus: str | None = None) -> Path:
+    """Directory with ``knowledge.index`` / ``embeddings.npy`` — prefer ``processed/index``, else ``vector_store``."""
+    new_d = get_processed_index_dir(corpus)
+    old_d = get_vector_store_dir(corpus)
+
+    def _has_index(d: Path) -> bool:
+        return (d / "knowledge.index").is_file() or (d / "embeddings.npy").is_file()
+
+    if _has_index(new_d):
+        return new_d
+    if _has_index(old_d):
+        return old_d
+    return new_d
+
+
+def resolve_synthesis_json(corpus: str | None = None) -> Path:
+    """Path to ``synthesis.json`` (may not exist until synthesis_builder runs)."""
+    return get_processed_enriched_dir(corpus) / "synthesis.json"
 
 
 def get_corpora_root() -> Path:
@@ -103,13 +161,31 @@ def get_prompts_dir() -> Path:
     return get_project_root() / "prompts"
 
 
+def get_bias_detection_system_prompt_path() -> Path:
+    """Return the versioned system prompt for bias detection (currently ``prompts/v1/``)."""
+    return get_prompts_dir() / "v1" / "bias_detection_system_prompt.txt"
+
+
 def get_evaluation_dir() -> Path:
     """Return ``<root>/evaluation`` - evaluation harness inputs and outputs."""
     return get_project_root() / "evaluation"
 
 
 def get_response_dir() -> Path:
-    """Return ``<root>/response`` — timestamped eval JSON, ``connectivity_log.txt``, ``sample_results_comparison.md``."""
+    """Return ``<root>/data/eval/runs`` — append-only eval captures (v4 layout).
+
+    Legacy ``<root>/response`` is still migrated/read by ``evaluation.sample_results_log``
+    when migrating old logs.
+    """
+    return get_data_dir() / "eval" / "runs"
+
+
+def get_legacy_response_dir() -> Path:
+    """Pre-v4 top-level ``response/`` directory (removed from repo layout).
+
+    Kept so ``migrate_legacy_response_dir`` can copy stray files if they exist
+    locally. Canonical eval captures use :func:`get_response_dir` (``data/eval/runs``).
+    """
     return get_project_root() / "response"
 
 

@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0",
+  "description": "Incremental gold labels for retrieval precision and ontology checks.",
+  "scenarios": {
+    "baseline_hiring_rubric": {
+      "expected_failure_modes": [],
+      "expected_interventions": ["structured_interviewing"],
+      "relevant_concepts": ["halo_effect", "similarity_bias", "confirmation_bias"]
+    },
+    "baseline_ai_governance_proxy": {
+      "expected_failure_modes": [],
+      "expected_interventions": ["independent_assessment"],
+      "relevant_concepts": ["automation_bias", "base_rate_neglect"]
+    },
+    "baseline_strategy_sunk_cost": {
+      "expected_failure_modes": ["escalation_of_commitment"],
+      "expected_interventions": ["premortem"],
+      "relevant_concepts": ["sunk_cost_fallacy", "loss_aversion"]
+    }
+  }
+}

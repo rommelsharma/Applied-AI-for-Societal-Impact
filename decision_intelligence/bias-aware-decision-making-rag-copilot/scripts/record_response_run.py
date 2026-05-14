@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Connectivity check + fixed scenarios → timestamped JSON under ``response/``.
+"""Connectivity check + fixed scenarios → timestamped JSON under ``data/eval/runs/``.
 
 Used to capture **before_refactor** baselines and later runs (e.g. after hybrid
 RAG) so the same three scenarios can be compared over time. Each file includes
@@ -30,12 +30,12 @@ def main() -> None:
     parser.add_argument(
         "--scenarios",
         default=None,
-        help="Path to scenarios JSON (default: evaluation/baseline_scenarios.json).",
+        help="Path to a JSON array of scenarios (default: baseline slice from data/eval/gold/scenarios_catalog.json).",
     )
     parser.add_argument(
         "--output-dir",
         default=None,
-        help="Directory for JSON output (default: <project>/response).",
+        help="Directory for JSON output (default: data/eval/runs).",
     )
     parser.add_argument(
         "--skip-connectivity",
@@ -47,13 +47,29 @@ def main() -> None:
         dest="append_sample_log",
         action="store_false",
         default=True,
-        help="Do not append JSONL rows to response/sample_results_comparison.md (default: append).",
+        help="Do not append JSONL rows to data/eval/runs/sample_results_comparison.md (default: append).",
     )
     args = parser.parse_args()
 
-    scenario_path = Path(args.scenarios) if args.scenarios else PROJECT_ROOT / "evaluation" / "baseline_scenarios.json"
-    out_dir = Path(args.output_dir) if args.output_dir else PROJECT_ROOT / "response"
+    from evaluation.scenario_catalog import get_baseline_scenarios, scenarios_catalog_path
+    from shared_components.utilities.path_utils import get_response_dir
+
+    out_dir = Path(args.output_dir) if args.output_dir else get_response_dir()
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.scenarios:
+        scenario_path = Path(args.scenarios)
+        if not scenario_path.is_file():
+            print(f"Scenarios file not found: {scenario_path}", file=sys.stderr)
+            sys.exit(1)
+        with scenario_path.open("r", encoding="utf-8") as handle:
+            scenarios = json.load(handle)
+    else:
+        scenario_path = scenarios_catalog_path()
+        if not scenario_path.is_file():
+            print(f"Scenarios catalog not found: {scenario_path}", file=sys.stderr)
+            sys.exit(1)
+        scenarios = get_baseline_scenarios()
 
     from app.services.bias_detector import detect_bias_comparison, load_taxonomy
     from evaluation.connectivity import run_connectivity_check
@@ -68,13 +84,6 @@ def main() -> None:
         if not connectivity.get("ok"):
             print(json.dumps(connectivity, indent=2), file=sys.stderr)
             sys.exit(1)
-
-    if not scenario_path.is_file():
-        print(f"Scenarios file not found: {scenario_path}", file=sys.stderr)
-        sys.exit(1)
-
-    with scenario_path.open("r", encoding="utf-8") as handle:
-        scenarios = json.load(handle)
 
     taxonomy = load_taxonomy()
     rows: list[dict] = []

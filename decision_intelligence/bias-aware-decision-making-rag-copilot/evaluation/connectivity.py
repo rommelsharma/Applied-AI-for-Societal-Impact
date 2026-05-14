@@ -14,11 +14,11 @@ from app.services.bedrock_provider import (
 )
 from rag.retriever import KnowledgeRetriever
 from shared_components.settings import BEDROCK_SETTINGS, RAG_SETTINGS
-from shared_components.utilities.path_utils import ensure_directory, get_response_dir
+from shared_components.utilities.path_utils import ensure_directory, get_response_dir, resolve_vector_index_dir
 
 
 def append_connectivity_log_line(ok: bool, message: str = "") -> Path:
-    """Append one tab-separated row to ``response/connectivity_log.txt``.
+    """Append one tab-separated row to ``data/eval/runs/connectivity_log.txt``.
 
     Columns: ISO-8601 UTC timestamp, ``OK`` or ``FAIL``, free-text detail
     (tabs and newlines stripped so each invocation stays a single logical row).
@@ -42,7 +42,7 @@ def run_connectivity_check(*, retrieval_probe_query: str = "structured interview
         3. Vector store load for the active corpus.
         4. Single retrieval query to prove index + metadata alignment.
 
-    Appends one line to ``response/connectivity_log.txt`` on every invocation
+    Appends one line to ``data/eval/runs/connectivity_log.txt`` on every invocation
     (success or failure) so connection history is auditable over time.
     """
     steps: list[dict[str, Any]] = []
@@ -92,6 +92,15 @@ def run_connectivity_check(*, retrieval_probe_query: str = "structured interview
                 "name": "vector_store_load",
                 "ok": True,
                 "corpus": retriever.corpus,
+            }
+        )
+        bm25_path = resolve_vector_index_dir(retriever.corpus) / "bm25_index.pkl"
+        steps.append(
+            {
+                "name": "bm25_index",
+                "ok": True,
+                "bm25_path": str(bm25_path),
+                "present": bm25_path.is_file(),
             }
         )
     except RuntimeError as exc:

@@ -14,7 +14,7 @@ This document operationalises **Section 6** of the earlier "Books as a Knowledge
 | Full books (6) | Built, indexed, private only | `data/corpora/private/raw/*.pdf` |
 | Public vector index | 301 chunks, IndexFlatIP, 1024 dims; **manifest records sentence-window embedding policy** | `data/corpora/public/vector_store/` |
 | Private vector index | 1,161 chunks, IndexFlatIP, 1024 dims; same embedding builder | `data/corpora/private/vector_store/` |
-| Public sample evaluation | Refreshed for the new corpus | `response/sample_results_comparison.md` |
+| Public sample evaluation | Refreshed for the new corpus | `data/eval/runs/sample_results_comparison.md` |
 | Public-vs-private A/B harness | Implemented | `scripts/compare_versions.py` |
 
 The current state is **Phase 0 + Phase 1** of the plan below. The next concrete delivery is **Phase 2**.
@@ -78,7 +78,7 @@ A phase is "done" when:
 
 1. The new artefacts are checked in (manifests, code, docs) — never the copyrighted source files.
 2. The public vector index is rebuilt and committed under `data/corpora/public/vector_store/`.
-3. `python scripts/run_sample_comparison.py` appends JSONL rows to `response/sample_results_comparison.md` and the bias-count delta is non-negative.
+3. `python scripts/run_sample_comparison.py` appends JSONL rows to `data/eval/runs/sample_results_comparison.md` and the bias-count delta is non-negative.
 4. `python scripts/compare_versions.py --versions <prev>,<current>` produces a comparison report stored under `data/corpora/comparisons/` for traceability.
 5. The README's "Implemented now" section references the phase number that has just landed.
 

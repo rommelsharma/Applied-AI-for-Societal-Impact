@@ -1,28 +1,24 @@
 """
-Interactive demo entry point.
+Interactive demo: run every extended-suite scenario through the bias detector.
 
-Runs the same scenarios that the evaluation harness uses but prints the full
-baseline + RAG + retrieval payloads, which is helpful for visual inspection in
-PyCharm or a notebook.
+Prints full baseline + RAG + retrieval payloads for local inspection (IDE or terminal).
+Not an .ipynb notebook — run as a script: ``python examples/run_bias_scenarios_demo.py``.
 """
 
-import json
 import sys
 from pathlib import Path
 
-# Make the project root importable so this script works as a "Run File" target
-# without needing a packaged install.
+# Project root is parent of ``examples/`` — append for runnable-script imports.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 from app.services.bias_detector import compare_outputs, detect_bias_comparison, print_comparison
+from evaluation.scenario_catalog import get_extended_test_scenarios
 
 
 def run_demo():
     """Iterate every test scenario and print full comparison output for each."""
-    scenarios_path = PROJECT_ROOT / "evaluation" / "test_scenarios.json"
-    with scenarios_path.open("r", encoding="utf-8") as handle:
-        scenarios = json.load(handle)
+    scenarios = get_extended_test_scenarios()
 
     for scenario in scenarios:
         print("\nSCENARIO:", scenario["scenario"])

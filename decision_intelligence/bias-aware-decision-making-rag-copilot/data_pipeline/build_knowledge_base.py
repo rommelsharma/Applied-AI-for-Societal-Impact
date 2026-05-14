@@ -1,16 +1,16 @@
 """
 Master orchestrator for the offline ingestion pipeline.
 
-Runs the four ingestion steps in order:
+Runs the ingestion steps in order:
     1. Parse PDFs into text + metadata sidecars.
     2. Chunk the parsed text with front/back-matter trimming and chapter detection.
-    3. Tag every chunk with taxonomy concepts.
+    3. Tag every chunk with ontology concepts and symbolic layers.
     4. Enrich each chunk into a retrieval-ready knowledge-base record (including
        passage_type / decision_phase classification).
+    5. Build heuristic synthesis artefacts (``processed/enriched/synthesis.json``).
 
-The vector-index build (step 5) is intentionally a separate script because
-it requires live Bedrock access and produces large binary artefacts, which
-makes it useful to run independently of the corpus refresh.
+The vector-index build (BM25 + FAISS) is a separate script because it requires
+live Bedrock access for embeddings and produces large binary artefacts.
 
 Corpus-aware via ``--corpus`` (defaults to ``CORPUS_NAME`` env or ``public``).
 """
@@ -76,6 +76,13 @@ def run_pipeline(
     print("STEP 4 — ENRICHING KNOWLEDGE")
     print("==============================")
     enrich(corpus=corpus)
+
+    print("\n==============================")
+    print("STEP 5 — SYNTHESIS (heuristic)")
+    print("==============================")
+    from data_pipeline.synthesis_builder import build_synthesis
+
+    build_synthesis(corpus=corpus)
 
     print("\n✅ KNOWLEDGE BASE PIPELINE COMPLETE")
 

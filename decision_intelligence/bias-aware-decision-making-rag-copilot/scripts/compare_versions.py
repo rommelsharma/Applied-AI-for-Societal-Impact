@@ -43,13 +43,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 from app.services.bias_detector import detect_bias_comparison
-from shared_components.utilities.path_utils import get_corpus_dir, get_evaluation_dir
+from shared_components.utilities.path_utils import get_corpus_dir, get_evaluation_dir, resolve_knowledge_base_json
 
 
 def _load_scenarios(scenario_ids: list[int] | None) -> list[dict]:
-    """Load the canonical scenarios file and optionally filter by id."""
-    scenarios_path = PROJECT_ROOT / "evaluation" / "test_scenarios.json"
-    scenarios = json.loads(scenarios_path.read_text(encoding="utf-8"))
+    """Load the canonical extended suite and optionally filter by id."""
+    from evaluation.scenario_catalog import get_extended_test_scenarios
+
+    scenarios = get_extended_test_scenarios()
     if scenario_ids:
         wanted = set(scenario_ids)
         scenarios = [s for s in scenarios if s["id"] in wanted]
@@ -57,8 +58,8 @@ def _load_scenarios(scenario_ids: list[int] | None) -> list[dict]:
 
 
 def _corpus_exists(corpus: str) -> bool:
-    """True iff the named corpus has a knowledge base on disk."""
-    return (get_corpus_dir(corpus) / "knowledge" / "knowledge_base.json").exists()
+    """True iff the named corpus has a knowledge base on disk (v4 or legacy path)."""
+    return resolve_knowledge_base_json(corpus).exists()
 
 
 def _bias_names(payload: dict) -> set[str]:

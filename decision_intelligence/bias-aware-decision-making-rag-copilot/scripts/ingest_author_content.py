@@ -19,7 +19,7 @@ Design choices:
     * Honours a polite rate limit between fetches and identifies itself with
       a UA string so site operators know who is calling.
 
-This is the operating tool for Phase 2 of ``docs/phased-rollout-plan.md``.
+This is the operating tool for Phase 2 of ``archived/docs/phased-rollout-plan.md``.
 """
 
 from __future__ import annotations

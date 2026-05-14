@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any
 
 from shared_components.settings import BEDROCK_SETTINGS, RAG_SETTINGS
-from shared_components.utilities.path_utils import get_prompts_dir
+from shared_components.utilities.path_utils import get_bias_detection_system_prompt_path, get_registry_dir
+from shared_components.utilities.taxonomy_utils import get_ontology_version
 
 
 def _scenario_rel(project_root: Path, scenario_file: Path) -> Path:
@@ -60,7 +61,8 @@ def build_run_card(
 ) -> dict[str, Any]:
     """Assemble a single JSON-serialisable dict to store beside response payloads."""
     now_utc = datetime.now(timezone.utc)
-    prompt_path = get_prompts_dir() / "bias_detection_system_prompt.txt"
+    prompt_path = get_bias_detection_system_prompt_path()
+    ontology_path = get_registry_dir() / "decision_intelligence_ontology.json"
     commit, dirty = _git_head(project_root)
 
     card: dict[str, Any] = {
@@ -74,6 +76,9 @@ def build_run_card(
         "scenario_file_sha256": _file_sha256(scenario_file),
         "prompt_file": str(prompt_path),
         "prompt_file_sha256": _file_sha256(prompt_path),
+        "ontology_version": get_ontology_version(),
+        "ontology_file": str(ontology_path),
+        "ontology_file_sha256": _file_sha256(ontology_path),
         "bedrock_region": BEDROCK_SETTINGS.region,
         "bedrock_chat_model_id": BEDROCK_SETTINGS.chat_model_id,
         "bedrock_embedding_model_id": BEDROCK_SETTINGS.embedding_model_id,
@@ -93,6 +98,11 @@ def build_run_card(
         "rag_overlap_mmr_pool_multiplier": RAG_SETTINGS.overlap_mmr_pool_multiplier,
         "rag_context_expand_neighbors": RAG_SETTINGS.context_expand_neighbors,
         "rag_expand_max_chars_per_side": RAG_SETTINGS.expand_max_chars_per_side,
+        "rag_bm25_enabled": RAG_SETTINGS.bm25_enabled,
+        "rag_bm25_top_k": RAG_SETTINGS.bm25_top_k,
+        "rag_rrf_k": RAG_SETTINGS.rrf_k,
+        "rag_query_classification_enabled": RAG_SETTINGS.query_classification_enabled,
+        "rag_synthesis_context_enabled": RAG_SETTINGS.synthesis_context_enabled,
     }
     if extra:
         card["extra"] = extra
