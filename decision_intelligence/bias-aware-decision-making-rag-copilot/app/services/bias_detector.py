@@ -158,8 +158,18 @@ def call_llm(provider: BedrockProvider, system_prompt: str, scenario: str) -> di
         return extract_json_payload(retry_result.text)
 
 
-def detect_bias_comparison(scenario: str, *, corpus: str | None = None) -> dict[str, Any]:
-    """End-to-end orchestration for one scenario."""
+def detect_bias_comparison(
+    scenario: str,
+    *,
+    corpus: str | None = None,
+    top_k: int | None = None,
+    mmr_lambda: float | None = None,
+) -> dict[str, Any]:
+    """End-to-end orchestration for one scenario.
+
+    ``top_k`` and ``mmr_lambda`` override the values from RAG_SETTINGS /
+    query classification when provided (e.g. from the Streamlit UI).
+    """
     taxonomy = load_taxonomy()
     base_prompt = load_prompt()
     provider = BedrockProvider()
@@ -179,11 +189,14 @@ def detect_bias_comparison(scenario: str, *, corpus: str | None = None) -> dict[
         blocks = select_synthesis_blocks(syn_doc, scenario_info.get("concepts") or [])
         synthesis_text = format_synthesis_blocks(blocks)
 
+    effective_lambda = float(mmr_lambda if mmr_lambda is not None else (qc.get("mmr_lambda") or RAG_SETTINGS.mmr_lambda))
     retrieval_results = retriever.search(
         scenario,
         preferred_concepts=concept_keys,
-        mmr_lambda=float(qc.get("mmr_lambda") or RAG_SETTINGS.mmr_lambda),
+        top_k=top_k,
+        mmr_lambda=effective_lambda,
     )
+    qc["mmr_lambda"] = effective_lambda
     rag_context = format_retrieved_context(retrieval_results, synthesis_text=synthesis_text)
 
     system_prompt_no_rag = build_system_prompt(base_prompt, taxonomy)

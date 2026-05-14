@@ -1,0 +1,34 @@
+# Secrets and local config
+.env
+.env.*
+
+# Python virtualenv and build artefacts
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Private corpus — never bake full-book PDFs into a public image
+data/corpora/private/
+
+# Git and editor
+.git/
+.gitignore
+.DS_Store
+
+# Claude Code worktrees and session files
+.claude/
+
+# Archived docs (large, not needed at runtime)
+archived/
+
+# Test outputs
+evaluation/latest_results.json
+data/eval/runs/*.json
+data/eval/runs/*.md
+
+# Node (render_html_to_pdf.mjs deps, not used in production)
+node_modules/

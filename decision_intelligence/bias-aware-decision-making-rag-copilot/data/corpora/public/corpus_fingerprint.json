@@ -1,0 +1,68 @@
+{
+  "corpus": "public",
+  "generated_at": "2026-05-14T13:27:51.145076+00:00",
+  "source_count": 12,
+  "sources": {
+    "groupthink-rag-dossier": {
+      "file": "groupthink-rag-dossier.txt",
+      "sha256": "333edeac3ae59b5fdf4870e9075b17e84c50c0ad35d73151e79f89255bfa91d7",
+      "size_bytes": 5225
+    },
+    "influence-rag-dossier": {
+      "file": "influence-rag-dossier.txt",
+      "sha256": "c50f7294f840ce950c59da64e4e0e8c7360ebd12450e44ebd396ef78f9b1f027",
+      "size_bytes": 3265
+    },
+    "invisible-women-rag-dossier": {
+      "file": "invisible-women-rag-dossier.txt",
+      "sha256": "f57fceddbd1ac5e80a9c52923265fa504689a6c46d5511bbd4d58470940f4723",
+      "size_bytes": 6056
+    },
+    "judgment-under-uncertainty-rag-dossier": {
+      "file": "judgment-under-uncertainty-rag-dossier.txt",
+      "sha256": "4760faa70d6fd69937ff36c67799f36cb4bbd118a0179972128943b5c7d36493",
+      "size_bytes": 3598
+    },
+    "just-mercy-rag-dossier": {
+      "file": "just-mercy-rag-dossier.txt",
+      "sha256": "93f5f2ab8a6f56624c44c17ca78d8239bbd460fca844e441739fee48a652df50",
+      "size_bytes": 5785
+    },
+    "mistakes-were-made-rag-dossier": {
+      "file": "mistakes-were-made-rag-dossier.txt",
+      "sha256": "e9298dc6c1d44ae3ef40bd7c808ccd7ca5c87206a066b7936444f332e9ba9731",
+      "size_bytes": 4791
+    },
+    "noise-rag-dossier": {
+      "file": "noise-rag-dossier.txt",
+      "sha256": "d9cec1d9423a1629a76dfd2a6f0791f26f16b217737f5c5177ec97ec79a6c3cb",
+      "size_bytes": 3585
+    },
+    "nudge-rag-dossier": {
+      "file": "nudge-rag-dossier.txt",
+      "sha256": "58c8d01c1497d415536ce5b3174ef1815a57b7da5648cb172300e4e6817336c6",
+      "size_bytes": 3259
+    },
+    "sources-of-power-rag-dossier": {
+      "file": "sources-of-power-rag-dossier.txt",
+      "sha256": "b2eb6ebbfb626b9da51ea2790475c5deaee531c6653e605b196e383a75cfd68c",
+      "size_bytes": 5831
+    },
+    "superforecasting-rag-dossier": {
+      "file": "superforecasting-rag-dossier.txt",
+      "sha256": "40e26d392981486acebf07904f00454a73ad768fde6c0f6380cb463438bcc0b8",
+      "size_bytes": 3466
+    },
+    "thinking-fast-and-slow-rag-dossier": {
+      "file": "thinking-fast-and-slow-rag-dossier.txt",
+      "sha256": "2e408554028cf0674115e486b53b9beb7d5f6b046114aaed152d763120dd9bea",
+      "size_bytes": 3579
+    },
+    "weapons-of-math-destruction-rag-dossier": {
+      "file": "weapons-of-math-destruction-rag-dossier.txt",
+      "sha256": "daf003087fc3b888f85299b26a4114cb4dbcc42992a14deebda23ce1d86e5c05",
+      "size_bytes": 3327
+    }
+  },
+  "unparsed_pdfs": []
+}
