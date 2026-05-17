@@ -28,6 +28,7 @@ st.set_page_config(
 # ── project imports (after sys.path is set) ────────────────────────────────────
 from app.services.bias_detector import detect_bias_comparison, load_taxonomy
 from evaluation.metrics import score_comparison_result
+from evaluation.run_history import load_recent_runs, load_run, save_ui_run
 from evaluation.scenario_catalog import (
     get_baseline_scenarios,
     get_private_book_questions,
@@ -133,6 +134,15 @@ def _catalog() -> list[dict]:
         return []
 
 
+@st.cache_data(ttl=60, show_spinner=False)
+def _run_history() -> list[dict]:
+    """Load index records for the 20 most recent UI runs (no result blobs)."""
+    try:
+        return load_recent_runs(n=20)
+    except Exception:
+        return []
+
+
 def _dropdown_label(entry: dict) -> str:
     """Human-readable dropdown label for any catalog entry."""
     base = scenario_title(entry)
@@ -147,13 +157,21 @@ def _dropdown_label(entry: dict) -> str:
 
 # ── render helpers ─────────────────────────────────────────────────────────────
 
-def _render_bias_card(entry: dict) -> None:
+def _render_bias_card(entry: dict, *, show_provenance: bool = False) -> None:
     name = entry.get("bias_name", "unknown")
     conf = entry.get("confidence", "low")
     layer = entry.get("bias_layer", "human")
     icon = _CONF_ICON.get(conf, "⚪")
     layer_label = _LAYER_LABEL.get(layer, layer)
-    header = f"{icon} **{name}** &nbsp;·&nbsp; {layer_label} &nbsp;·&nbsp; {conf} confidence"
+
+    # Grounded badge — shown only when the field is present (i.e. RAG mode)
+    grounded = entry.get("grounded")
+    if show_provenance and grounded is not None:
+        grounded_badge = " &nbsp;·&nbsp; 📌 grounded" if grounded else " &nbsp;·&nbsp; 🔘 model knowledge"
+    else:
+        grounded_badge = ""
+
+    header = f"{icon} **{name}** &nbsp;·&nbsp; {layer_label} &nbsp;·&nbsp; {conf} confidence{grounded_badge}"
     with st.expander(header, expanded=(conf == "high")):
         cols = st.columns([1, 1])
         with cols[0]:
@@ -165,8 +183,48 @@ def _render_bias_card(entry: dict) -> None:
             st.markdown("**Risk if unaddressed**")
             st.markdown(entry.get("risk") or "—")
 
+        # Supporting passage — shown when present and non-empty
+        if show_provenance:
+            passage = entry.get("supporting_passage") or ""
+            chunks_used = entry.get("source_chunks") or []
+            if passage.strip():
+                st.markdown("**📖 Supporting passage from knowledge base**")
+                st.info(f'"{passage}"')
+                if chunks_used:
+                    st.caption("Source chunks: " + ", ".join(f"`{c}`" for c in chunks_used))
+            elif grounded is False:
+                st.caption(
+                    "🔘 No matching passage retrieved for this bias. "
+                    "Finding is based on scenario analysis — verify against domain literature."
+                )
 
-def _render_analysis(payload: dict, heading: str) -> None:
+
+def _render_provenance_banner(provenance: dict) -> None:
+    """Render the retrieval provenance block above the RAG analysis column."""
+    chunks_n = provenance.get("chunks_retrieved", 0)
+    mean_score = provenance.get("mean_similarity_score")
+    gap = provenance.get("retrieval_gap", False)
+    gap_note = provenance.get("gap_note", "")
+    gnd = provenance.get("groundedness_score")
+
+    score_str = f"{mean_score:.3f}" if mean_score is not None else "—"
+    gnd_str = f"{gnd:.0%}" if gnd is not None else "—"
+
+    if gap and gap_note:
+        st.warning(
+            f"⚠️ **Retrieval gap** — {chunks_n} chunks retrieved · "
+            f"avg similarity {score_str} · groundedness {gnd_str}\n\n{gap_note}",
+            icon="🔘",
+        )
+    else:
+        st.success(
+            f"📚 {chunks_n} chunks retrieved · avg similarity {score_str} · "
+            f"groundedness {gnd_str} · findings below are source-attributed",
+            icon="📌",
+        )
+
+
+def _render_analysis(payload: dict, heading: str, *, show_provenance: bool = False) -> None:
     st.subheader(heading)
     if not isinstance(payload, dict):
         st.error("Invalid response payload.")
@@ -187,7 +245,7 @@ def _render_analysis(payload: dict, heading: str) -> None:
             f"🔴 {len(high)} high · 🟠 {len(med)} medium · 🟡 {len(low)} low"
         )
         for b in biases:
-            _render_bias_card(b)
+            _render_bias_card(b, show_provenance=show_provenance)
     else:
         st.caption("No biases identified.")
 
@@ -433,6 +491,24 @@ if run_clicked:
             )
             st.session_state["last_result"] = result
             st.session_state["last_scenario"] = text
+
+            # Persist run to data/eval/runs/ and refresh the history cache
+            try:
+                saved_path = save_ui_run(
+                    scenario=text,
+                    corpus=corpus,
+                    top_k=top_k,
+                    mmr_lambda=mmr_lambda,
+                    result=result,
+                )
+                st.session_state["last_saved_path"] = str(saved_path)
+            except Exception:
+                # Never let a save failure block the user from seeing results
+                st.session_state.pop("last_saved_path", None)
+
+            # Bust the run history cache so the Recent Runs panel refreshes
+            st.cache_data.clear()
+
         except Exception as exc:
             st.error(f"Analysis failed: {exc}")
             st.stop()
@@ -451,11 +527,18 @@ if "last_result" in st.session_state:
     st.divider()
 
     # Side-by-side analysis
+    provenance = result.get("retrieval_provenance") or {}
     left_col, right_col = st.columns(2, gap="large")
     with left_col:
         _render_analysis(result.get("without_rag") or {}, "Without RAG — Baseline")
     with right_col:
-        _render_analysis(result.get("with_rag") or {}, "With RAG — Knowledge-Enhanced")
+        if provenance:
+            _render_provenance_banner(provenance)
+        _render_analysis(
+            result.get("with_rag") or {},
+            "With RAG — Knowledge-Enhanced",
+            show_provenance=True,
+        )
 
     st.divider()
 
@@ -464,8 +547,11 @@ if "last_result" in st.session_state:
     with st.expander(f"📚 Retrieved knowledge-base chunks ({len(chunks)})", expanded=False):
         _render_retrieval(chunks)
 
-    # Download
+    # Download + save confirmation
     with st.expander("⬇️ Export full JSON result"):
+        saved_path = st.session_state.get("last_saved_path")
+        if saved_path:
+            st.caption(f"💾 Auto-saved to `{Path(saved_path).name}`")
         st.download_button(
             label="Download result.json",
             data=json.dumps(result, indent=2),
@@ -473,3 +559,70 @@ if "last_result" in st.session_state:
             mime="application/json",
             use_container_width=True,
         )
+
+# ── recent runs panel ─────────────────────────────────────────────────────────
+
+st.divider()
+history = _run_history()
+run_header = f"🕑 Recent runs ({len(history)} of last 20)"
+
+with st.expander(run_header, expanded=False):
+    if not history:
+        st.caption(
+            "No saved runs yet. Run your first scenario above — "
+            "results are automatically saved to `data/eval/runs/`."
+        )
+    else:
+        # Column header row
+        hdr = st.columns([2, 1, 1, 1, 1, 1, 1])
+        hdr[0].caption("**Scenario**")
+        hdr[1].caption("**Corpus**")
+        hdr[2].caption("**Baseline**")
+        hdr[3].caption("**RAG**")
+        hdr[4].caption("**Lift**")
+        hdr[5].caption("**Grounded**")
+        hdr[6].caption("**Reload**")
+
+        for rec in history:
+            # Parse saved_at to a friendly local string
+            try:
+                from datetime import datetime as _dt
+                ts_raw = rec.get("saved_at", "")
+                ts_disp = _dt.fromisoformat(ts_raw).strftime("%d %b %H:%M") if ts_raw else "—"
+            except Exception:
+                ts_disp = rec.get("saved_at", "—")[:16]
+
+            preview = rec.get("scenario_preview") or "—"
+            corpus_tag = rec.get("corpus") or "—"
+            bc_base = rec.get("bias_count_baseline")
+            bc_rag = rec.get("bias_count_rag")
+            lift = rec.get("bias_lift")
+            gnd = rec.get("groundedness_score")
+            gap = rec.get("retrieval_gap", False)
+
+            gnd_str = (
+                f"{'⚠️ ' if gap else ''}{gnd:.0%}" if gnd is not None else "—"
+            )
+            lift_str = f"+{lift}" if (lift is not None and lift > 0) else str(lift) if lift is not None else "—"
+
+            cols = st.columns([2, 1, 1, 1, 1, 1, 1])
+            cols[0].markdown(
+                f"<small><b>{ts_disp}</b> &nbsp; {preview[:65]}{'…' if len(preview) > 65 else ''}</small>",
+                unsafe_allow_html=True,
+            )
+            cols[1].caption(corpus_tag)
+            cols[2].caption(str(bc_base) if bc_base is not None else "—")
+            cols[3].caption(str(bc_rag) if bc_rag is not None else "—")
+            cols[4].caption(lift_str)
+            cols[5].caption(gnd_str)
+
+            run_key = f"reload_{rec['file']}"
+            if cols[6].button("↩ Load", key=run_key, use_container_width=True):
+                try:
+                    full = load_run(rec["path"])
+                    st.session_state["last_result"] = full["result"]
+                    st.session_state["last_scenario"] = full.get("scenario", "")
+                    st.session_state["last_saved_path"] = rec["path"]
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f"Could not reload run: {exc}")

@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+import os
+
 from app.services.bedrock_provider import BedrockProvider
 from data_pipeline.concept_extractor import extract_concepts
 from rag.hierarchical_retriever import (
@@ -122,6 +124,47 @@ def format_retrieved_context(retrieval_results, synthesis_text: str = "") -> str
     return chunk_blob
 
 
+def _build_retrieval_provenance(retrieval_results, *, groundedness: float | None = None, threshold: float = 0.35) -> dict:
+    """Summarise retrieval quality into an auditable provenance block.
+
+    This block is attached to the top-level return dict so downstream consumers
+    (UI, eval scripts, JSON exports) can surface retrieval quality without having
+    to re-derive it from the raw chunk list.
+    """
+    if not retrieval_results:
+        return {
+            "chunks_retrieved": 0,
+            "chunk_ids": [],
+            "mean_similarity_score": None,
+            "retrieval_gap": True,
+            "gap_note": "No chunks were retrieved. RAG response draws entirely from model knowledge.",
+        }
+
+    scores = [item.score for item in retrieval_results if item.score is not None]
+    mean_score = sum(scores) / len(scores) if scores else None
+
+    provenance: dict = {
+        "chunks_retrieved": len(retrieval_results),
+        "chunk_ids": [item.id for item in retrieval_results],
+        "mean_similarity_score": round(mean_score, 4) if mean_score is not None else None,
+        "retrieval_gap": False,
+        "gap_note": "",
+    }
+
+    if groundedness is not None:
+        provenance["groundedness_score"] = round(groundedness, 4)
+        if groundedness < threshold:
+            provenance["retrieval_gap"] = True
+            provenance["gap_note"] = (
+                f"Groundedness score {groundedness:.0%} is below the {threshold:.0%} threshold. "
+                "The retrieved chunks have low lexical overlap with the identified biases — "
+                "some findings may draw primarily from model knowledge rather than the knowledge base. "
+                "Treat ungrounded biases (grounded=false) as starting points for human verification."
+            )
+
+    return provenance
+
+
 def build_system_prompt(base_prompt: str, taxonomy: list[dict], rag_context: str | None = None) -> str:
     """Assemble the final system prompt sent to the LLM."""
     sections = [base_prompt]
@@ -205,10 +248,43 @@ def detect_bias_comparison(
     system_prompt_with_rag = build_system_prompt(base_prompt, taxonomy, rag_context)
     response_with_rag = call_llm(provider, system_prompt_with_rag, scenario)
 
+    # ── retrieval provenance ─────────────────────────────────────────────────────
+    # Compute lexical groundedness first so the provenance block can set the gap flag.
+    groundedness_score: float | None = None
+    if isinstance(response_with_rag, dict) and retrieval_results:
+        biases = response_with_rag.get("biases_identified")
+        if isinstance(biases, list) and biases:
+            blob_parts: list[str] = []
+            for item in retrieval_results:
+                blob_parts.append(str(getattr(item, "summary", "") or ""))
+                blob_parts.append(str((item.text or "")[:900]))
+            blob = " ".join(blob_parts).lower()
+            supported = 0
+            total_named = 0
+            for entry in biases:
+                if not isinstance(entry, dict):
+                    continue
+                name = str(entry.get("bias_name", "")).replace("_", " ").strip().lower()
+                if not name:
+                    continue
+                total_named += 1
+                if name in blob or name.replace(" ", "_") in blob:
+                    supported += 1
+            if total_named:
+                groundedness_score = supported / total_named
+
+    gnd_threshold = float(os.getenv("EVAL_GROUNDEDNESS_THRESHOLD", "0.35"))
+    retrieval_provenance = _build_retrieval_provenance(
+        retrieval_results,
+        groundedness=groundedness_score,
+        threshold=gnd_threshold,
+    )
+
     return {
         "corpus": retriever.corpus,
         "without_rag": response_no_rag,
         "with_rag": response_with_rag,
+        "retrieval_provenance": retrieval_provenance,
         "query_classification": qc,
         "retrieval": [
             {

@@ -177,7 +177,57 @@ For full UI design rationale and component descriptions see the *User Interface 
 
 ---
 
-## 7. Evaluation and scenarios
+## 7. UI run history
+
+Every scenario run from the Streamlit UI is automatically saved to `data/eval/runs/` as a timestamped JSON file. The last **20** files are retained; older files are pruned after each save.
+
+### File naming
+
+```
+data/eval/runs/{YYYYMMDD_HHMMSS_ffffff}_ui_run.json
+```
+
+Microsecond precision in the timestamp (`_%f`) prevents collisions when scenarios are run in rapid succession.
+
+### File schema
+
+```json
+{
+  "saved_at":             "ISO-8601 UTC timestamp",
+  "scenario":             "full scenario text",
+  "scenario_preview":     "first 120 chars for list display",
+  "corpus":               "public | private",
+  "top_k":                8,
+  "mmr_lambda":           0.7,
+  "bias_count_baseline":  3,
+  "bias_count_rag":       5,
+  "bias_lift":            2,
+  "groundedness_score":   0.80,
+  "retrieval_gap":        false,
+  "chunks_retrieved":     8,
+  "result":               { "...full detect_bias_comparison() payload..." }
+}
+```
+
+### Recent Runs panel
+
+The UI renders a **🕑 Recent runs** expander at the bottom of the page (below the JSON export). It shows a table of the last 20 runs with timestamp, scenario preview, corpus, baseline/RAG bias counts, bias lift, and groundedness. Each row has a **↩ Load** button that restores the full result and scenario text into the UI without re-running Bedrock.
+
+### Module
+
+`evaluation/run_history.py` — public functions:
+
+| Function | Purpose |
+|---|---|
+| `save_ui_run(scenario, corpus, top_k, mmr_lambda, result)` | Persist one run, prune to ≤ 20 files |
+| `load_recent_runs(n=20)` | Return index records (no result blob) newest-first |
+| `load_run(path)` | Load full payload for one file |
+
+`data/eval/runs/` is gitignored (`.gitkeep` is committed). The `*_ui_run.json` suffix distinguishes UI captures from CLI eval captures (`*_rag_eval.json`).
+
+---
+
+## 8. Evaluation and scenarios
 
 | Asset / script | Role |
 |---|---|
@@ -198,7 +248,7 @@ For full UI design rationale and component descriptions see the *User Interface 
 
 ---
 
-## 8. Deployment
+## 9. Deployment
 
 ### Local
 
@@ -245,7 +295,7 @@ Attach an IAM role with `bedrock:InvokeModel` on the Claude Sonnet and Titan Emb
 
 ---
 
-## 9. Operations
+## 10. Operations
 
 - **Secrets / models:** `.env` from `.env.example` — Bedrock bearer token, region, Sonnet + Titan model IDs, `CORPUS_NAME`, RAG toggles.
 - **Corpus selection:** `CORPUS_NAME=public|private` in `.env`, or `--corpus` on any script.
@@ -255,7 +305,7 @@ Attach an IAM role with `bedrock:InvokeModel` on the Claude Sonnet and Titan Emb
 
 ---
 
-## 10. Archived documentation
+## 11. Archived documentation
 
 The following files were moved unchanged to `archived/docs/` for history:
 

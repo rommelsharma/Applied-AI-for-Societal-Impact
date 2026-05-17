@@ -227,7 +227,7 @@ python scripts/build_scenarios_catalog.py
 
 ## Deployment
 
-See [`docs/DESIGN.md` §7](docs/DESIGN.md) for the full deployment options table. In brief:
+See [`docs/DESIGN.md` §10](docs/DESIGN.md) for the full deployment options table. In brief:
 
 | Target | Cost | Notes |
 |---|---|---|
