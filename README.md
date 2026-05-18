@@ -71,7 +71,21 @@ Application of AI to monitor and understand natural ecosystems.
 
 ---
 
-### 4. Responsible & Explainable AI
+### 4. Audio ML — Human Voice Synthesis & Acoustic Intelligence
+
+AI systems that generate, transform, and analyse audio for practical applications.
+
+**Human voice synthesis (Text-to-Speech):**
+
+Producing natural, broadcast-quality speech from text at a local level — without cloud dependency or commercial licensing restrictions. The focus is on narration-grade output suitable for documentaries, training materials, and professional media workflows, including voice cloning from short reference clips.
+
+**Wildlife identification through sound:**
+
+Acoustic monitoring of natural environments to detect and classify species from their calls and vocalisations. Audio signatures are used to identify presence, behaviour, and population patterns — complementing camera-based wildlife detection with a non-invasive, always-on sensing layer.
+
+---
+
+### 5. Responsible & Explainable AI
 
 Focus on building AI systems that are transparent, fair, and interpretable.
 
@@ -83,7 +97,7 @@ Focus on building AI systems that are transparent, fair, and interpretable.
 
 ---
 
-### 5. Applied Enterprise AI Systems
+### 6. Applied Enterprise AI Systems
 
 Design of scalable AI solutions that operate within real-world constraints:
 
@@ -159,10 +173,22 @@ AI-driven system for analyzing financial data, identifying patterns, and support
 
 ---
 
-### Wildlife Detection (Computer Vision)
+### Wildlife Detection (Computer Vision) — Jaguar Re-Identification
 
-A computer vision system for identifying and classifying wildlife from visual data.
-The Jaguar Identification Project aims to automate the Jaguar identification process moving away from manual identification to help support the survival of this near-threatened species.
+A computer vision system for identifying individual jaguars from camera-trap imagery, moving away from manual photo-ID to support conservation monitoring of this near-threatened species.
+
+| | |
+|---|---|
+| **Task** | Fine-grained re-identification — matching individual jaguars across images by coat pattern, pose, and markings |
+| **Backbone** | MegaDescriptor-L / DINOv2 ViT-B-14 transformer, fine-tuned with layer-wise learning rate decay (LLRD) |
+| **Metric learning** | ArcFace angular margin loss + batch-hard triplet loss; embeddings projected onto a unit hypersphere |
+| **Pooling** | Learnable Generalised Mean (GeM) pooling — outperforms fixed average/max pooling on fine-grained retrieval |
+| **Validation** | Stratified 5-fold cross-validation; identity-balanced mean Average Precision (macro mAP) |
+| **Performance** | 0.726 mAP on validation set (1,895 training images across 31 jaguar identities) |
+| **Inference** | 4-transform test-time augmentation (TTA) × 5-fold ensemble; k-reciprocal re-ranking for score refinement |
+| **Dataset** | Highly imbalanced (1–169 images per individual); 371 test images forming 137,270 query–gallery pairs |
+
+Located in `computer-vision/jaguar-reid/`.
 
 ---
 
