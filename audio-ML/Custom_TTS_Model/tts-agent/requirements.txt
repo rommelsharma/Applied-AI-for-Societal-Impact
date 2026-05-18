@@ -1,0 +1,25 @@
+# Web framework
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+jinja2>=3.1.4
+
+# Config & validation
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+python-dotenv>=1.0.1
+
+# Audio I/O and processing
+soundfile>=0.12.1
+numpy>=1.26.0
+scipy>=1.13.0
+
+# Broadcast-grade post-processing (v2.0)
+pyloudnorm>=0.1.1        # EBU R128 / ITU-R BS.1770-4 loudness measurement
+noisereduce>=3.0.2        # Spectral subtraction noise reduction
+
+# TTS engines
+# NOTE: Install PyTorch separately via setup.sh — picks CUDA / MPS / CPU build
+# kokoro and f5-tts list torch as a dependency; ensure torch is installed first.
+kokoro>=0.9.4
+f5-tts>=0.3.1
