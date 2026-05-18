@@ -1,0 +1,30 @@
+<!-- ============================================================
+     SSML Sample — TTS Agent narration demo
+     Place this file in: tts-agent/tests/sample_ssml.txt
+     Usage: paste the content below into the UI with
+            "Input Format" set to SSML, select a voice, and click
+            "Generate Speech".
+     ============================================================ -->
+
+Welcome to the Applied AI documentary series.<pause ms="600"/>
+
+Today we explore <emphasis level="strong">climate change</emphasis>
+and its far-reaching consequences for life on Earth.<break strength="paragraph"/>
+
+The <say-as interpret-as="characters">IPCC</say-as> — the Intergovernmental
+Panel on Climate Change — reports that global average temperatures have
+already risen by <emphasis level="moderate">1.1 degrees Celsius</emphasis>
+since the pre-industrial era.<pause ms="400"/>
+
+Scientists warn that without immediate action, we risk crossing critical
+tipping points: the collapse of the <emphasis level="strong">West Antarctic
+Ice Sheet</emphasis>, the die-off of coral reefs, and the destabilisation
+of the Amazon rainforest.<break strength="paragraph"/>
+
+Yet there is reason for <emphasis level="moderate">cautious optimism</emphasis>.
+Renewable energy capacity has grown fivefold in a single decade.<pause ms="300"/>
+The cost of solar power has fallen by more than <emphasis level="strong">ninety
+per cent</emphasis> since 2010.<break strength="sentence"/>
+
+The transition is underway.<pause ms="500"/>
+The question now is whether it will happen fast enough.

@@ -52,6 +52,30 @@
       </section>
 
       <!-- Shared controls -->
+      <div class="field field-row input-format-row">
+        <div>
+          <label for="input-format">Input format</label>
+          <select id="input-format">
+            <option value="plain">Plain Text</option>
+            <option value="ssml">SSML Markup</option>
+          </select>
+        </div>
+        <button id="ssml-example-btn" class="btn-ghost hidden" type="button">
+          Insert example
+        </button>
+      </div>
+
+      <div id="ssml-hint" class="ssml-hint hidden">
+        <strong>Supported SSML tags:</strong>
+        <code>&lt;pause ms="500"/&gt;</code>
+        &nbsp;·&nbsp;
+        <code>&lt;break strength="paragraph"/&gt;</code>
+        &nbsp;·&nbsp;
+        <code>&lt;emphasis level="strong"&gt;…&lt;/emphasis&gt;</code>
+        &nbsp;·&nbsp;
+        <code>&lt;say-as interpret-as="characters"&gt;NASA&lt;/say-as&gt;</code>
+      </div>
+
       <div class="field">
         <label for="text-input">Text to synthesize</label>
         <textarea id="text-input" rows="6" maxlength="5000"

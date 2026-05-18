@@ -146,17 +146,35 @@ Custom_TTS_Model/
 
 ## Quick Start
 
+### First-time setup (run once)
+
 ```bash
 cd tts-agent
-bash scripts/setup.sh          # one-command env setup (Mac + WSL2)
+
+bash scripts/setup.sh          # creates venv, installs deps, copies .env
 source venv/bin/activate
-python scripts/download_models.py
-uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload
+
+# Add your HuggingFace token to .env (removes download rate limits)
+# HF_TOKEN=hf_your_token_here  — get one at https://huggingface.co/settings/tokens
+
+python scripts/download_models.py   # downloads Kokoro (~500 MB) + F5-TTS (~1.2 GB)
+# or individually:  --kokoro  /  --f5
+
+make run
 ```
 
 Open `http://localhost:8000` in your browser.
 
-For full setup instructions, Docker usage, API reference, and testing, see
+### Every subsequent session
+
+```bash
+source venv/bin/activate
+make run
+```
+
+> The message `HF_TOKEN is set and is the current active token` during model download is **normal** — it confirms authentication is working.
+
+For full setup, Docker usage, API reference, SSML narration control, and testing, see
 [tts-agent/README.md](tts-agent/README.md).
 
 ---

@@ -129,8 +129,11 @@ Applied-AI-for-Societal-Impact/
 ├── computer-vision/
 │   └── jaguar-reid/
 │
+├── audio-ML/
+│   └── Custom_TTS_Model/          # Kokoro-82M + F5-TTS narration engine
+│
 ├── audio-ai/
-│   └── acoustic-monitoring/
+│   └── acoustic-monitoring/       # (planned)
 │
 ├── shared-components/
 │   ├── data-pipelines/
@@ -163,7 +166,25 @@ The Jaguar Identification Project aims to automate the Jaguar identification pro
 
 ---
 
-### Acoustic Monitoring (Audio AI) -  (Planned)
+### Custom TTS Model (Audio ML)
+
+A production-grade, locally deployed Text-to-Speech system built for documentary narration,
+training material production, and professional media workflows.
+
+| | |
+|---|---|
+| **Engines** | Kokoro-82M (Apache 2.0) — 13 built-in voices (EN-US, EN-GB, Hindi); F5-TTS (MIT) — zero-shot voice cloning |
+| **Audio quality** | 44.1 kHz stereo WAV · EBU R128 loudness normalisation · noise reduction · parametric EQ |
+| **Narration control** | SSML markup: `<pause>`, `<break>`, `<emphasis>`, `<say-as>` |
+| **Batch processing** | Up to 500 segments per job with optional concatenation and gap control |
+| **Privacy** | Fully local — no cloud calls, no telemetry |
+| **Platform** | macOS (MPS/CPU) and Windows WSL2 (CUDA) |
+
+Located in `audio-ML/Custom_TTS_Model/`.
+
+---
+
+### Acoustic Monitoring (Audio AI) — Planned
 
 An audio-based system for detecting environmental signals and biodiversity patterns.
 

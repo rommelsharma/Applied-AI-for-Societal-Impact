@@ -15,25 +15,63 @@ Local text-to-speech application using **Kokoro-82M** (built-in English & Hindi 
 
 ## Quick Start
 
-### Local setup (Mac or Windows WSL2)
+### Step 1 — First-time setup (run once)
 
 ```bash
 cd tts-agent
-bash scripts/setup.sh          # creates venv, installs deps, copies .env
+
+# Creates venv, installs all dependencies, copies .env.example → .env
+bash scripts/setup.sh          # or: make setup
+
+# Activate the virtual environment
 source venv/bin/activate
+```
 
-python scripts/download_models.py   # pre-downloads Kokoro + F5-TTS weights
+Then open `.env` and add your HuggingFace token (removes rate limits):
+```
+HF_TOKEN=hf_your_token_here
+```
+Get a free read-only token at https://huggingface.co/settings/tokens
 
-uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload
+### Step 2 — Download model weights (run once, ~1.7 GB total)
+
+```bash
+# Download both engines
+python scripts/download_models.py   # or: make download-models
+
+# Download individual engines if preferred
+python scripts/download_models.py --kokoro   # Kokoro-82M only (~500 MB)
+python scripts/download_models.py --f5       # F5-TTS only (~1.2 GB)
+```
+
+> **Note:** You will see the message `HF_TOKEN is set and is the current active token independently from the token you've just configured.` — this is normal and confirms authentication is working.
+
+### Step 3 — Start the server
+
+```bash
+make run
 # Open http://localhost:8000
 ```
 
-Or with Make:
+---
+
+### Every subsequent session (two commands)
+
 ```bash
-make setup && source venv/bin/activate
-make download-models
+source venv/bin/activate
 make run
 ```
+
+---
+
+### Docker (GPU — Linux / WSL2 with NVIDIA Container Toolkit)
+
+```bash
+make docker-build
+make docker-run       # or: make docker-compose
+```
+
+> **macOS note**: Docker on Mac does not support GPU passthrough. Run natively with `make run` to use MPS on Apple Silicon.
 
 ### Docker (GPU — Linux / WSL2 with NVIDIA Container Toolkit)
 
@@ -80,9 +118,26 @@ Override by setting `DEVICE=cpu` in `.env`.
   "text": "Hello, this is a test.",
   "voice": "af_bella",
   "language": "en-us",
-  "speed": 1.0
+  "speed": 1.0,
+  "use_ssml": false,
+  "output_format": "wav",
+  "loudness_profile": "broadcast",
+  "noise_reduce": true,
+  "eq": true
 }
 ```
+
+| Field | Default | Description |
+|---|---|---|
+| `text` | required | Input text (plain or SSML-tagged) |
+| `voice` | required | Voice ID from `/voices`, or `clone:<name>` for cloning |
+| `language` | `"en-us"` | BCP-47 language tag |
+| `speed` | `1.0` | Playback speed (0.5–2.0) |
+| `use_ssml` | `false` | Parse text as SSML markup (see SSML section below) |
+| `output_format` | `"wav"` | `wav` = 24 kHz mono · `wav44` = 44.1 kHz stereo 16-bit · `wav44_24bit` = 44.1 kHz stereo 24-bit |
+| `loudness_profile` | `"broadcast"` | EBU R128 target: `broadcast` (−23 LUFS) · `streaming` (−14) · `podcast` (−16) · `film` (−24) |
+| `noise_reduce` | `true` | Spectral noise reduction |
+| `eq` | `true` | 80 Hz high-pass + 3 kHz presence shelf |
 
 For voice cloning (F5-TTS), set `voice` to `clone:<name>` and provide `reference_audio`:
 
@@ -115,6 +170,32 @@ curl http://localhost:8000/audio/<filename>.wav --output output.wav
 # Upload voice sample for cloning
 curl -X POST http://localhost:8000/upload-voice-sample \
   -F "file=@my_voice.wav"
+```
+
+## SSML Narration Control
+
+Set `use_ssml: true` in the API request (or select **SSML Markup** in the UI dropdown) to enable markup-based narration control.
+
+| Tag | Effect |
+|---|---|
+| `<pause ms="500"/>` | Insert 500 ms of silence (50–5000 ms) |
+| `<break strength="paragraph"/>` | 800 ms silence (`sentence` = 350 ms, `medium` = 200 ms) |
+| `<emphasis level="strong">…</emphasis>` | Synthesise span at 0.85× speed (slower = more emphatic) |
+| `<emphasis level="moderate">…</emphasis>` | 0.92× speed |
+| `<emphasis level="reduced">…</emphasis>` | 1.10× speed |
+| `<say-as interpret-as="characters">NASA</say-as>` | Spell out letter by letter |
+
+**Sample file:** `tests/sample_ssml.txt` — paste this into the UI to test a full documentary narration.
+
+```xml
+Welcome to the documentary narration.<pause ms="600"/>
+
+Today we explore <emphasis level="strong">climate change</emphasis>
+and its consequences.<break strength="paragraph"/>
+
+The <say-as interpret-as="characters">IPCC</say-as> reports temperatures
+have risen by <emphasis level="moderate">1.1 degrees Celsius</emphasis>
+since pre-industrial times.<pause ms="400"/>
 ```
 
 ## Testing
@@ -154,25 +235,32 @@ make test-cov
 ```
 tts-agent/
 ├── backend/
-│   ├── app.py              # FastAPI app factory
+│   ├── app.py                  # FastAPI app factory
 │   ├── api/
-│   │   ├── routes.py       # All route handlers
-│   │   └── schemas.py      # Pydantic request/response models
+│   │   ├── routes.py           # All route handlers
+│   │   └── schemas.py          # Pydantic request/response models
 │   ├── engines/
-│   │   ├── base.py         # Abstract engine contract
-│   │   ├── kokoro_engine.py
-│   │   └── f5_engine.py
+│   │   ├── base.py             # Abstract engine contract
+│   │   ├── kokoro_engine.py    # Kokoro-82M wrapper + espeak fix
+│   │   └── f5_engine.py        # F5-TTS zero-shot cloning wrapper
 │   └── utils/
-│       ├── audio.py        # Resample, normalize, trim
-│       ├── device.py       # CUDA/MPS/CPU detection
+│       ├── audio.py            # Resample, normalise, trim
+│       ├── broadcast.py        # EBU R128, noise reduction, EQ, 44.1 kHz export
+│       ├── ssml.py             # SSML parser (pause, break, emphasis, say-as)
+│       ├── batch.py            # Async batch synthesis job runner
+│       ├── device.py           # CUDA / MPS / CPU detection
 │       └── logger.py
 ├── frontend/
-│   ├── templates/index.html
+│   ├── templates/index.html    # Browser UI (plain text & SSML modes)
 │   └── static/{css,js}/
-├── configs/settings.py     # Pydantic settings from .env
+├── configs/settings.py         # Pydantic settings loaded from .env
 ├── tests/
+│   ├── sample_ssml.txt         # SSML narration demo — paste into UI to test
+│   └── test_*.py
 ├── docker/
 ├── scripts/
+│   ├── setup.sh                # One-command env setup
+│   └── download_models.py      # Pre-download Kokoro + F5-TTS weights
 ├── Makefile
 ├── requirements.txt
 └── .env.example

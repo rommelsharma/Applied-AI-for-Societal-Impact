@@ -5,6 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
+    # HuggingFace token for authenticated downloads (removes rate limits)
+    HF_TOKEN: str | None = None
+
     # Inference device: auto | cuda | mps | cpu
     DEVICE: str = "auto"
 

@@ -66,12 +66,19 @@ def _engine_synthesize(req_dict: dict) -> tuple[bytes, str]:
 
 def _apply_ssml_and_synthesize(req: SynthesizeRequest) -> tuple[np.ndarray, int, str]:
     """
-    Parse SSML tags, synthesise each TextSegment, insert silence for SilenceSegments,
-    and return the assembled waveform.
+    Parse SSML markup (when use_ssml=True), synthesise each TextSegment,
+    insert silence for SilenceSegments, and return the assembled waveform.
+    When use_ssml=False the text is sent directly to the engine.
     """
+    if not req.use_ssml:
+        wav_bytes, engine = _engine_synthesize(req.model_dump())
+        buf = io.BytesIO(wav_bytes)
+        audio, sr = sf.read(buf, dtype="float32")
+        return audio, sr, engine
+
     segments = ssml_parser.parse(req.text)
 
-    # If no SSML tags were found, fall back to plain synthesis
+    # If no recognised SSML tags were found even in SSML mode, synthesise plain
     has_ssml = any(isinstance(s, SilenceSegment) or
                    (isinstance(s, TextSegment) and s.speed_override != 1.0)
                    for s in segments)

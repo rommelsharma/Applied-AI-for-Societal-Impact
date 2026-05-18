@@ -1,5 +1,6 @@
 """Kokoro-82M TTS engine wrapper (Apache 2.0 licensed — commercial-safe)."""
 import io
+import os
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,60 @@ from backend.utils.logger import get_logger
 from configs.settings import settings
 
 logger = get_logger(__name__)
+
+_KOKORO_REPO_ID = "hexgrad/Kokoro-82M"
+
+
+def _configure_espeak() -> None:
+    """
+    Point espeak-ng at the bundled data directory shipped by espeakng_loader.
+
+    Root cause of 'Error processing file .../espeakng_loader//phontab':
+      espeak_ng_InitializePath() has an internal 160-char snprintf buffer.
+      When the full venv path exceeds that limit the string is silently
+      truncated, both directory checks fail, and the C library falls through
+      to its compiled-in CI build path ('.../runner/work/...') which does
+      not exist on the user's machine.
+
+    Fix: if the real data path is longer than 140 chars, create a short
+    symlink under /tmp and point both ESPEAK_DATA_PATH and phonemizer at
+    that symlink instead.  The symlink is idempotent and cheap.
+    """
+    try:
+        import espeakng_loader
+        data_path: str = espeakng_loader.get_data_path()
+    except Exception as exc:
+        logger.warning("espeakng_loader not available: %s", exc)
+        return
+
+    # ------------------------------------------------------------------
+    # Workaround: shorten the path if it would overflow the C buffer
+    # ------------------------------------------------------------------
+    if len(data_path) > 140:
+        short = Path("/tmp/kokoro_espeak_data")
+        try:
+            if short.is_symlink() and str(short.resolve()) != str(Path(data_path).resolve()):
+                short.unlink()
+            if not short.exists():
+                short.symlink_to(data_path)
+            data_path = str(short)
+            logger.debug("espeak data path aliased to %s", data_path)
+        except Exception as exc:
+            logger.warning("Could not create espeak data symlink: %s", exc)
+
+    # Belt-and-braces: set the env var AND the phonemizer class variable
+    os.environ["ESPEAK_DATA_PATH"] = data_path
+    os.environ["PHONEMIZER_ESPEAK_DATA_PATH"] = data_path
+    try:
+        from phonemizer.backend.espeak.wrapper import EspeakWrapper
+        EspeakWrapper.set_data_path(data_path)
+        logger.debug("EspeakWrapper.set_data_path → %s", data_path)
+    except Exception as exc:
+        logger.warning("Could not set EspeakWrapper data path: %s", exc)
+
+
+# Configure espeak at import time — must happen before KPipeline is instantiated
+_configure_espeak()
 
 # Voice catalog: id → (display name, lang_code for KPipeline)
 _VOICES: dict[str, dict] = {
@@ -53,7 +108,10 @@ class KokoroEngine(TTSEngine):
     def _get_pipeline(self, lang_code: str):
         if lang_code not in self._pipelines:
             logger.info("Loading Kokoro pipeline for lang_code='%s'", lang_code)
-            self._pipelines[lang_code] = self._KPipeline(lang_code=lang_code)
+            self._pipelines[lang_code] = self._KPipeline(
+                lang_code=lang_code,
+                repo_id=_KOKORO_REPO_ID,
+            )
         return self._pipelines[lang_code]
 
     def synthesize(

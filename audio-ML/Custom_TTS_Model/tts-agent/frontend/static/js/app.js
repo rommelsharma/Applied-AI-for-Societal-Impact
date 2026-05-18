@@ -2,8 +2,22 @@
 
 const $ = id => document.getElementById(id);
 
+const SSML_EXAMPLE = `Welcome to the documentary narration.<pause ms="500"/>
+
+Today we explore <emphasis level="strong">climate change</emphasis>
+and its far-reaching consequences for life on Earth.<break strength="paragraph"/>
+
+The <say-as interpret-as="characters">IPCC</say-as> reports that global
+temperatures have risen by <emphasis level="moderate">1.1 degrees Celsius</emphasis>
+since pre-industrial times.<pause ms="300"/>
+
+Yet there is reason for <emphasis level="moderate">cautious optimism</emphasis>.
+Renewable energy capacity has grown fivefold in a single decade.<pause ms="400"/>
+The question now is whether the transition will happen fast enough.`;
+
 const state = {
   mode: 'builtin',       // 'builtin' | 'clone'
+  inputFormat: 'plain',  // 'plain' | 'ssml'
   voices: [],
   samples: [],
 };
@@ -81,6 +95,24 @@ function bindEvents() {
     });
   });
 
+  // Input format toggle
+  $('input-format').addEventListener('change', () => {
+    state.inputFormat = $('input-format').value;
+    const isSsml = state.inputFormat === 'ssml';
+    $('ssml-hint').classList.toggle('hidden', !isSsml);
+    $('ssml-example-btn').classList.toggle('hidden', !isSsml);
+    $('text-input').placeholder = isSsml
+      ? 'Enter SSML-tagged text, e.g.  Hello <pause ms="300"/> world.'
+      : 'Enter the text you want to convert to speech…';
+  });
+
+  // SSML example button
+  $('ssml-example-btn').addEventListener('click', () => {
+    $('text-input').value = SSML_EXAMPLE;
+    $('char-count').textContent = `${SSML_EXAMPLE.length} / 5000`;
+    updateSynthBtn();
+  });
+
   // Char count
   $('text-input').addEventListener('input', () => {
     const len = $('text-input').value.length;
@@ -140,9 +172,10 @@ async function handleSynthesize() {
   const text = $('text-input').value.trim();
   const speed = parseFloat($('speed-slider').value);
 
+  const use_ssml = state.inputFormat === 'ssml';
   let body;
   if (state.mode === 'builtin') {
-    body = { text, voice: $('voice-select').value, language: 'en-us', speed };
+    body = { text, voice: $('voice-select').value, language: 'en-us', speed, use_ssml };
   } else {
     const refFile = $('sample-select').value;
     const voiceId = `clone:${refFile.replace(/\.[^.]+$/, '')}`;
@@ -151,6 +184,7 @@ async function handleSynthesize() {
       voice: voiceId,
       language: 'en-us',
       speed,
+      use_ssml,
       reference_audio: refFile,
       reference_text: $('ref-text').value.trim() || null,
     };

@@ -260,4 +260,52 @@ audio {
   font-size: 0.875rem;
 }
 
+/* Input-format row */
+.input-format-row {
+  align-items: flex-end;
+  gap: 1rem;
+}
+.input-format-row > div {
+  flex: 0 0 auto;
+}
+
+/* Ghost / inline button */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-ghost:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* SSML reference hint bar */
+.ssml-hint {
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: rgba(108,99,255,0.08);
+  border: 1px solid rgba(108,99,255,0.3);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+.ssml-hint strong {
+  color: var(--text);
+  margin-right: 0.4rem;
+}
+.ssml-hint code {
+  background: rgba(108,99,255,0.15);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #a89fff;
+}
+
 .hidden { display: none !important; }

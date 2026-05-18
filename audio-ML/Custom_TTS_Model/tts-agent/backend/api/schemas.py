@@ -11,6 +11,15 @@ class SynthesizeRequest(BaseModel):
     voice: str = Field(..., description="Voice ID from /voices, or 'clone:<name>'")
     language: str = Field("en-us", description="BCP-47 language tag")
     speed: float = Field(1.0, ge=0.5, le=2.0)
+    use_ssml: bool = Field(
+        False,
+        description=(
+            "When true, text is parsed as SSML markup. "
+            "Supported tags: <pause ms='N'/>, <break strength='paragraph|sentence'/>, "
+            "<emphasis level='strong|moderate|reduced'>…</emphasis>, "
+            "<say-as interpret-as='characters'>…</say-as>"
+        ),
+    )
     reference_audio: str | None = Field(None, description="Filename in voice_samples/ for F5-TTS")
     reference_text: str | None = Field(None, description="Transcript of the reference clip")
     # v2.0 additions
