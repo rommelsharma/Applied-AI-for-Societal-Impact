@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     KOKORO_LANG_HI: str = "h"   # Hindi
 
     # F5-TTS engine
-    F5_MODEL_NAME: str = "F5-TTS"
+    F5_MODEL_NAME: str = "F5TTS_v1_Base"
     F5_VOCODER_NAME: str = "vocos"
 
     # Audio post-processing

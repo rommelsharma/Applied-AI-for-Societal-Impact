@@ -18,44 +18,114 @@ _KOKORO_REPO_ID = "hexgrad/Kokoro-82M"
 
 def _configure_espeak() -> None:
     """
-    Point espeak-ng at the bundled data directory shipped by espeakng_loader.
+    Point espeak-ng at a usable data directory before KPipeline / phonemizer
+    are first imported.
 
-    Root cause of 'Error processing file .../espeakng_loader//phontab':
-      espeak_ng_InitializePath() has an internal 160-char snprintf buffer.
-      When the full venv path exceeds that limit the string is silently
-      truncated, both directory checks fail, and the C library falls through
-      to its compiled-in CI build path ('.../runner/work/...') which does
-      not exist on the user's machine.
+    Why this is needed
+    ------------------
+    espeakng_loader calls espeak_ng_InitializePath() at import time.  That C
+    function has an internal snprintf(buf, 160, …) buffer; a venv path longer
+    than ~140 chars is silently truncated, both directory checks fail, and the
+    library falls through to its compiled-in CI path
+    ('/Users/runner/work/...') which does not exist on the user's machine.
 
-    Fix: if the real data path is longer than 140 chars, create a short
-    symlink under /tmp and point both ESPEAK_DATA_PATH and phonemizer at
-    that symlink instead.  The symlink is idempotent and cheap.
+    Strategy (tried in order)
+    -------------------------
+    1. System espeak-ng installed via `brew install espeak-ng`
+       → data at /opt/homebrew/share/espeak-ng-data (short path, reliable).
+    2. Short /tmp symlink → espeakng_loader/espeak-ng-data
+       → workaround for the 160-char buffer limit when venv path is long.
+    3. espeakng_loader path as-is (only works for short venv paths).
+
+    On macOS the strongly recommended approach is:
+        brew install espeak-ng
     """
+    # ------------------------------------------------------------------
+    # 1. Prefer system espeak-ng (Homebrew on macOS / system on Linux)
+    #    Homebrew installs data to PREFIX/share/espeak-ng-data, not lib.
+    # ------------------------------------------------------------------
+    system_candidates = [
+        "/opt/homebrew/share/espeak-ng-data",  # Apple Silicon Homebrew
+        "/usr/local/share/espeak-ng-data",      # Intel Mac Homebrew
+        "/usr/share/espeak-ng-data",            # Debian/Ubuntu/Fedora
+        "/usr/lib/espeak-ng-data",              # some older Linux distros
+        "/opt/homebrew/lib/espeak-ng-data",     # symlink Homebrew creates
+        "/usr/local/lib/espeak-ng-data",        # symlink on Intel Mac
+    ]
+    for candidate in system_candidates:
+        p = Path(candidate)
+        if p.is_dir() and (p / "phontab").exists():
+            data_path = candidate
+            logger.debug("Using system espeak-ng data: %s", data_path)
+            _apply_espeak_path(data_path)
+            return
+
+    # ------------------------------------------------------------------
+    # 2. Fall back to espeakng_loader (bundled), with short-path workaround
+    #
+    # espeakng_loader.__init__.py does NOT call espeak_ng_InitializePath()
+    # at import time — it just loads the dylib and provides helpers.
+    # The C initialisation happens inside phonemizer's EspeakWrapper when
+    # it first uses the library, so setting ESPEAK_DATA_PATH and calling
+    # EspeakWrapper.set_data_path() here (before any kokoro/phonemizer
+    # import) is effective.
+    #
+    # Bug: get_data_path() returns  .../espeakng_loader/espeak-ng-data
+    # which is ~189 chars on typical macOS paths — well over the 160-char
+    # snprintf buffer in espeak_ng_InitializePath().  Fix: symlink to /tmp.
+    # ------------------------------------------------------------------
     try:
-        import espeakng_loader
-        data_path: str = espeakng_loader.get_data_path()
+        import importlib.util as _ilu
+        spec = _ilu.find_spec("espeakng_loader")
+        if spec is None:
+            raise ImportError("espeakng_loader not found")
+        # Use the espeak-ng-data subdirectory, not the package root
+        pkg_dir = Path(spec.origin).parent
+        data_path = str(pkg_dir / "espeak-ng-data")
     except Exception as exc:
         logger.warning("espeakng_loader not available: %s", exc)
         return
 
-    # ------------------------------------------------------------------
-    # Workaround: shorten the path if it would overflow the C buffer
-    # ------------------------------------------------------------------
     if len(data_path) > 140:
         short = Path("/tmp/kokoro_espeak_data")
         try:
-            if short.is_symlink() and str(short.resolve()) != str(Path(data_path).resolve()):
+            real = Path(data_path).resolve()
+            if short.is_symlink() and short.resolve() != real:
                 short.unlink()
             if not short.exists():
-                short.symlink_to(data_path)
+                short.symlink_to(str(real))
             data_path = str(short)
-            logger.debug("espeak data path aliased to %s", data_path)
+            logger.debug("espeak data path aliased to short symlink: %s", data_path)
         except Exception as exc:
-            logger.warning("Could not create espeak data symlink: %s", exc)
+            logger.warning("Could not create espeak data symlink: %s — trying raw path", exc)
 
-    # Belt-and-braces: set the env var AND the phonemizer class variable
+    _apply_espeak_path(data_path)
+
+
+def _apply_espeak_path(data_path: str) -> None:
+    """Set the espeak data path everywhere it needs to be set.
+
+    Critical detail: misaki/espeak.py (imported by kokoro at module level)
+    runs these two lines at import time:
+        EspeakWrapper.set_library(espeakng_loader.get_library_path())
+        EspeakWrapper.set_data_path(espeakng_loader.get_data_path())
+
+    The second call overwrites anything we set earlier.  To prevent this we
+    monkey-patch espeakng_loader.get_data_path so that when misaki imports it,
+    it gets our short correct path instead of the long venv path.
+    """
     os.environ["ESPEAK_DATA_PATH"] = data_path
     os.environ["PHONEMIZER_ESPEAK_DATA_PATH"] = data_path
+
+    # Monkey-patch espeakng_loader before kokoro/misaki can import it
+    try:
+        import espeakng_loader as _el
+        _final_path = data_path  # capture for lambda
+        _el.get_data_path = lambda: _final_path
+        logger.debug("espeakng_loader.get_data_path patched → %s", data_path)
+    except Exception as exc:
+        logger.warning("Could not patch espeakng_loader: %s", exc)
+
     try:
         from phonemizer.backend.espeak.wrapper import EspeakWrapper
         EspeakWrapper.set_data_path(data_path)

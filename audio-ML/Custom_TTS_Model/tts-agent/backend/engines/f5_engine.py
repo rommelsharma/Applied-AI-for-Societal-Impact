@@ -31,7 +31,7 @@ class F5Engine(TTSEngine):
     def _get_model(self):
         if self._model is None:
             logger.info("Loading F5-TTS model weights…")
-            self._model = self._F5TTS(model_type=settings.F5_MODEL_NAME)
+            self._model = self._F5TTS(model=settings.F5_MODEL_NAME)
         return self._model
 
     def synthesize(

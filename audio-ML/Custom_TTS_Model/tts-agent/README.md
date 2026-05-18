@@ -21,11 +21,20 @@ Local text-to-speech application using **Kokoro-82M** (built-in English & Hindi 
 cd tts-agent
 
 # Creates venv, installs all dependencies, copies .env.example → .env
+# On macOS this also installs espeak-ng via Homebrew (required by Kokoro)
 bash scripts/setup.sh          # or: make setup
 
 # Activate the virtual environment
 source venv/bin/activate
 ```
+
+> **macOS users:** `setup.sh` automatically runs `brew install espeak-ng`.
+> If you skip `setup.sh` and run `download_models.py` directly, install it first:
+> ```bash
+> brew install espeak-ng
+> ```
+> Without this, Kokoro's phonemizer backend cannot find its data files and will
+> print `Error processing file .../espeakng_loader//phontab`.
 
 Then open `.env` and add your HuggingFace token (removes rate limits):
 ```

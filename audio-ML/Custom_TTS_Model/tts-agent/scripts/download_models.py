@@ -48,8 +48,8 @@ def _configure_hf_token() -> None:
 
 def download_kokoro():
     _configure_hf_token()
-    # _configure_espeak() creates the short /tmp symlink and sets ESPEAK_DATA_PATH
-    # before KPipeline (and phonemizer) are first imported.
+    # _configure_espeak() must run before any kokoro/phonemizer import so that
+    # ESPEAK_DATA_PATH is set before the espeak C library initialises.
     from backend.engines.kokoro_engine import _configure_espeak, _KOKORO_REPO_ID
     _configure_espeak()
     logger.info("Pre-downloading Kokoro-82M weights…")
@@ -71,7 +71,7 @@ def download_f5():
     logger.info("Pre-downloading F5-TTS weights…")
     try:
         from f5_tts.api import F5TTS
-        F5TTS(model_type=settings.F5_MODEL_NAME)
+        F5TTS(model=settings.F5_MODEL_NAME)
         logger.info("F5-TTS weights ready.")
     except ImportError:
         logger.error("f5-tts package not installed. Run: pip install f5-tts")

@@ -17,6 +17,21 @@ esac
 
 echo "Platform: $PLATFORM"
 
+# macOS: install system espeak-ng so phonemizer finds it at a short path
+# (the bundled espeakng_loader path exceeds the espeak C library's 160-char limit)
+if [ "$PLATFORM" = "macos" ]; then
+  if ! [ -d "/opt/homebrew/lib/espeak-ng-data" ] && ! [ -d "/usr/local/lib/espeak-ng-data" ]; then
+    echo "Installing espeak-ng via Homebrew (required by Kokoro / phonemizer)…"
+    if command -v brew &>/dev/null; then
+      brew install espeak-ng
+    else
+      echo "WARNING: Homebrew not found. Install espeak-ng manually: brew install espeak-ng"
+    fi
+  else
+    echo "espeak-ng already installed."
+  fi
+fi
+
 # Create virtual environment
 if [ ! -d "$VENV_DIR" ]; then
   echo "Creating virtual environment…"
