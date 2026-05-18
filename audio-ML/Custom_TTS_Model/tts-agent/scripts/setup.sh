@@ -17,15 +17,31 @@ esac
 
 echo "Platform: $PLATFORM"
 
-# macOS: install system espeak-ng so phonemizer finds it at a short path
-# (the bundled espeakng_loader path exceeds the espeak C library's 160-char limit)
+# Install system espeak-ng so phonemizer finds it at a short, fixed path.
+# The bundled espeakng_loader path can exceed the espeak C library's 160-char buffer limit,
+# causing a double-slash "//phontab" error at runtime.
 if [ "$PLATFORM" = "macos" ]; then
-  if ! [ -d "/opt/homebrew/lib/espeak-ng-data" ] && ! [ -d "/usr/local/lib/espeak-ng-data" ]; then
+  if ! [ -d "/opt/homebrew/share/espeak-ng-data" ] && \
+     ! [ -d "/opt/homebrew/lib/espeak-ng-data" ]  && \
+     ! [ -d "/usr/local/share/espeak-ng-data" ]; then
     echo "Installing espeak-ng via Homebrew (required by Kokoro / phonemizer)…"
     if command -v brew &>/dev/null; then
       brew install espeak-ng
     else
       echo "WARNING: Homebrew not found. Install espeak-ng manually: brew install espeak-ng"
+    fi
+  else
+    echo "espeak-ng already installed."
+  fi
+elif [ "$PLATFORM" = "linux" ]; then
+  if ! [ -d "/usr/share/espeak-ng-data" ] && ! [ -d "/usr/lib/espeak-ng-data" ]; then
+    echo "Installing espeak-ng via apt (required by Kokoro / phonemizer)…"
+    if command -v apt-get &>/dev/null; then
+      sudo apt-get install -y espeak-ng
+    elif command -v dnf &>/dev/null; then
+      sudo dnf install -y espeak-ng
+    else
+      echo "WARNING: Could not detect apt or dnf. Install espeak-ng manually."
     fi
   else
     echo "espeak-ng already installed."
