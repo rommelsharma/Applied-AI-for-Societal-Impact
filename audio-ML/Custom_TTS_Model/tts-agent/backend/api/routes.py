@@ -238,18 +238,48 @@ async def upload_voice_sample(file: UploadFile = File(...)):
     dest = settings.voice_samples_dir / file.filename
     content = await file.read()
     dest.write_bytes(content)
-    logger.info("Uploaded voice sample: %s (%d bytes)", file.filename, len(content))
-    return {"filename": file.filename, "size_bytes": len(content)}
+
+    # Check clip duration and warn if outside F5-TTS optimal range (3–12 s)
+    warning: str | None = None
+    try:
+        import io as _io
+        import soundfile as _sf
+        buf = _io.BytesIO(content)
+        info = _sf.info(buf)
+        duration_s = info.duration
+        if duration_s < 3:
+            warning = f"Clip is {duration_s:.1f}s — too short. F5-TTS needs at least 3 s of clear speech."
+        elif duration_s > 15:
+            warning = (
+                f"Clip is {duration_s:.1f}s — too long. F5-TTS clips references to 12 s maximum. "
+                "Trim to 5–10 s of clean speech for best results."
+            )
+        logger.info("Uploaded voice sample: %s (%.1fs, %d bytes)", file.filename, duration_s, len(content))
+    except Exception:
+        logger.info("Uploaded voice sample: %s (%d bytes)", file.filename, len(content))
+
+    result: dict = {"filename": file.filename, "size_bytes": len(content)}
+    if warning:
+        result["warning"] = warning
+    return result
 
 
 @router.get("/voice-samples")
 def list_voice_samples():
+    import soundfile as _sf
     samples_dir = settings.voice_samples_dir
-    return [
-        {"filename": p.name, "size_bytes": p.stat().st_size}
-        for p in sorted(samples_dir.iterdir())
-        if p.suffix.lower() in {".wav", ".mp3", ".flac", ".ogg"}
-    ]
+    result = []
+    for p in sorted(samples_dir.iterdir()):
+        if p.suffix.lower() not in {".wav", ".mp3", ".flac", ".ogg"}:
+            continue
+        entry: dict = {"filename": p.name, "size_bytes": p.stat().st_size}
+        try:
+            info = _sf.info(str(p))
+            entry["duration_seconds"] = round(info.duration, 2)
+        except Exception:
+            entry["duration_seconds"] = None
+        result.append(entry)
+    return result
 
 
 @router.delete("/voice-samples/{filename}")

@@ -38,10 +38,11 @@
           <select id="sample-select">
             <option value="">— select uploaded sample —</option>
           </select>
+          <span class="hint">Best results with 5–10 s of clean, single-speaker speech. Clips &gt;12 s are truncated by F5-TTS.</span>
         </div>
         <div class="field">
-          <label for="ref-text">Reference transcript <span class="hint">(optional but improves quality)</span></label>
-          <input type="text" id="ref-text" placeholder="What is said in the reference clip…" />
+          <label for="ref-text">Reference transcript <span class="hint">(strongly recommended — omitting causes speech-rate errors)</span></label>
+          <input type="text" id="ref-text" placeholder="Exact words spoken in the reference clip…" />
         </div>
         <div class="field upload-area">
           <label>Upload new reference clip</label>

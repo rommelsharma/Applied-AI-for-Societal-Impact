@@ -70,12 +70,11 @@ function populateVoiceSelect() {
 
 function populateSampleSelect() {
   const sel = $('sample-select');
-  const extras = state.voices.filter(v => v.engine === 'f5-tts');
-  const fromFiles = state.samples.map(s => ({
-    id: `clone:${s.filename.replace(/\.[^.]+$/, '')}`,
-    filename: s.filename,
-    label: s.filename,
-  }));
+  const fromFiles = state.samples.map(s => {
+    const dur = s.duration_seconds != null ? ` (${s.duration_seconds.toFixed(1)}s)` : '';
+    const warn = s.duration_seconds != null && (s.duration_seconds < 3 || s.duration_seconds > 15) ? ' ⚠' : '';
+    return { filename: s.filename, label: `${s.filename}${dur}${warn}` };
+  });
   sel.innerHTML = '<option value="">— select uploaded sample —</option>' +
     fromFiles.map(f => `<option value="${f.filename}">${f.label}</option>`).join('');
 }
@@ -153,7 +152,9 @@ async function handleUpload() {
   try {
     const res = await fetch('/upload-voice-sample', { method: 'POST', body: form });
     if (!res.ok) throw new Error((await res.json()).detail);
+    const data = await res.json();
     $('upload-status').textContent = '✓ Uploaded';
+    if (data.warning) showError('Warning: ' + data.warning);
     await fetchSamples();
     populateSampleSelect();
   } catch (e) {
