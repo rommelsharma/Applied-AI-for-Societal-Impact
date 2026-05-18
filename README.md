@@ -163,7 +163,20 @@ Applied-AI-for-Societal-Impact/
 
 ### Bias-Aware AI Decision Copilot
 
-A Retrieval-Augmented Generation (RAG) system grounded in behavioral science research to detect cognitive biases and improve decision-making.
+A local-first Retrieval-Augmented Generation (RAG) system grounded in peer-reviewed decision science and behavioural economics literature, designed to detect cognitive biases and improve decision quality.
+
+| | |
+|---|---|
+| **Purpose** | Decision-support copilot that grounds LLM responses in evidence from behavioural science — detecting biases, surfacing interventions, and improving reasoning consistency |
+| **Retrieval** | Hybrid BM25 + FAISS dense retrieval with RRF fusion (+15–30% recall lift over dense-only); MMR (λ=0.7) for result diversity |
+| **Knowledge base** | 8-layer decision-intelligence ontology: cognitive biases, failure modes, interventions, evidence hierarchy, group dynamics, forecasting, uncertainty, and decision frameworks |
+| **Generation** | Claude Sonnet on Amazon Bedrock; Amazon Titan Embeddings v2 for semantic indexing |
+| **Query routing** | Rule-based intent classifier (recall / comparison / synthesis / mitigation) with per-class MMR λ override |
+| **Traceability** | 20+ metadata fields per chunk including all 8 ontology dimensions, source, and similarity score |
+| **Synthesis** | Book-level and cross-book synthesis artefacts for epistemic grounding across the literature corpus |
+| **Privacy** | Fully local FAISS in-process vector store — no managed vector DB, no data leaves the machine |
+
+Located in `decision-intelligence/bias-aware-decision-making-rag-copilot/`.
 
 ---
 
