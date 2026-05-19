@@ -1,56 +1,27 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2870
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 Times-Bold;\f1\froman\fcharset0 Times-Roman;\f2\froman\fcharset0 Times-Italic;
-\f3\fmodern\fcharset0 Courier;}
-{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red109\green109\blue109;}
-{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c50196\c50196\c50196;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww29720\viewh18760\viewkind0
-\deftab720
-\pard\pardeftab720\sa280\partightenfactor0
+# Value Investor - Focus on Indian Markets
 
-\f0\b\fs28 \cf0 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 This is a private GitHub project.\
+## About this project
 
-\f1\b0 I will share the design motivation behind this project. Today there are a lot of apps in the market that you can subscribe to. There are a lot of open source or commercially available projects too to refer to for stock analysis.\
-However I have been keen on value investing more than day trading or short term stock buy and sell. The inspiration comes from the works of Benjamin Graham and Peter Lynch documented in their books on investments.
-\f0\b \
-Why this design is different from existing projects\
-\pard\pardeftab720\sa240\partightenfactor0
+This is a private GitHub project.
 
-\f1\b0\fs24 \cf0 PKScreener is India's #1 open-source NSE screener but it's entirely built around momentum trading \'97 RSI, MACD, breakout patterns. MachineLearningStocks uses scikit-learn to predict which stocks will outperform, but it's predicting price movements, not business value. Neither applies any investment philosophy. This solution treats Graham/Lynch rules as the 
-\f2\i engine
-\f1\i0 , not decorations. \
-\pard\pardeftab720\partightenfactor0
-\cf3 \strokec3 \
-\pard\pardeftab720\sa280\partightenfactor0
+I will share the design motivation behind this project. Today there are a lot of apps in the market that you can subscribe to. There are a lot of open source or commercially available projects too to refer to for stock analysis. However I have been keen on value investing more than day trading or short term stock buy and sell. The inspiration comes from the works of Benjamin Graham and Peter Lynch documented in their books on investments.
 
-\f0\b\fs28 \cf0 \strokec2 The three things that make my solution unique\
-\pard\pardeftab720\sa240\partightenfactor0
+## Why this design is different from existing projects
 
-\fs24 \cf0 1. The scoring engine is the philosophy, not a display layer.
-\f1\b0  Every stock gets a 0\'96100 score computed from actual Graham metrics (PE, P/B, D/E, dividend yield) and Lynch metrics (PEG, EPS CAGR, ROE). The PE exception is only granted if PEG < 1 \'97 exactly as Lynch argued.\
+PKScreener is India's #1 open-source NSE screener but it's entirely built around momentum trading — RSI, MACD, breakout patterns. MachineLearningStocks uses scikit-learn to predict which stocks will outperform, but it's predicting price movements, not business value. Neither applies any investment philosophy. This solution treats Graham/Lynch rules as the *engine*, not decorations.
 
-\f0\b 2. The LLM doesn't just describe, it reasons.
-\f1\b0  Existing Streamlit+Ollama dashboards show technical indicators but lack fundamental reasoning. Here the LLM receives live fundamentals + news + your user thesis and applies the Graham/Lynch persona to produce a structured JSON verdict \'97 agree, disagree, or augment your reasoning. \
+## The three things that make this solution unique
 
-\f0\b 3. The user prompt box of human inputs to respect their understanding and reasoning.
-\f1\b0  When you type 
-\f2\i "I think Waaree Energies is a buy because India's solar capacity needs to triple..."
-\f1\i0 , the system fetches live data, cross-references recent news, and the LLM tells you whether your thesis holds up or where it's weak \'97 using Graham/Lynch principles, not generic AI waffle.\
-\pard\pardeftab720\partightenfactor0
-\cf3 \strokec3 \
-\pard\pardeftab720\sa280\partightenfactor0
+**1. The scoring engine is the philosophy, not a display layer.** Every stock gets a 0–100 score computed from actual Graham metrics (PE, P/B, D/E, dividend yield) and Lynch metrics (PEG, EPS CAGR, ROE). The PE exception is only granted if PEG < 1 — exactly as Lynch argued.
 
-\f0\b\fs28 \cf0 \strokec2 Technology choices rationale\
-\pard\pardeftab720\sa240\partightenfactor0
+**2. The LLM doesn't just describe, it reasons.** Existing Streamlit+Ollama dashboards show technical indicators but lack fundamental reasoning. Here the LLM receives live fundamentals + news + your user thesis and applies the Graham/Lynch persona to produce a structured JSON verdict — agree, disagree, or augment your reasoning.
 
-\f1\b0\fs24 \cf0 Streamlit-based fundamental analysis cleanly implements filters for PE and PEG ratios \'97 it's the right UI choice for this kind of data-heavy but non-frontend work. \
-yfinance with the 
-\f3\fs26 .NS
-\f1\fs24  suffix is the standard for fetching NSE fundamentals in Python, and nsetools fills the real-time gaps. \
-For deep fundamentals like 5-year EPS CAGR (not in yfinance), we scrape screener.in.\
+**3. The user prompt box respects human understanding and reasoning.** When you type *"I think Waaree Energies is a buy because India's solar capacity needs to triple..."*, the system fetches live data, cross-references recent news, and the LLM tells you whether your thesis holds up or where it's weak — using Graham/Lynch principles, not generic AI waffle.
 
-\f0\b There will not be any further details or files in the public folder as this project is personal and based on my beliefs in long term value investing based on learnings from Benjamin Graham and the likes. \
-You are welcome to reach out to me for a discussion at a professional level.
-\f1\b0 \
-\
-}
+## Technology choices rationale
+
+Streamlit-based fundamental analysis cleanly implements filters for PE and PEG ratios — it's the right UI choice for this kind of data-heavy but non-frontend work. yfinance with the `.NS` suffix is the standard for fetching NSE fundamentals in Python, and nsetools fills the real-time gaps. For deep fundamentals like 5-year EPS CAGR (not in yfinance), we scrape screener.in.
+
+---
+
+> **Note:** There will not be any further details or files in the public folder as this project is personal and based on my beliefs in long term value investing, drawing on the learnings from Benjamin Graham and the likes. You are welcome to reach out for a discussion at a professional level.
