@@ -82,7 +82,7 @@ parameters) makes it practical on laptops without enterprise GPU hardware.
 XTTS-v2 (whose license restricts revenue-generating usage). Flow-matching architecture
 gives it strong zero-shot cloning from short reference clips.
 
-### SSML markup
+### SSML markup example [Speech Synthesis Markup Language (SSML)]
 
 Text submitted to the API may include lightweight markup tags for narration control:
 

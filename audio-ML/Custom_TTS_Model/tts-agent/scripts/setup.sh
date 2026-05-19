@@ -37,7 +37,7 @@ elif [ "$PLATFORM" = "linux" ]; then
   if ! [ -d "/usr/share/espeak-ng-data" ] && ! [ -d "/usr/lib/espeak-ng-data" ]; then
     echo "Installing espeak-ng via apt (required by Kokoro / phonemizer)…"
     if command -v apt-get &>/dev/null; then
-      sudo apt-get install -y espeak-ng
+      sudo apt-get install -y espeak-ng ffmpeg
     elif command -v dnf &>/dev/null; then
       sudo dnf install -y espeak-ng
     else
