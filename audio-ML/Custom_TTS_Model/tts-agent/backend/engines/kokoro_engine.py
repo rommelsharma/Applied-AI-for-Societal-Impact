@@ -138,23 +138,80 @@ def _apply_espeak_path(data_path: str) -> None:
 _configure_espeak()
 
 # Voice catalog: id → (display name, lang_code for KPipeline)
+#
+# Grades from hexgrad/Kokoro-82M VOICES.md (quality × training data):
+#   A/A- = production-ready   B/B- = good   C+/C = usable   D/F = experimental
+#
+# Language constraints
+# --------------------
+# Each voice is tied to its language pipeline — an English voice cannot read
+# Hindi text and vice versa.  Use the voice whose language matches your script.
+# Japanese (j) and Mandarin (z) require:  pip install misaki[ja]  /  misaki[zh]
+#
 _VOICES: dict[str, dict] = {
-    # American English
-    "af_bella":   {"name": "Bella (EN Female)",   "language": "en-us", "lang_code": "a"},
-    "af_nicole":  {"name": "Nicole (EN Female)",  "language": "en-us", "lang_code": "a"},
-    "af_sarah":   {"name": "Sarah (EN Female)",   "language": "en-us", "lang_code": "a"},
-    "af_sky":     {"name": "Sky (EN Female)",     "language": "en-us", "lang_code": "a"},
-    "am_adam":    {"name": "Adam (EN Male)",      "language": "en-us", "lang_code": "a"},
-    "am_michael": {"name": "Michael (EN Male)",   "language": "en-us", "lang_code": "a"},
-    # British English
-    "bf_emma":    {"name": "Emma (EN-GB Female)", "language": "en-gb", "lang_code": "b"},
-    "bf_isabella":{"name": "Isabella (EN-GB Female)", "language": "en-gb", "lang_code": "b"},
-    "bm_george":  {"name": "George (EN-GB Male)", "language": "en-gb", "lang_code": "b"},
-    "bm_lewis":   {"name": "Lewis (EN-GB Male)",  "language": "en-gb", "lang_code": "b"},
-    # Hindi
-    "hf_alpha":   {"name": "Alpha (HI Female)",   "language": "hi",    "lang_code": "h"},
-    "hf_beta":    {"name": "Beta (HI Female)",    "language": "hi",    "lang_code": "h"},
-    "hm_omega":   {"name": "Omega (HI Male)",     "language": "hi",    "lang_code": "h"},
+    # ── American English (lang_code='a') ──────────────────────────────────
+    "af_heart":   {"name": "Heart ★ (EN-US Female)",   "language": "en-us", "lang_code": "a"},  # A
+    "af_bella":   {"name": "Bella ★ (EN-US Female)",   "language": "en-us", "lang_code": "a"},  # A-
+    "af_aoede":   {"name": "Aoede (EN-US Female)",     "language": "en-us", "lang_code": "a"},  # C+
+    "af_kore":    {"name": "Kore (EN-US Female)",      "language": "en-us", "lang_code": "a"},  # C+
+    "af_alloy":   {"name": "Alloy (EN-US Female)",     "language": "en-us", "lang_code": "a"},  # C
+    "af_nova":    {"name": "Nova (EN-US Female)",      "language": "en-us", "lang_code": "a"},  # C
+    "af_nicole":  {"name": "Nicole (EN-US Female)",    "language": "en-us", "lang_code": "a"},  # B-
+    "af_sarah":   {"name": "Sarah (EN-US Female)",     "language": "en-us", "lang_code": "a"},  # C+
+    "af_sky":     {"name": "Sky (EN-US Female)",       "language": "en-us", "lang_code": "a"},  # C-
+    "af_jessica": {"name": "Jessica (EN-US Female)",   "language": "en-us", "lang_code": "a"},  # D
+    "af_river":   {"name": "River (EN-US Female)",     "language": "en-us", "lang_code": "a"},  # D
+    "am_fenrir":  {"name": "Fenrir ★ (EN-US Male)",    "language": "en-us", "lang_code": "a"},  # C+
+    "am_michael": {"name": "Michael ★ (EN-US Male)",   "language": "en-us", "lang_code": "a"},  # C+
+    "am_puck":    {"name": "Puck ★ (EN-US Male)",      "language": "en-us", "lang_code": "a"},  # C+
+    "am_echo":    {"name": "Echo (EN-US Male)",        "language": "en-us", "lang_code": "a"},  # D
+    "am_eric":    {"name": "Eric (EN-US Male)",        "language": "en-us", "lang_code": "a"},  # D
+    "am_liam":    {"name": "Liam (EN-US Male)",        "language": "en-us", "lang_code": "a"},  # D
+    "am_onyx":    {"name": "Onyx (EN-US Male)",        "language": "en-us", "lang_code": "a"},  # D
+    "am_adam":    {"name": "Adam (EN-US Male)",        "language": "en-us", "lang_code": "a"},  # F+
+    "am_santa":   {"name": "Santa (EN-US Male)",       "language": "en-us", "lang_code": "a"},  # D-
+    # ── British English (lang_code='b') ───────────────────────────────────
+    "bf_emma":    {"name": "Emma ★ (EN-GB Female)",    "language": "en-gb", "lang_code": "b"},  # B-
+    "bf_isabella":{"name": "Isabella (EN-GB Female)",  "language": "en-gb", "lang_code": "b"},  # C
+    "bf_alice":   {"name": "Alice (EN-GB Female)",     "language": "en-gb", "lang_code": "b"},  # D
+    "bf_lily":    {"name": "Lily (EN-GB Female)",      "language": "en-gb", "lang_code": "b"},  # D
+    "bm_george":  {"name": "George ★ (EN-GB Male)",    "language": "en-gb", "lang_code": "b"},  # C
+    "bm_fable":   {"name": "Fable (EN-GB Male)",       "language": "en-gb", "lang_code": "b"},  # C
+    "bm_daniel":  {"name": "Daniel (EN-GB Male)",      "language": "en-gb", "lang_code": "b"},  # D
+    "bm_lewis":   {"name": "Lewis (EN-GB Male)",       "language": "en-gb", "lang_code": "b"},  # D+
+    # ── Hindi (lang_code='h') ─────────────────────────────────────────────
+    "hf_alpha":   {"name": "Alpha (HI Female)",        "language": "hi",    "lang_code": "h"},  # C
+    "hf_beta":    {"name": "Beta (HI Female)",         "language": "hi",    "lang_code": "h"},  # C
+    "hm_omega":   {"name": "Omega (HI Male)",          "language": "hi",    "lang_code": "h"},  # C
+    "hm_psi":     {"name": "Psi (HI Male)",            "language": "hi",    "lang_code": "h"},  # C
+    # ── Spanish (lang_code='e') ───────────────────────────────────────────
+    "ef_dora":    {"name": "Dora (ES Female)",         "language": "es",    "lang_code": "e"},
+    "em_alex":    {"name": "Alex (ES Male)",           "language": "es",    "lang_code": "e"},
+    "em_santa":   {"name": "Santa (ES Male)",          "language": "es",    "lang_code": "e"},
+    # ── French (lang_code='f') ────────────────────────────────────────────
+    "ff_siwis":   {"name": "Siwis ★ (FR Female)",      "language": "fr",    "lang_code": "f"},  # B-
+    # ── Italian (lang_code='i') ───────────────────────────────────────────
+    "if_sara":    {"name": "Sara (IT Female)",         "language": "it",    "lang_code": "i"},  # C
+    "im_nicola":  {"name": "Nicola (IT Male)",         "language": "it",    "lang_code": "i"},  # C
+    # ── Brazilian Portuguese (lang_code='p') ──────────────────────────────
+    "pf_dora":    {"name": "Dora (PT-BR Female)",      "language": "pt-br", "lang_code": "p"},
+    "pm_alex":    {"name": "Alex (PT-BR Male)",        "language": "pt-br", "lang_code": "p"},
+    "pm_santa":   {"name": "Santa (PT-BR Male)",       "language": "pt-br", "lang_code": "p"},
+    # ── Japanese (lang_code='j') — requires: pip install misaki[ja] ───────
+    "jf_alpha":   {"name": "Alpha (JA Female)",        "language": "ja",    "lang_code": "j"},  # C+
+    "jf_gongitsune": {"name": "Gongitsune (JA Female)","language": "ja",   "lang_code": "j"},  # C
+    "jf_nezumi":  {"name": "Nezumi (JA Female)",       "language": "ja",    "lang_code": "j"},  # C-
+    "jf_tebukuro":{"name": "Tebukuro (JA Female)",     "language": "ja",    "lang_code": "j"},  # C
+    "jm_kumo":    {"name": "Kumo (JA Male)",           "language": "ja",    "lang_code": "j"},  # C-
+    # ── Mandarin Chinese (lang_code='z') — requires: pip install misaki[zh]
+    "zf_xiaobei": {"name": "Xiaobei (ZH Female)",      "language": "zh",    "lang_code": "z"},  # D
+    "zf_xiaoni":  {"name": "Xiaoni (ZH Female)",       "language": "zh",    "lang_code": "z"},  # D
+    "zf_xiaoxiao":{"name": "Xiaoxiao (ZH Female)",     "language": "zh",    "lang_code": "z"},  # D
+    "zf_xiaoyi":  {"name": "Xiaoyi (ZH Female)",       "language": "zh",    "lang_code": "z"},  # D
+    "zm_yunjian": {"name": "Yunjian (ZH Male)",        "language": "zh",    "lang_code": "z"},  # D
+    "zm_yunxi":   {"name": "Yunxi (ZH Male)",          "language": "zh",    "lang_code": "z"},  # D
+    "zm_yunxia":  {"name": "Yunxia (ZH Male)",         "language": "zh",    "lang_code": "z"},  # D
+    "zm_yunyang": {"name": "Yunyang (ZH Male)",        "language": "zh",    "lang_code": "z"},  # D
 }
 
 

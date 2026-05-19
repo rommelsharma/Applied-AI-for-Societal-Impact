@@ -55,10 +55,19 @@ def download_kokoro():
     logger.info("Pre-downloading Kokoro-82M weights…")
     try:
         from kokoro import KPipeline
-        # Instantiating triggers weight download from HuggingFace Hub
-        for lang_code in ("a", "b", "h"):
+        # Core lang_codes always downloaded:
+        #   a=EN-US  b=EN-GB  h=Hindi
+        #   e=Spanish  f=French  i=Italian  p=Portuguese
+        for lang_code in ("a", "b", "h", "e", "f", "i", "p"):
             logger.info("  Loading lang_code='%s'", lang_code)
             KPipeline(lang_code=lang_code, repo_id=_KOKORO_REPO_ID)
+        # CJK lang_codes require optional misaki extras
+        for lang_code, pkg in (("j", "misaki[ja]"), ("z", "misaki[zh]")):
+            try:
+                logger.info("  Loading lang_code='%s'", lang_code)
+                KPipeline(lang_code=lang_code, repo_id=_KOKORO_REPO_ID)
+            except Exception as e:
+                logger.warning("  lang_code='%s' skipped — install %s to enable: %s", lang_code, pkg, e)
         logger.info("Kokoro weights ready.")
     except ImportError:
         logger.error("kokoro package not installed. Run: pip install kokoro>=0.9.4")
