@@ -15,6 +15,7 @@ venv/
 models/
 voice_samples/
 outputs/
+input_samples/
 
 # Config
 .env

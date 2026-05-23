@@ -15,11 +15,29 @@ Yet there is reason for <emphasis level="moderate">cautious optimism</emphasis>.
 Renewable energy capacity has grown fivefold in a single decade.<pause ms="400"/>
 The question now is whether the transition will happen fast enough.`;
 
+// BCP-47 language tags for clone mode, keyed by dropdown value
+const LANGUAGE_TAGS = {
+  en:  'en-us',
+  hi:  'hi',
+  ja:  'ja',
+  zh:  'zh',
+  es:  'es',
+  fr:  'fr',
+  de:  'de',
+  it:  'it',
+  ko:  'ko',
+  pt:  'pt-br',
+  ar:  'ar',
+  ru:  'ru',
+};
+
 const state = {
-  mode: 'builtin',       // 'builtin' | 'clone'
-  inputFormat: 'plain',  // 'plain' | 'ssml'
+  mode: 'builtin',        // 'builtin' | 'clone'
+  inputFormat: 'plain',   // 'plain' | 'ssml'
   voices: [],
   samples: [],
+  activeSample: null,     // filename of the validated sample for synthesis
+  samplePreviewUrl: null, // blob URL for the preview player
 };
 
 // ── Initialisation ──────────────────────────────────────────────────────────
@@ -54,6 +72,7 @@ async function fetchSamples() {
   try {
     const res = await fetch('/voice-samples');
     state.samples = await res.json();
+    // Keep the hidden select in sync (used as state carrier for synthesis)
     populateSampleSelect();
   } catch { /* non-critical */ }
 }
@@ -69,14 +88,28 @@ function populateVoiceSelect() {
 }
 
 function populateSampleSelect() {
+  // Hidden select kept in sync so the synthesize path can read a value
   const sel = $('sample-select');
   const fromFiles = state.samples.map(s => {
     const dur = s.duration_seconds != null ? ` (${s.duration_seconds.toFixed(1)}s)` : '';
     const warn = s.duration_seconds != null && (s.duration_seconds < 3 || s.duration_seconds > 15) ? ' ⚠' : '';
     return { filename: s.filename, label: `${s.filename}${dur}${warn}` };
   });
-  sel.innerHTML = '<option value="">— select uploaded sample —</option>' +
+  sel.innerHTML = '<option value="">—</option>' +
     fromFiles.map(f => `<option value="${f.filename}">${f.label}</option>`).join('');
+
+  // Re-select active sample if it's still in the list
+  if (state.activeSample) {
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === state.activeSample) {
+        sel.selectedIndex = i;
+        return;
+      }
+    }
+    // Active sample no longer in list — clear it
+    state.activeSample = null;
+    updateSynthBtn();
+  }
 }
 
 // ── Events ───────────────────────────────────────────────────────────────────
@@ -124,6 +157,16 @@ function bindEvents() {
     $('speed-val').textContent = parseFloat($('speed-slider').value).toFixed(1) + '×';
   });
 
+  // Clone language dropdown
+  $('clone-language').addEventListener('change', updateSynthBtn);
+
+  // Upload file input — reset preview & active sample when a new file is chosen
+  $('upload-file').addEventListener('change', () => {
+    hideSamplePreview();
+    $('upload-status').textContent = '';
+    // Don't clear activeSample here — user may have just browsed; wait for upload
+  });
+
   // Upload
   $('upload-btn').addEventListener('click', handleUpload);
 
@@ -133,10 +176,21 @@ function bindEvents() {
 
 function updateSynthBtn() {
   const hasText = $('text-input').value.trim().length > 0;
-  const hasVoice = state.mode === 'builtin'
-    ? $('voice-select').value !== ''
-    : $('sample-select').value !== '';
+  let hasVoice;
+  if (state.mode === 'builtin') {
+    hasVoice = $('voice-select').value !== '';
+  } else {
+    // Clone mode requires a validated (uploaded) sample
+    hasVoice = !!state.activeSample;
+  }
   $('synthesize-btn').disabled = !(hasText && hasVoice);
+
+  // Show a nudge if in clone mode and no sample is active yet
+  if (state.mode === 'clone' && !state.activeSample) {
+    $('synthesize-btn').title = 'Upload and verify a voice sample first (Step 1 above)';
+  } else {
+    $('synthesize-btn').title = '';
+  }
 }
 
 // ── Upload ───────────────────────────────────────────────────────────────────
@@ -148,18 +202,52 @@ async function handleUpload() {
   const form = new FormData();
   form.append('file', file);
 
+  hideSamplePreview();
   $('upload-status').textContent = 'Uploading…';
+  hideError();
+
   try {
     const res = await fetch('/upload-voice-sample', { method: 'POST', body: form });
     if (!res.ok) throw new Error((await res.json()).detail);
     const data = await res.json();
     $('upload-status').textContent = '✓ Uploaded';
     if (data.warning) showError('Warning: ' + data.warning);
+
+    // Show audio preview from the local file object (instant, no extra round-trip)
+    showSamplePreview(file);
+
+    // Update active sample — this is now the voice used for synthesis
+    state.activeSample = data.filename;
+
+    // Keep hidden select in sync
     await fetchSamples();
     populateSampleSelect();
+    updateSynthBtn();
   } catch (e) {
     $('upload-status').textContent = '';
     showError('Upload failed: ' + e.message);
+  }
+}
+
+function showSamplePreview(file) {
+  if (state.samplePreviewUrl) {
+    URL.revokeObjectURL(state.samplePreviewUrl);
+  }
+  state.samplePreviewUrl = URL.createObjectURL(file);
+  const player = $('sample-player');
+  player.src = state.samplePreviewUrl;
+  player.load();
+  $('sample-preview').classList.remove('hidden');
+}
+
+function hideSamplePreview() {
+  $('sample-preview').classList.add('hidden');
+  const player = $('sample-player');
+  player.pause();
+  player.src = '';
+  if (state.samplePreviewUrl) {
+    URL.revokeObjectURL(state.samplePreviewUrl);
+    state.samplePreviewUrl = null;
   }
 }
 
@@ -172,24 +260,47 @@ async function handleSynthesize() {
 
   const text = $('text-input').value.trim();
   const speed = parseFloat($('speed-slider').value);
-
   const use_ssml = state.inputFormat === 'ssml';
+
   let body;
   if (state.mode === 'builtin') {
+    // Derive language from the selected voice metadata
     const selectedVoice = state.voices.find(v => v.id === $('voice-select').value);
     const language = selectedVoice ? selectedVoice.language : 'en-us';
     body = { text, voice: $('voice-select').value, language, speed, use_ssml };
   } else {
-    const refFile = $('sample-select').value;
-    const voiceId = `clone:${refFile.replace(/\.[^.]+$/, '')}`;
+    // Clone mode — use the validated active sample
+    if (!state.activeSample) {
+      showError('Please upload and verify a voice sample first.');
+      showLoading(false);
+      return;
+    }
+    const langCode = $('clone-language').value;
+    const language = LANGUAGE_TAGS[langCode] || 'en-us';
+    const refText = $('ref-text').value.trim();
+
+    // Warn (but don't block) when ref_text is absent for non-English languages.
+    // Without it, F5-TTS runs Whisper ASR on the reference audio which can
+    // mis-detect the language (e.g. Hindi speech → Urdu script → wrong output).
+    if (!refText && langCode !== 'en') {
+      showError(
+        '⚠ Reference Transcript is empty. Without it, F5-TTS will try to ' +
+        'auto-transcribe the audio and may detect the wrong language, ' +
+        'producing incorrect speech. Add the transcript above for best results.'
+      );
+      showLoading(false);
+      return;
+    }
+
+    const voiceId = `clone:${state.activeSample.replace(/\.[^.]+$/, '')}`;
     body = {
       text,
       voice: voiceId,
-      language: 'en-us',
+      language,
       speed,
       use_ssml,
-      reference_audio: refFile,
-      reference_text: $('ref-text').value.trim() || null,
+      reference_audio: state.activeSample,
+      reference_text: refText || null,
     };
   }
 

@@ -257,6 +257,15 @@ class KokoroEngine(TTSEngine):
             raise ValueError(f"Unknown Kokoro voice: {voice}")
 
         lang_code = voice_meta["lang_code"]
+        voice_name = voice_meta["name"]
+        voice_lang = voice_meta["language"]
+
+        logger.info(
+            "[Kokoro] request | voice=%s (%s) | lang_code=%s | language=%s | "
+            "chars=%d | speed=%.2f",
+            voice, voice_name, lang_code, voice_lang, len(text), speed,
+        )
+
         pipeline = self._get_pipeline(lang_code)
 
         chunks: list[np.ndarray] = []
@@ -270,6 +279,14 @@ class KokoroEngine(TTSEngine):
 
         combined = np.concatenate(chunks)
         processed, sr = postprocess(combined, src_rate=24000)
+        duration = len(processed) / sr if len(processed) > 0 else 0.0
+
+        logger.info(
+            "[Kokoro] output | voice=%s | lang_code=%s | language=%s | "
+            "duration=%.2fs | sample_rate=%d",
+            voice, lang_code, voice_lang, duration, sr,
+        )
+
         return audio_to_bytes(processed, sr)
 
     def list_voices(self) -> list[dict]:

@@ -33,23 +33,66 @@
 
       <!-- Voice cloning panel -->
       <section id="panel-clone" class="panel">
+
+        <!-- Step 0: Language of text to generate -->
         <div class="field">
-          <label for="sample-select">Reference clip</label>
-          <select id="sample-select">
-            <option value="">— select uploaded sample —</option>
+          <label for="clone-language">Text Language</label>
+          <select id="clone-language">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+            <option value="ja">Japanese</option>
+            <option value="zh">Chinese (Mandarin)</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="it">Italian</option>
+            <option value="ko">Korean</option>
+            <option value="pt">Portuguese</option>
+            <option value="ar">Arabic</option>
+            <option value="ru">Russian</option>
           </select>
-          <span class="hint">Best results with 5–10 s of clean, single-speaker speech. Clips &gt;12 s are truncated by F5-TTS.</span>
+          <span class="hint">Select the language of the text you want to synthesise (not the voice sample language).</span>
         </div>
+
+        <!-- Step 1: Upload voice sample -->
+        <div class="upload-card">
+          <div class="upload-card-header">
+            <span class="upload-step-num">1</span>
+            <span class="upload-step-title">Upload Voice Sample</span>
+          </div>
+          <p class="upload-requirements">
+            <strong>Requirements:</strong> 5–10 seconds of clean, single-speaker speech for best results.
+            Clips under 3 s are too short; clips over 12 s are automatically trimmed by F5-TTS.
+            <br />
+            <strong>Accepted formats:</strong> .wav &nbsp;·&nbsp; .mp3 &nbsp;·&nbsp; .flac &nbsp;·&nbsp; .ogg
+          </p>
+          <div class="upload-row">
+            <input type="file" id="upload-file" accept=".wav,.mp3,.flac,.ogg" />
+            <button id="upload-btn" class="btn-secondary">Upload</button>
+            <span id="upload-status"></span>
+          </div>
+
+          <!-- Preview player — shown after successful upload -->
+          <div id="sample-preview" class="hidden">
+            <label class="preview-label">✓ Verify your sample sounds correct before generating:</label>
+            <audio id="sample-player" controls></audio>
+          </div>
+        </div>
+
+        <!-- Step 2: Reference transcript -->
         <div class="field">
-          <label for="ref-text">Reference transcript <span class="hint">(strongly recommended — omitting causes speech-rate errors)</span></label>
-          <input type="text" id="ref-text" placeholder="Exact words spoken in the reference clip…" />
+          <label for="ref-text">
+            <span class="step-badge">2</span>
+            Reference Transcript
+            <span class="hint">(strongly recommended — omitting causes speech-rate errors)</span>
+          </label>
+          <input type="text" id="ref-text" placeholder="Exact words spoken in the uploaded voice sample…" />
+          <span class="hint">Provide a verbatim transcript of your uploaded clip. Accuracy here directly affects how well the voice is cloned.</span>
         </div>
-        <div class="field upload-area">
-          <label>Upload new reference clip</label>
-          <input type="file" id="upload-file" accept=".wav,.mp3,.flac,.ogg" />
-          <button id="upload-btn" class="btn-secondary">Upload</button>
-          <span id="upload-status"></span>
-        </div>
+
+        <!-- Hidden sample-select: auto-populated after upload; not shown to user -->
+        <select id="sample-select" class="hidden" aria-hidden="true"></select>
+
       </section>
 
       <!-- Shared controls -->

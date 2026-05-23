@@ -19,7 +19,7 @@ from backend.api.schemas import (
     HealthResponse,
 )
 from backend.engines.kokoro_engine import KokoroEngine
-from backend.engines.f5_engine import F5Engine
+from backend.engines.f5_engine import F5Engine, detect_script
 from backend.utils.audio import postprocess
 from backend.utils.broadcast import broadcast_postprocess
 from backend.utils.ssml import parser as ssml_parser, make_silence, TextSegment, SilenceSegment
@@ -96,20 +96,36 @@ def _apply_ssml_and_synthesize(req: SynthesizeRequest) -> tuple[np.ndarray, int,
     # SSML path: synthesise each text segment independently
     chunks: list[np.ndarray] = []
     sr_out = settings.TARGET_SAMPLE_RATE
-    engine = "kokoro"
+
+    # Set the engine default correctly based on the voice type so the label
+    # is accurate even if no text segments are synthesised (all-silence edge case).
+    engine = "f5-tts" if req.voice.startswith("clone:") else "kokoro"
 
     for seg in segments:
         if isinstance(seg, SilenceSegment):
             chunks.append(make_silence(seg.duration_ms, sr_out))
         elif isinstance(seg, TextSegment):
+            # Skip fragments that are too short to produce meaningful audio.
+            # Very short segments (lone punctuation, stray whitespace after tag
+            # extraction) cause garbled output or silence from TTS engines.
+            stripped = seg.text.strip()
+            if len(stripped) < 2:
+                logger.debug("SSML: skipping too-short segment %r", stripped)
+                continue
+
             req_dict = req.model_dump()
-            req_dict["text"] = seg.text
+            req_dict["text"] = stripped
             req_dict["speed"] = req.speed * seg.speed_override
             req_dict["speed"] = max(0.5, min(req_dict["speed"], 2.0))
-            wav_bytes, engine = _engine_synthesize(req_dict)
+            try:
+                wav_bytes, engine = _engine_synthesize(req_dict)
+            except Exception as exc:
+                logger.warning("SSML segment synthesis failed for %r: %s", stripped[:40], exc)
+                # Skip the failed segment but continue with the rest
+                continue
             buf = io.BytesIO(wav_bytes)
             seg_audio, seg_sr = sf.read(buf, dtype="float32")
-            # Ensure consistent sample rate
+            # Ensure consistent sample rate across all segments
             if seg_sr != sr_out:
                 from backend.utils.audio import resample
                 seg_audio = resample(seg_audio, seg_sr, sr_out)
@@ -161,12 +177,25 @@ def voices():
 def synthesize(req: SynthesizeRequest):
     start = time.perf_counter()
 
+    # ── Request traceability log ──────────────────────────────────────────
+    engine_hint = "f5-tts" if req.voice.startswith("clone:") else "kokoro"
+    script = detect_script(req.text)
+    logger.info(
+        "[SYNTH] request | engine=%s | voice=%s | lang=%s | script=%s | "
+        "chars=%d | format=%s | ssml=%s | speed=%.1f | loudness=%s",
+        engine_hint, req.voice, req.language, script,
+        len(req.text), req.output_format, req.use_ssml,
+        req.speed, req.loudness_profile,
+    )
+
     try:
         audio, sr, engine = _apply_ssml_and_synthesize(req)
         audio, sr, subtype = _apply_output_format(audio, sr, req)
     except (ValueError, FileNotFoundError) as exc:
+        logger.error("[SYNTH] failed | engine=%s | lang=%s | error=%s", engine_hint, req.language, exc)
         raise HTTPException(400, str(exc))
     except RuntimeError as exc:
+        logger.error("[SYNTH] failed | engine=%s | lang=%s | error=%s", engine_hint, req.language, exc)
         raise HTTPException(500, str(exc))
 
     filename = f"{uuid.uuid4().hex}.wav"
@@ -175,9 +204,13 @@ def synthesize(req: SynthesizeRequest):
 
     duration = (len(audio) / sr) if audio.ndim == 1 else (audio.shape[0] / sr)
     elapsed = time.perf_counter() - start
+
+    # ── Output confirmation log ───────────────────────────────────────────
     logger.info(
-        "Synthesized %.2fs @ %d Hz in %.2fs | engine=%s format=%s",
-        duration, sr, elapsed, engine, req.output_format
+        "[SYNTH] output | engine=%s | voice=%s | lang=%s | script=%s | "
+        "duration=%.2fs | sample_rate=%d | format=%s | subtype=%s | elapsed=%.2fs | file=%s",
+        engine, req.voice, req.language, script,
+        duration, sr, req.output_format, subtype, elapsed, filename,
     )
 
     return SynthesizeResponse(

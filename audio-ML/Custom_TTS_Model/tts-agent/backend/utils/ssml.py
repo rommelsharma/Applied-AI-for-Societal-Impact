@@ -10,6 +10,8 @@ Supported tags
 <emphasis level="moderate">…</emphasis> — synthesise at 0.92× speed
 <emphasis level="reduced">…</emphasis>  — synthesise at 1.10× speed
 <say-as interpret-as="characters">…</say-as> — spell out character by character
+                                              (Latin scripts only; non-Latin
+                                               scripts are passed through as-is)
 
 Tags are parsed into a list of Segment objects; the synthesiser walks the list
 and assembles the final waveform from audio chunks and silence blocks.
@@ -17,7 +19,8 @@ and assembles the final waveform from audio chunks and silence blocks.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+import unicodedata
+from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
@@ -42,6 +45,11 @@ EMPHASIS_SPEEDS: dict[str, float] = {
     "default":  1.00,
 }
 
+# Minimum non-whitespace characters for a text segment to be worth synthesising.
+# Very short fragments (e.g. a lone punctuation mark left after tag extraction)
+# produce silence or artefacts in most TTS engines.
+MIN_SEGMENT_CHARS = 2
+
 
 # ── Data model ────────────────────────────────────────────────────────────────
 
@@ -61,41 +69,89 @@ class SilenceSegment:
 Segment = TextSegment | SilenceSegment
 
 
+# ── Script detection helper ───────────────────────────────────────────────────
+
+def _is_latin_script(text: str) -> bool:
+    """
+    Return True if the majority of letters in *text* are Latin-script characters.
+    Used to decide whether letter-by-letter spelling makes linguistic sense.
+    """
+    latin_count = 0
+    total_letters = 0
+    for ch in text:
+        cat = unicodedata.category(ch)
+        if cat.startswith('L'):          # any Unicode letter
+            total_letters += 1
+            name = unicodedata.name(ch, '')
+            if name.startswith('LATIN') or name.startswith('SMALL LATIN') or ord(ch) < 0x0100:
+                latin_count += 1
+    if total_letters == 0:
+        return True  # no letters at all — treat as Latin for safety
+    return (latin_count / total_letters) >= 0.5
+
+
 # ── Parser ────────────────────────────────────────────────────────────────────
 
 class SSMLParser:
-    """Parse an SSML-tagged string into a flat list of Segments."""
+    """Parse an SSML-tagged string into a flat list of Segments.
 
-    # Match any tag we handle; unrecognised tags are stripped
+    Design notes
+    ------------
+    * The inner-text capture uses [^<]+ rather than [^<]* so that empty wrapped
+      tags (e.g. <emphasis></emphasis>) are not matched and left for the
+      "unrecognised / empty" fallback path.
+    * re.DOTALL is NOT used intentionally; newlines inside <emphasis> are
+      captured by [^<]* because character classes are never affected by DOTALL.
+    * Unicode text (Hindi, Japanese, Arabic, etc.) works transparently because
+      Python's re engine handles Unicode by default.
+    """
+
+    # Two independent top-level alternatives:
+    #   1. Any handled or unhandled tag (self-closing or wrapping)
+    #   2. <break> in its various forms (backup for non-self-closing variants)
     _TAG_RE = re.compile(
-        r'<(?P<tag>[a-z\-]+)'        # opening tag name
-        r'(?P<attrs>[^>/]*)'          # attributes
-        r'(?:/>'                      # self-closing
-        r'|>(?P<inner>[^<]*)</[a-z\-]+>)'  # wrapping content
-        r'|<break\s[^/]*/?>',         # break shorthand
+        # Alt 1 ── generic tag: self-closing or wrapping inner text
+        r'<(?P<tag>[a-zA-Z][a-zA-Z0-9\-]*)'   # opening tag name (ASCII)
+        r'(?P<attrs>[^>]*?)'                    # attributes (non-greedy, no closing >)
+        r'(?:'
+            r'/>'                               # self-closing: />
+            r'|>(?P<inner>[^<]*?)</[a-zA-Z][a-zA-Z0-9\-]*\s*>'  # wrapping: >…</tag>
+        r')'
+        r'|'
+        # Alt 2 ── <break> shorthand (non-self-closing, no inner content)
+        r'<break(?P<break_attrs>[^>]*)>',
         re.IGNORECASE,
     )
 
-    _ATTR_RE = re.compile(r'(\w[\w\-]*)=["\']([^"\']*)["\']')
+    _ATTR_RE = re.compile(r'([\w][\w\-]*)=["\']([^"\']*)["\']')
 
     def _parse_attrs(self, attr_str: str) -> dict[str, str]:
-        return {k: v for k, v in self._ATTR_RE.findall(attr_str)}
+        return {k: v for k, v in self._ATTR_RE.findall(attr_str or '')}
 
     def parse(self, ssml_text: str) -> list[Segment]:
         segments: list[Segment] = []
         cursor = 0
 
         for m in self._TAG_RE.finditer(ssml_text):
-            # Text before this tag
+            # ── Text before this tag ──────────────────────────────────────
             before = ssml_text[cursor:m.start()]
             if before.strip():
                 segments.append(TextSegment(text=before.strip()))
             cursor = m.end()
 
-            full_match = m.group(0)
             tag = (m.group('tag') or '').lower()
             attrs = self._parse_attrs(m.group('attrs') or '')
             inner = (m.group('inner') or '').strip()
+
+            # Alt 2 match: <break ...> (no named 'tag' group matched)
+            if not tag:
+                break_attrs = self._parse_attrs(m.group('break_attrs') or '')
+                strength = break_attrs.get('strength', 'sentence')
+                ms = BREAK_STRENGTHS.get(strength, 350)
+                if 'time' in break_attrs:
+                    ms = _parse_time(break_attrs['time'])
+                segments.append(SilenceSegment(duration_ms=ms))
+                continue
 
             if tag == 'pause':
                 ms = int(attrs.get('ms', 300))
@@ -106,12 +162,7 @@ class SSMLParser:
                 strength = attrs.get('strength', 'sentence')
                 ms = BREAK_STRENGTHS.get(strength, 350)
                 if 'time' in attrs:
-                    # time="500ms" or time="0.5s"
-                    t = attrs['time']
-                    if t.endswith('ms'):
-                        ms = int(t[:-2])
-                    elif t.endswith('s'):
-                        ms = int(float(t[:-1]) * 1000)
+                    ms = _parse_time(attrs['time'])
                 segments.append(SilenceSegment(duration_ms=ms))
 
             elif tag == 'emphasis':
@@ -123,16 +174,28 @@ class SSMLParser:
             elif tag == 'say-as':
                 interpret = attrs.get('interpret-as', '')
                 if interpret == 'characters' and inner:
-                    spaced = ' '.join(list(inner.upper()))
-                    segments.append(TextSegment(text=spaced, speed_override=0.80))
+                    if _is_latin_script(inner):
+                        # Spell out Latin characters with spaces between each
+                        spaced = ' '.join(list(inner.upper()))
+                        segments.append(TextSegment(text=spaced, speed_override=0.80))
+                    else:
+                        # Non-Latin scripts (Hindi, Japanese, Arabic, etc.):
+                        # letter-by-letter pronunciation doesn't map to written
+                        # characters — pass the text through as-is so the TTS
+                        # engine handles it with its own grapheme-to-phoneme rules.
+                        logger.debug(
+                            "say-as interpret-as='characters' with non-Latin text — "
+                            "passing through: %r", inner
+                        )
+                        segments.append(TextSegment(text=inner))
                 elif inner:
                     segments.append(TextSegment(text=inner))
 
-            # Unrecognised tags: drop the tag, keep inner text if present
+            # Unrecognised tags: drop tag markup, preserve inner text
             elif inner:
                 segments.append(TextSegment(text=inner))
 
-        # Trailing text after last tag
+        # Trailing text after the last tag
         tail = ssml_text[cursor:].strip()
         if tail:
             segments.append(TextSegment(text=tail))
@@ -140,9 +203,27 @@ class SSMLParser:
         return [s for s in segments if _segment_has_content(s)]
 
 
+def _parse_time(time_str: str) -> int:
+    """Parse SSML time attribute like '500ms' or '0.5s' → milliseconds."""
+    time_str = time_str.strip()
+    if time_str.endswith('ms'):
+        try:
+            return int(time_str[:-2])
+        except ValueError:
+            return 350
+    elif time_str.endswith('s'):
+        try:
+            return int(float(time_str[:-1]) * 1000)
+        except ValueError:
+            return 350
+    return 350
+
+
 def _segment_has_content(seg: Segment) -> bool:
     if isinstance(seg, TextSegment):
-        return bool(seg.text.strip())
+        # Require at least MIN_SEGMENT_CHARS non-whitespace characters so
+        # lone punctuation marks or stray spaces don't trigger synthesis calls
+        return len(seg.text.replace(' ', '').replace('\n', '').replace('\t', '')) >= MIN_SEGMENT_CHARS
     return seg.duration_ms > 0
 
 
