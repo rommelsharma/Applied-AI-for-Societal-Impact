@@ -87,4 +87,4 @@ class HealthResponse(BaseModel):
     kokoro_ready: bool
     f5_ready: bool
     device: str
-    version: str = "2.0.0"
+    version: str = "2.2.0"

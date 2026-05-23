@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -14,10 +15,18 @@ logger = get_logger(__name__)
 _HERE = Path(__file__).resolve().parent.parent
 _FRONTEND = _HERE / "frontend"
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("TTS Agent v2.2.0 started — visit http://localhost:8000")
+    yield
+
+
 app = FastAPI(
     title="TTS Agent",
     description="Local TTS service using Kokoro-82M (built-in voices) and F5-TTS (voice cloning)",
-    version="1.0.0",
+    version="2.2.0",
+    lifespan=lifespan,
 )
 
 app.include_router(router)
@@ -29,8 +38,3 @@ templates = Jinja2Templates(directory=str(_FRONTEND / "templates"))
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
-
-@app.on_event("startup")
-def on_startup():
-    logger.info("TTS Agent started — visit http://localhost:8000")

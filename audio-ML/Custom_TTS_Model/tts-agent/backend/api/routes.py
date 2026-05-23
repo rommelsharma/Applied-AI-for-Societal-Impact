@@ -2,6 +2,7 @@ import asyncio
 import io
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -19,9 +20,9 @@ from backend.api.schemas import (
 )
 from backend.engines.kokoro_engine import KokoroEngine
 from backend.engines.f5_engine import F5Engine
-from backend.utils.audio import save_wav, postprocess
+from backend.utils.audio import postprocess
 from backend.utils.broadcast import broadcast_postprocess
-from backend.utils.ssml import parser as ssml_parser, strip_ssml, make_silence, TextSegment, SilenceSegment
+from backend.utils.ssml import parser as ssml_parser, make_silence, TextSegment, SilenceSegment
 from backend.utils.batch import create_job, get_job, run_batch, MAX_SEGMENTS
 from backend.utils.device import DEVICE
 from backend.utils.logger import get_logger
@@ -33,6 +34,9 @@ router = APIRouter()
 # Engine singletons — initialised once at import time
 _kokoro = KokoroEngine()
 _f5 = F5Engine()
+
+# Thread pool for CPU-bound batch work — keeps the event loop unblocked
+_batch_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="batch")
 
 
 def _engine_synthesize(req_dict: dict) -> tuple[bytes, str]:
@@ -187,26 +191,27 @@ def synthesize(req: SynthesizeRequest):
 
 
 @router.post("/batch-synthesize", response_model=BatchJobResponse)
-def batch_synthesize(req: BatchSynthesizeRequest, background_tasks: BackgroundTasks):
+async def batch_synthesize(req: BatchSynthesizeRequest, background_tasks: BackgroundTasks):
     if len(req.segments) > MAX_SEGMENTS:
         raise HTTPException(400, f"Maximum {MAX_SEGMENTS} segments per batch.")
 
     job = create_job(total_segments=len(req.segments))
-
-    def _synthesize_segment(seg_dict: dict) -> tuple[bytes, str]:
-        return _engine_synthesize(seg_dict)
-
     use_broadcast = req.output_format in ("wav44", "wav44_24bit")
+    segment_dicts = [s.model_dump() for s in req.segments]
 
+    loop = asyncio.get_event_loop()
     background_tasks.add_task(
-        run_batch,
-        job=job,
-        requests=[s.model_dump() for s in req.segments],
-        synthesize_fn=_synthesize_segment,
-        gap_ms=req.gap_ms,
-        concatenate=req.concatenate,
-        loudness_profile=req.loudness_profile,
-        broadcast=use_broadcast,
+        loop.run_in_executor,
+        _batch_executor,
+        lambda: run_batch(
+            job=job,
+            requests=segment_dicts,
+            synthesize_fn=_engine_synthesize,
+            gap_ms=req.gap_ms,
+            concatenate=req.concatenate,
+            loudness_profile=req.loudness_profile,
+            broadcast=use_broadcast,
+        ),
     )
 
     logger.info("Batch job %s queued: %d segments", job.job_id, len(req.segments))
@@ -223,7 +228,8 @@ def batch_status(job_id: str):
 
 @router.get("/audio/{filename}")
 def serve_audio(filename: str):
-    path = settings.output_dir / filename
+    safe_name = Path(filename).name  # strip any ../ path traversal components
+    path = settings.output_dir / safe_name
     if not path.exists() or path.suffix != ".wav":
         raise HTTPException(404, "Audio file not found.")
     return FileResponse(str(path), media_type="audio/wav")
@@ -232,10 +238,11 @@ def serve_audio(filename: str):
 @router.post("/upload-voice-sample")
 async def upload_voice_sample(file: UploadFile = File(...)):
     allowed = {".wav", ".mp3", ".flac", ".ogg"}
-    suffix = Path(file.filename).suffix.lower()
+    safe_name = Path(file.filename).name  # strip any ../ path traversal components
+    suffix = Path(safe_name).suffix.lower()
     if suffix not in allowed:
         raise HTTPException(400, f"Unsupported file type. Allowed: {', '.join(allowed)}")
-    dest = settings.voice_samples_dir / file.filename
+    dest = settings.voice_samples_dir / safe_name
     content = await file.read()
     dest.write_bytes(content)
 
@@ -254,11 +261,11 @@ async def upload_voice_sample(file: UploadFile = File(...)):
                 f"Clip is {duration_s:.1f}s — too long. F5-TTS clips references to 12 s maximum. "
                 "Trim to 5–10 s of clean speech for best results."
             )
-        logger.info("Uploaded voice sample: %s (%.1fs, %d bytes)", file.filename, duration_s, len(content))
+        logger.info("Uploaded voice sample: %s (%.1fs, %d bytes)", safe_name, duration_s, len(content))
     except Exception:
-        logger.info("Uploaded voice sample: %s (%d bytes)", file.filename, len(content))
+        logger.info("Uploaded voice sample: %s (%d bytes)", safe_name, len(content))
 
-    result: dict = {"filename": file.filename, "size_bytes": len(content)}
+    result: dict = {"filename": safe_name, "size_bytes": len(content)}
     if warning:
         result["warning"] = warning
     return result
@@ -284,8 +291,9 @@ def list_voice_samples():
 
 @router.delete("/voice-samples/{filename}")
 def delete_voice_sample(filename: str):
-    path = settings.voice_samples_dir / filename
+    safe_name = Path(filename).name  # strip any ../ path traversal components
+    path = settings.voice_samples_dir / safe_name
     if not path.exists():
         raise HTTPException(404, "Voice sample not found.")
     path.unlink()
-    return {"deleted": filename}
+    return {"deleted": safe_name}

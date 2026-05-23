@@ -176,7 +176,9 @@ async function handleSynthesize() {
   const use_ssml = state.inputFormat === 'ssml';
   let body;
   if (state.mode === 'builtin') {
-    body = { text, voice: $('voice-select').value, language: 'en-us', speed, use_ssml };
+    const selectedVoice = state.voices.find(v => v.id === $('voice-select').value);
+    const language = selectedVoice ? selectedVoice.language : 'en-us';
+    body = { text, voice: $('voice-select').value, language, speed, use_ssml };
   } else {
     const refFile = $('sample-select').value;
     const voiceId = `clone:${refFile.replace(/\.[^.]+$/, '')}`;
