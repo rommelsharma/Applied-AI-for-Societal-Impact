@@ -20,7 +20,7 @@ class SynthesizeRequest(BaseModel):
             "<say-as interpret-as='characters'>…</say-as>"
         ),
     )
-    reference_audio: str | None = Field(None, description="Filename in voice_samples/ for F5-TTS")
+    reference_audio: str | None = Field(None, description="Filename in voice_samples/ or input_samples/ for XTTS v2")
     reference_text: str | None = Field(None, description="Transcript of the reference clip")
     # v2.0 additions
     output_format: OutputFormat = Field(
@@ -85,6 +85,6 @@ class BatchJobResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     kokoro_ready: bool
-    f5_ready: bool
+    xtts_ready: bool
     device: str
-    version: str = "2.2.0"
+    version: str = "3.0.0"

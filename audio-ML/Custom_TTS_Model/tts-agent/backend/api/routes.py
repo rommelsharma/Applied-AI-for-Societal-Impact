@@ -19,7 +19,7 @@ from backend.api.schemas import (
     HealthResponse,
 )
 from backend.engines.kokoro_engine import KokoroEngine
-from backend.engines.f5_engine import F5Engine, detect_script
+from backend.engines.xtts_engine import XTTSEngine
 from backend.utils.audio import postprocess
 from backend.utils.broadcast import broadcast_postprocess
 from backend.utils.ssml import parser as ssml_parser, make_silence, TextSegment, SilenceSegment
@@ -33,7 +33,7 @@ router = APIRouter()
 
 # Engine singletons — initialised once at import time
 _kokoro = KokoroEngine()
-_f5 = F5Engine()
+_xtts = XTTSEngine()
 
 # Thread pool for CPU-bound batch work — keeps the event loop unblocked
 _batch_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="batch")
@@ -45,9 +45,9 @@ def _engine_synthesize(req_dict: dict) -> tuple[bytes, str]:
     is_clone = voice.startswith("clone:")
 
     if is_clone:
-        if not _f5.is_ready():
-            raise RuntimeError("F5-TTS engine is not available.")
-        wav_bytes = _f5.synthesize(
+        if not _xtts.is_ready():
+            raise RuntimeError("XTTS v2 engine is not available. Run: pip install TTS>=0.22.0")
+        wav_bytes = _xtts.synthesize(
             text=req_dict["text"],
             voice=voice,
             language=req_dict.get("language", "en-us"),
@@ -55,7 +55,7 @@ def _engine_synthesize(req_dict: dict) -> tuple[bytes, str]:
             reference_audio=req_dict.get("reference_audio"),
             reference_text=req_dict.get("reference_text"),
         )
-        return wav_bytes, "f5-tts"
+        return wav_bytes, "xtts-v2"
     else:
         if not _kokoro.is_ready():
             raise RuntimeError("Kokoro engine is not available.")
@@ -99,7 +99,7 @@ def _apply_ssml_and_synthesize(req: SynthesizeRequest) -> tuple[np.ndarray, int,
 
     # Set the engine default correctly based on the voice type so the label
     # is accurate even if no text segments are synthesised (all-silence edge case).
-    engine = "f5-tts" if req.voice.startswith("clone:") else "kokoro"
+    engine = "xtts-v2" if req.voice.startswith("clone:") else "kokoro"
 
     for seg in segments:
         if isinstance(seg, SilenceSegment):
@@ -162,15 +162,45 @@ def health():
     return HealthResponse(
         status="ok",
         kokoro_ready=_kokoro.is_ready(),
-        f5_ready=_f5.is_ready(),
+        xtts_ready=_xtts.is_ready(),
         device=DEVICE,
     )
 
 
 @router.get("/voices", response_model=list[VoiceInfo])
 def voices():
-    all_voices = _kokoro.list_voices() + _f5.list_voices()
+    all_voices = _kokoro.list_voices() + _xtts.list_voices()
     return [VoiceInfo(**v) for v in all_voices]
+
+
+# ── Input samples (pre-packaged test references) ──────────────────────────────
+
+@router.get("/input-samples")
+def list_input_samples():
+    """List audio files in the input_samples/ directory (pre-packaged test references)."""
+    import soundfile as _sf
+    result = []
+    for p in sorted(settings.input_samples_dir.iterdir()):
+        if p.suffix.lower() not in {".wav", ".mp3", ".flac", ".ogg"}:
+            continue
+        entry: dict = {"filename": p.name, "size_bytes": p.stat().st_size}
+        try:
+            info = _sf.info(str(p))
+            entry["duration_seconds"] = round(info.duration, 2)
+        except Exception:
+            entry["duration_seconds"] = None
+        result.append(entry)
+    return result
+
+
+@router.get("/input-samples/{filename}")
+def serve_input_sample(filename: str):
+    """Serve a file from input_samples/ (used by the Test Results audio players)."""
+    safe_name = Path(filename).name   # strip any ../ traversal
+    path = settings.input_samples_dir / safe_name
+    if not path.exists() or path.suffix.lower() not in {".wav", ".mp3", ".flac", ".ogg"}:
+        raise HTTPException(404, "Input sample not found.")
+    return FileResponse(str(path), media_type="audio/wav")
 
 
 @router.post("/synthesize", response_model=SynthesizeResponse)
@@ -178,12 +208,11 @@ def synthesize(req: SynthesizeRequest):
     start = time.perf_counter()
 
     # ── Request traceability log ──────────────────────────────────────────
-    engine_hint = "f5-tts" if req.voice.startswith("clone:") else "kokoro"
-    script = detect_script(req.text)
+    engine_hint = "xtts-v2" if req.voice.startswith("clone:") else "kokoro"
     logger.info(
-        "[SYNTH] request | engine=%s | voice=%s | lang=%s | script=%s | "
+        "[SYNTH] request | engine=%s | voice=%s | lang=%s | "
         "chars=%d | format=%s | ssml=%s | speed=%.1f | loudness=%s",
-        engine_hint, req.voice, req.language, script,
+        engine_hint, req.voice, req.language,
         len(req.text), req.output_format, req.use_ssml,
         req.speed, req.loudness_profile,
     )
@@ -197,6 +226,12 @@ def synthesize(req: SynthesizeRequest):
     except RuntimeError as exc:
         logger.error("[SYNTH] failed | engine=%s | lang=%s | error=%s", engine_hint, req.language, exc)
         raise HTTPException(500, str(exc))
+    except Exception as exc:
+        logger.error(
+            "[SYNTH] unexpected error | engine=%s | lang=%s | error=%s",
+            engine_hint, req.language, exc, exc_info=True,
+        )
+        raise HTTPException(500, f"Synthesis error: {exc}")
 
     filename = f"{uuid.uuid4().hex}.wav"
     out_path = settings.output_dir / filename
@@ -207,9 +242,9 @@ def synthesize(req: SynthesizeRequest):
 
     # ── Output confirmation log ───────────────────────────────────────────
     logger.info(
-        "[SYNTH] output | engine=%s | voice=%s | lang=%s | script=%s | "
+        "[SYNTH] output | engine=%s | voice=%s | lang=%s | "
         "duration=%.2fs | sample_rate=%d | format=%s | subtype=%s | elapsed=%.2fs | file=%s",
-        engine, req.voice, req.language, script,
+        engine, req.voice, req.language,
         duration, sr, req.output_format, subtype, elapsed, filename,
     )
 
@@ -279,7 +314,7 @@ async def upload_voice_sample(file: UploadFile = File(...)):
     content = await file.read()
     dest.write_bytes(content)
 
-    # Check clip duration and warn if outside F5-TTS optimal range (3–12 s)
+    # Check clip duration and warn if outside XTTS v2 optimal range (3–12 s)
     warning: str | None = None
     try:
         import io as _io
@@ -288,11 +323,11 @@ async def upload_voice_sample(file: UploadFile = File(...)):
         info = _sf.info(buf)
         duration_s = info.duration
         if duration_s < 3:
-            warning = f"Clip is {duration_s:.1f}s — too short. F5-TTS needs at least 3 s of clear speech."
+            warning = f"Clip is {duration_s:.1f}s — too short. XTTS v2 needs at least 3 s of clear speech."
         elif duration_s > 15:
             warning = (
-                f"Clip is {duration_s:.1f}s — too long. F5-TTS clips references to 12 s maximum. "
-                "Trim to 5–10 s of clean speech for best results."
+                f"Clip is {duration_s:.1f}s — longer than the recommended 15 s maximum. "
+                "Trim to 5–12 s of clean, single-speaker speech for best results."
             )
         logger.info("Uploaded voice sample: %s (%.1fs, %d bytes)", safe_name, duration_s, len(content))
     except Exception:

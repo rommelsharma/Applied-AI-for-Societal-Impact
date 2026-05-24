@@ -45,31 +45,43 @@ class TestKokoroEngine:
                 engine.synthesize("hello", voice="af_bella")
 
 
-class TestF5Engine:
+class TestXTTSEngine:
     def test_synthesize_raises_without_reference(self):
-        with patch("backend.engines.f5_engine.F5Engine._load"):
-            from backend.engines.f5_engine import F5Engine
-            engine = F5Engine.__new__(F5Engine)
+        with patch("backend.engines.xtts_engine.XTTSEngine._load"):
+            from backend.engines.xtts_engine import XTTSEngine
+            engine = XTTSEngine.__new__(XTTSEngine)
+            engine._TTS = MagicMock()
             engine._model = None
             engine._ready = True
-            engine._F5TTS = MagicMock()
-            with pytest.raises(ValueError, match="reference_audio"):
+            with pytest.raises(ValueError, match="reference_audio is required"):
                 engine.synthesize("hello", voice="clone:speaker")
 
-    def test_list_voices_from_samples_dir(self, tmp_path):
-        with patch("backend.engines.f5_engine.F5Engine._load"):
-            from backend.engines.f5_engine import F5Engine
-            from configs.settings import settings
-            engine = F5Engine.__new__(F5Engine)
+    def test_synthesize_raises_when_not_ready(self):
+        with patch("backend.engines.xtts_engine.XTTSEngine._load"):
+            from backend.engines.xtts_engine import XTTSEngine
+            engine = XTTSEngine.__new__(XTTSEngine)
+            engine._TTS = None
             engine._model = None
+            engine._ready = False
+            with pytest.raises(RuntimeError, match="XTTS v2 engine failed"):
+                engine.synthesize("hello", voice="clone:speaker",
+                                  reference_audio="speaker.wav")
+
+    def test_list_voices_from_samples_dir(self, tmp_path):
+        with patch("backend.engines.xtts_engine.XTTSEngine._load"):
+            from backend.engines.xtts_engine import XTTSEngine
+            engine = XTTSEngine.__new__(XTTSEngine)
+            engine._TTS = engine._model = None
             engine._ready = True
 
-            # Create dummy wav files
             (tmp_path / "speaker1.wav").touch()
             (tmp_path / "speaker2.wav").touch()
 
-            with patch.object(settings, "voice_samples_dir", tmp_path):
+            with patch("backend.engines.xtts_engine.settings") as ms:
+                ms.voice_samples_dir = tmp_path
                 voices = engine.list_voices()
-            ids = [v["id"] for v in voices]
-            assert "clone:speaker1" in ids
-            assert "clone:speaker2" in ids
+
+        ids = [v["id"] for v in voices]
+        assert "clone:speaker1" in ids
+        assert "clone:speaker2" in ids
+        assert all(v["engine"] == "xtts-v2" for v in voices)

@@ -15,7 +15,7 @@ def test_health():
     assert data["status"] == "ok"
     assert "device" in data
     assert "kokoro_ready" in data
-    assert "f5_ready" in data
+    assert "xtts_ready" in data
 
 
 def test_voices_returns_list():

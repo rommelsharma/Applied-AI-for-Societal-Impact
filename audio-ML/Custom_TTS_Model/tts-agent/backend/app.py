@@ -18,14 +18,14 @@ _FRONTEND = _HERE / "frontend"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("TTS Agent v2.2.0 started — visit http://localhost:8000")
+    logger.info("TTS Agent v3.0.0 started — visit http://localhost:8000")
     yield
 
 
 app = FastAPI(
     title="TTS Agent",
-    description="Local TTS service using Kokoro-82M (built-in voices) and F5-TTS (voice cloning)",
-    version="2.2.0",
+    description="Local TTS service using Kokoro-82M (built-in voices) and XTTS v2 (voice cloning)",
+    version="3.0.0",
     lifespan=lifespan,
 )
 
@@ -37,4 +37,4 @@ templates = Jinja2Templates(directory=str(_FRONTEND / "templates"))
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")

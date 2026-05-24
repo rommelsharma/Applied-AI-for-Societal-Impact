@@ -17,33 +17,24 @@ class Settings(BaseSettings):
     OUTPUT_DIR: Path = Path("outputs")
     VOICE_SAMPLES_DIR: Path = Path("voice_samples")
 
+    # Pre-packaged reference audio for the built-in test suite.
+    # Place the following files here before clicking "Run All Tests":
+    #   cloning-voice-clip-male-hindi-1.wav   (Hindi male reference)
+    #   cloning-voice-samples-JP.wav          (Japanese reference)
+    # Files are served via GET /input-samples/{filename} and are accepted
+    # as reference_audio values by the XTTS engine (checked before voice_samples/).
+    INPUT_SAMPLES_DIR: Path = Path("input_samples")
+
     # Kokoro engine
     KOKORO_LANG_EN: str = "a"   # American English
     KOKORO_LANG_HI: str = "h"   # Hindi
 
-    # F5-TTS engine — base model (English + Mandarin)
-    F5_MODEL_NAME: str = "F5TTS_v1_Base"
-    F5_VOCODER_NAME: str = "vocos"
-
-    # ── Language-specific F5-TTS checkpoints ─────────────────────────────────
-    # Models trained on specific scripts that understand their native character
-    # sets directly (no IPA phonemisation needed).
-    # Set any *_MODEL_NAME to "" to disable that override and fall back to the
-    # base model + espeak-ng phonemisation for that language.
-    #
-    # Hindi — SPRINGLab/F5-Hindi-24KHz (Devanagari vocab, 73 chars)
-    F5_HINDI_MODEL_NAME: str = "SPRINGLab/F5-Hindi-24KHz"
-    F5_HINDI_CKPT_FILE: str = ""          # empty = auto-detect (first .safetensors/.pt)
-    F5_HINDI_VOCAB_FILE: str = ""         # empty = auto-detect (vocab.txt in repo root)
-
-    # Japanese — Jmica/F5TTS, JA_21999120 checkpoint
-    # (Hiragana + Katakana + Kanji vocab, 2976 entries)
-    # Architecture: F5TTS_Small (depth=18) — Jmica was fine-tuned from the
-    # original Small, not v1_Base, so F5TTS_Small is the correct arch config.
-    F5_JAPANESE_MODEL_NAME: str = "Jmica/F5TTS"
-    F5_JAPANESE_CKPT_FILE: str = "JA_21999120/model_21999120.pt"
-    F5_JAPANESE_VOCAB_FILE: str = "JA_21999120/vocab_japanese.txt"
-    F5_JAPANESE_ARCH_MODEL: str = "F5TTS_Small"  # must match checkpoint depth
+    # XTTS v2 engine — multilingual zero-shot voice cloning
+    # Supported languages: en es fr de it pt pl tr ru nl cs ar zh-cn hu ko ja hi
+    # The model (~1.8 GB) auto-downloads on first synthesis call via Coqui TTS.
+    # Pre-download with:  python scripts/download_models.py --xtts
+    # License: Coqui Public Model License v1.0 (commercial use ≤ $1M/yr revenue)
+    XTTS_MODEL_NAME: str = "tts_models/multilingual/multi-dataset/xtts_v2"
 
     # Audio post-processing
     TARGET_SAMPLE_RATE: int = 24000
@@ -70,12 +61,18 @@ class Settings(BaseSettings):
         return p
 
     @property
+    def input_samples_dir(self) -> Path:
+        p = self.abs_path(self.INPUT_SAMPLES_DIR)
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+    @property
     def kokoro_model_dir(self) -> Path:
         return self.abs_path(self.MODEL_DIR / "kokoro")
 
     @property
-    def f5_model_dir(self) -> Path:
-        return self.abs_path(self.MODEL_DIR / "f5tts")
+    def xtts_model_dir(self) -> Path:
+        return self.abs_path(self.MODEL_DIR / "xtts")
 
 
 settings = Settings()

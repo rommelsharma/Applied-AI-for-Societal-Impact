@@ -1,5 +1,9 @@
 # TTS Agent — GPU-enabled Docker image
-# Requires NVIDIA Container Toolkit for GPU access
+# Requires NVIDIA Container Toolkit for GPU access on Linux / WSL2.
+#
+# XTTS v2 note: the model (~1.8 GB) auto-downloads to ~/.local/share/tts/
+# on first synthesis if not pre-cached.  Mount a volume there for persistence:
+#   docker run -v tts_cache:/root/.local/share/tts ...
 FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
 
 WORKDIR /app
@@ -9,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsndfile1 \
     ffmpeg \
     git \
+    espeak-ng \
     && rm -rf /var/lib/apt/lists/*
 
 # Python deps first (cached layer)
@@ -22,7 +27,7 @@ COPY configs/    ./configs/
 COPY scripts/    ./scripts/
 
 # Runtime directories (override with host mounts)
-RUN mkdir -p models/kokoro models/f5tts voice_samples outputs
+RUN mkdir -p models/kokoro models/xtts voice_samples input_samples outputs
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app

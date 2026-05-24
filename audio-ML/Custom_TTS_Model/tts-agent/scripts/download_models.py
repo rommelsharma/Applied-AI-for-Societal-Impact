@@ -1,11 +1,13 @@
 """
-Download model weights for Kokoro-82M and F5-TTS.
+Pre-download model weights for Kokoro-82M and XTTS v2.
 
 Kokoro-82M — weights are fetched automatically by the kokoro package
 from HuggingFace Hub on first use, but this script pre-downloads them
 so the container or offline machine doesn't need internet access later.
 
-F5-TTS — similarly auto-downloads on first use via the f5-tts package.
+XTTS v2 — similarly auto-downloads on first use via Coqui TTS (~1.8 GB).
+Pre-downloading is strongly recommended before first server start to avoid
+a long pause on the first synthesis request.
 
 HuggingFace token
 -----------------
@@ -31,14 +33,13 @@ def _configure_hf_token() -> None:
     token = settings.HF_TOKEN
     if token and token != "hf_your_token_here":
         os.environ.setdefault("HF_TOKEN", token)
-        # huggingface_hub also reads HUGGING_FACE_HUB_TOKEN as a fallback
         os.environ.setdefault("HUGGING_FACE_HUB_TOKEN", token)
         try:
             from huggingface_hub import login
             login(token=token, add_to_git_credential=False)
             logger.info("HuggingFace token configured — authenticated downloads enabled.")
         except ImportError:
-            pass  # huggingface_hub not yet installed; env var is still set
+            pass
     else:
         logger.warning(
             "HF_TOKEN not set. Downloads may be rate-limited. "
@@ -46,10 +47,8 @@ def _configure_hf_token() -> None:
         )
 
 
-def download_kokoro():
+def download_kokoro() -> None:
     _configure_hf_token()
-    # _configure_espeak() must run before any kokoro/phonemizer import so that
-    # ESPEAK_DATA_PATH is set before the espeak C library initialises.
     from backend.engines.kokoro_engine import _configure_espeak, _KOKORO_REPO_ID
     _configure_espeak()
     logger.info("Pre-downloading Kokoro-82M weights…")
@@ -67,7 +66,10 @@ def download_kokoro():
                 logger.info("  Loading lang_code='%s'", lang_code)
                 KPipeline(lang_code=lang_code, repo_id=_KOKORO_REPO_ID)
             except Exception as e:
-                logger.warning("  lang_code='%s' skipped — install %s to enable: %s", lang_code, pkg, e)
+                logger.warning(
+                    "  lang_code='%s' skipped — install %s to enable: %s",
+                    lang_code, pkg, e,
+                )
         logger.info("Kokoro weights ready.")
     except ImportError:
         logger.error("kokoro package not installed. Run: pip install kokoro>=0.9.4")
@@ -75,30 +77,43 @@ def download_kokoro():
         logger.error("Kokoro download failed: %s", exc)
 
 
-def download_f5():
+def download_xtts() -> None:
+    """Trigger XTTS v2 model download via Coqui TTS (≈ 1.8 GB).
+
+    The TTS library downloads the model to:
+      macOS/Linux:  ~/.local/share/tts/tts_models--multilingual--multi-dataset--xtts_v2/
+      Windows:      %LOCALAPPDATA%\\tts\\tts_models--multilingual--multi-dataset--xtts_v2\\
+    """
     _configure_hf_token()
-    logger.info("Pre-downloading F5-TTS weights…")
+    logger.info("Pre-downloading XTTS v2 weights (~1.8 GB)…")
     try:
-        from f5_tts.api import F5TTS
-        F5TTS(model=settings.F5_MODEL_NAME)
-        logger.info("F5-TTS weights ready.")
+        from TTS.api import TTS
+        from backend.utils.device import DEVICE
+        logger.info("  Downloading to Coqui TTS cache (device=%s)…", DEVICE)
+        # Instantiating TTS triggers the download; no synthesis needed
+        tts = TTS(settings.XTTS_MODEL_NAME)
+        logger.info("XTTS v2 weights ready.")
+        # Free memory — model is not needed beyond download verification
+        del tts
     except ImportError:
-        logger.error("f5-tts package not installed. Run: pip install f5-tts")
+        logger.error(
+            "Coqui TTS package not installed. Run: pip install TTS>=0.22.0"
+        )
     except Exception as exc:
-        logger.error("F5-TTS download failed: %s", exc)
+        logger.error("XTTS v2 download failed: %s", exc)
 
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Pre-download TTS model weights")
     parser.add_argument("--kokoro", action="store_true", help="Download Kokoro only")
-    parser.add_argument("--f5", action="store_true", help="Download F5-TTS only")
+    parser.add_argument("--xtts",   action="store_true", help="Download XTTS v2 only")
     args = parser.parse_args()
 
     if args.kokoro:
         download_kokoro()
-    elif args.f5:
-        download_f5()
+    elif args.xtts:
+        download_xtts()
     else:
         download_kokoro()
-        download_f5()
+        download_xtts()

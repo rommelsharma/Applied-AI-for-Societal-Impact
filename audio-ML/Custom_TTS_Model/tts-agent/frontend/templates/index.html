@@ -10,18 +10,19 @@
   <div class="container">
     <header>
       <h1>TTS Agent</h1>
-      <p class="subtitle">High-quality speech synthesis · Kokoro-82M &amp; F5-TTS</p>
+      <p class="subtitle">High-quality speech synthesis · Kokoro-82M &amp; XTTS v2</p>
       <span id="device-badge" class="badge">checking device…</span>
     </header>
 
     <main>
-      <!-- Mode selector -->
+      <!-- Mode selector — three tabs -->
       <div class="mode-tabs">
         <button class="tab active" data-mode="builtin">Built-in Voices</button>
-        <button class="tab" data-mode="clone">Voice Cloning</button>
+        <button class="tab" data-mode="clone">Cloned Voice Synthesis</button>
+        <button class="tab" data-mode="tests">Test Results</button>
       </div>
 
-      <!-- Built-in voices panel -->
+      <!-- ── Built-in voices panel ──────────────────────────────────────── -->
       <section id="panel-builtin" class="panel active">
         <div class="field">
           <label for="voice-select">Voice</label>
@@ -31,7 +32,7 @@
         </div>
       </section>
 
-      <!-- Voice cloning panel -->
+      <!-- ── Cloned Voice Synthesis panel ──────────────────────────────── -->
       <section id="panel-clone" class="panel">
 
         <!-- Step 0: Language of text to generate -->
@@ -50,6 +51,9 @@
             <option value="pt">Portuguese</option>
             <option value="ar">Arabic</option>
             <option value="ru">Russian</option>
+            <option value="pl">Polish</option>
+            <option value="tr">Turkish</option>
+            <option value="nl">Dutch</option>
           </select>
           <span class="hint">Select the language of the text you want to synthesise (not the voice sample language).</span>
         </div>
@@ -61,8 +65,8 @@
             <span class="upload-step-title">Upload Voice Sample</span>
           </div>
           <p class="upload-requirements">
-            <strong>Requirements:</strong> 5–10 seconds of clean, single-speaker speech for best results.
-            Clips under 3 s are too short; clips over 12 s are automatically trimmed by F5-TTS.
+            <strong>Requirements:</strong> 5–12 seconds of clean, single-speaker speech.
+            Clips under 3 s produce poor results; clips over 12 s are still accepted but longer clips do not improve quality.
             <br />
             <strong>Accepted formats:</strong> .wav &nbsp;·&nbsp; .mp3 &nbsp;·&nbsp; .flac &nbsp;·&nbsp; .ogg
           </p>
@@ -84,10 +88,10 @@
           <label for="ref-text">
             <span class="step-badge">2</span>
             Reference Transcript
-            <span class="hint">(strongly recommended — omitting causes speech-rate errors)</span>
+            <span class="hint">(recommended for best voice matching)</span>
           </label>
           <input type="text" id="ref-text" placeholder="Exact words spoken in the uploaded voice sample…" />
-          <span class="hint">Provide a verbatim transcript of your uploaded clip. Accuracy here directly affects how well the voice is cloned.</span>
+          <span class="hint">Provide a verbatim transcript of your uploaded clip for optimal voice cloning quality.</span>
         </div>
 
         <!-- Hidden sample-select: auto-populated after upload; not shown to user -->
@@ -95,60 +99,168 @@
 
       </section>
 
-      <!-- Shared controls -->
-      <div class="field field-row input-format-row">
-        <div>
-          <label for="input-format">Input format</label>
-          <select id="input-format">
-            <option value="plain">Plain Text</option>
-            <option value="ssml">SSML Markup</option>
-          </select>
+      <!-- ── Test Results panel ──────────────────────────────────────────── -->
+      <section id="panel-tests" class="panel">
+
+        <div class="test-suite-header">
+          <div class="test-suite-title-row">
+            <h2>Voice Cloning Test Suite</h2>
+            <span class="test-engine-badge">XTTS v2</span>
+          </div>
+          <p class="test-suite-desc">
+            Validates XTTS v2 voice cloning for Hindi and Japanese using pre-packaged reference audio.
+            Place the reference WAV files in the <code>input_samples/</code> directory before running.
+          </p>
+          <button id="run-all-tests-btn" class="btn-primary test-run-all-btn">▶ Run All Tests</button>
         </div>
-        <button id="ssml-example-btn" class="btn-ghost hidden" type="button">
-          Insert example
-        </button>
-      </div>
 
-      <div id="ssml-hint" class="ssml-hint hidden">
-        <strong>Supported SSML tags:</strong>
-        <code>&lt;pause ms="500"/&gt;</code>
-        &nbsp;·&nbsp;
-        <code>&lt;break strength="paragraph"/&gt;</code>
-        &nbsp;·&nbsp;
-        <code>&lt;emphasis level="strong"&gt;…&lt;/emphasis&gt;</code>
-        &nbsp;·&nbsp;
-        <code>&lt;say-as interpret-as="characters"&gt;NASA&lt;/say-as&gt;</code>
-      </div>
+        <!-- ── Hindi test card ── -->
+        <div class="test-card" data-test="hindi">
+          <div class="test-card-header">
+            <span class="test-lang-badge hi">HI</span>
+            <h3 class="test-card-title">Hindi Voice Cloning</h3>
+            <div class="test-status-group">
+              <span class="test-status-dot" data-status="idle">●</span>
+              <span class="test-status-label">Ready</span>
+            </div>
+            <button class="btn-secondary run-test-btn" data-test="hindi">Run</button>
+          </div>
 
-      <div class="field">
-        <label for="text-input">Text to synthesize</label>
-        <textarea id="text-input" rows="6" maxlength="5000"
-          placeholder="Enter the text you want to convert to speech…"></textarea>
-        <span id="char-count">0 / 5000</span>
-      </div>
+          <div class="test-card-body">
+            <div class="test-ref-block">
+              <label class="test-label">Reference Audio
+                <span class="test-file-hint">input_samples/cloning-voice-clip-male-hindi-1.wav</span>
+              </label>
+              <audio controls class="test-ref-audio"
+                src="/input-samples/cloning-voice-clip-male-hindi-1.wav"
+                onerror="this.parentElement.querySelector('.test-audio-missing').classList.remove('hidden')">
+              </audio>
+              <p class="test-audio-missing hidden">⚠ File not found — place <code>cloning-voice-clip-male-hindi-1.wav</code> in <code>input_samples/</code></p>
+            </div>
 
-      <div class="field field-row">
-        <div>
-          <label for="speed-slider">Speed: <span id="speed-val">1.0×</span></label>
-          <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0" />
+            <div class="test-synth-block">
+              <label class="test-label">Text to Synthesise</label>
+              <p class="test-synth-text" lang="hi">
+                जीवन में एक लक्ष्य होना ज़रूरी है। जब मन में एक सपना हो, तो हर सुबह उठने का कारण मिलता है।
+                अपने मन से पूछो — &ldquo;मैं क्या बनना चाहता हूँ?&rdquo; जब यह उत्तर मिल जाए, तो उसे अपनी आत्मा में बसा लो।
+                रास्ते में क्रोध, ईर्ष्या और निराशा आएगी। इन्हें पहचानो, इनसे लड़ो मत।
+                अपने भीतर की आवाज़ सुनो — यही जागरूकता तुम्हें सही राह दिखाएगी।
+              </p>
+            </div>
+
+            <div class="test-output hidden">
+              <label class="test-label">Generated Audio</label>
+              <audio controls class="test-output-audio"></audio>
+              <div class="test-output-meta"></div>
+            </div>
+
+            <div class="test-error hidden"></div>
+          </div>
+        </div><!-- /hindi card -->
+
+        <!-- ── Japanese test card ── -->
+        <div class="test-card" data-test="japanese">
+          <div class="test-card-header">
+            <span class="test-lang-badge ja">JA</span>
+            <h3 class="test-card-title">Japanese Voice Cloning</h3>
+            <div class="test-status-group">
+              <span class="test-status-dot" data-status="idle">●</span>
+              <span class="test-status-label">Ready</span>
+            </div>
+            <button class="btn-secondary run-test-btn" data-test="japanese">Run</button>
+          </div>
+
+          <div class="test-card-body">
+            <div class="test-ref-block">
+              <label class="test-label">Reference Audio
+                <span class="test-file-hint">input_samples/cloning-voice-samples-JP.wav</span>
+              </label>
+              <audio controls class="test-ref-audio"
+                src="/input-samples/cloning-voice-samples-JP.wav"
+                onerror="this.parentElement.querySelector('.test-audio-missing').classList.remove('hidden')">
+              </audio>
+              <p class="test-audio-missing hidden">⚠ File not found — place <code>cloning-voice-samples-JP.wav</code> in <code>input_samples/</code></p>
+            </div>
+
+            <div class="test-synth-block">
+              <label class="test-label">Text to Synthesise</label>
+              <p class="test-synth-text" lang="ja">
+                やばい、『ホッパーズ』まじで最高だった！メイベルがビーバーのロボットに意識を移して動物たちと一緒に生きるって設定、
+                最初は「え、どういうこと？」ってなったけど、見てるうちにどんどん引き込まれた。
+                キング・ジョージがかわいすぎて、ずっと笑ってたのに、最後は普通に泣いた。
+                自然保護のメッセージがすごくリアルに伝わってきたのが良かった。
+              </p>
+            </div>
+
+            <div class="test-output hidden">
+              <label class="test-label">Generated Audio</label>
+              <audio controls class="test-output-audio"></audio>
+              <div class="test-output-meta"></div>
+            </div>
+
+            <div class="test-error hidden"></div>
+          </div>
+        </div><!-- /japanese card -->
+
+      </section><!-- /panel-tests -->
+
+      <!-- ── Shared synthesis controls (hidden on Test Results tab) ─────── -->
+      <div id="shared-controls">
+        <div class="field field-row input-format-row">
+          <div>
+            <label for="input-format">Input format</label>
+            <select id="input-format">
+              <option value="plain">Plain Text</option>
+              <option value="ssml">SSML Markup</option>
+            </select>
+          </div>
+          <button id="ssml-example-btn" class="btn-ghost hidden" type="button">
+            Insert example
+          </button>
         </div>
-      </div>
 
-      <button id="synthesize-btn" class="btn-primary" disabled>Generate Speech</button>
-
-      <!-- Output -->
-      <div id="output-section" class="hidden">
-        <h2>Output</h2>
-        <audio id="audio-player" controls></audio>
-        <div class="output-meta">
-          <span id="duration-label"></span>
-          <span id="engine-label"></span>
+        <div id="ssml-hint" class="ssml-hint hidden">
+          <strong>Supported SSML tags:</strong>
+          <code>&lt;pause ms="500"/&gt;</code>
+          &nbsp;·&nbsp;
+          <code>&lt;break strength="paragraph"/&gt;</code>
+          &nbsp;·&nbsp;
+          <code>&lt;emphasis level="strong"&gt;…&lt;/emphasis&gt;</code>
+          &nbsp;·&nbsp;
+          <code>&lt;say-as interpret-as="characters"&gt;NASA&lt;/say-as&gt;</code>
         </div>
-        <a id="download-link" class="btn-secondary" download>Download WAV</a>
-      </div>
 
-      <div id="error-box" class="error hidden"></div>
-      <div id="loading" class="spinner hidden"></div>
+        <div class="field">
+          <label for="text-input">Text to synthesize</label>
+          <textarea id="text-input" rows="6" maxlength="5000"
+            placeholder="Enter the text you want to convert to speech…"></textarea>
+          <span id="char-count">0 / 5000</span>
+        </div>
+
+        <div class="field field-row">
+          <div>
+            <label for="speed-slider">Speed: <span id="speed-val">1.0×</span></label>
+            <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0" />
+          </div>
+        </div>
+
+        <button id="synthesize-btn" class="btn-primary" disabled>Generate Speech</button>
+
+        <!-- Output -->
+        <div id="output-section" class="hidden">
+          <h2>Output</h2>
+          <audio id="audio-player" controls></audio>
+          <div class="output-meta">
+            <span id="duration-label"></span>
+            <span id="engine-label"></span>
+          </div>
+          <a id="download-link" class="btn-secondary" download>Download WAV</a>
+        </div>
+
+        <div id="error-box" class="error hidden"></div>
+        <div id="loading" class="spinner hidden"></div>
+      </div><!-- /shared-controls -->
+
     </main>
   </div>
 

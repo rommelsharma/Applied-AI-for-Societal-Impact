@@ -13,10 +13,10 @@ Narration-quality TTS is typically either expensive (commercial cloud APIs) or
 legally restricted (many open-source models prohibit commercial output). This project
 provides an end-to-end solution that is:
 
-- **Commercially usable** — all models are Apache 2.0 or MIT licensed
+- **Commercially usable** — all models carry permissive licenses (Apache 2.0 / CPML v1.0)
 - **Broadcast-ready** — audio post-processing meets EBU R128 / ITU-R BS.1770 loudness standards
 - **Locally private** — voice samples and generated audio never leave the host machine
-- **Cross-platform** — runs on Windows WSL2 (CUDA) and macOS (MPS / CPU) without reconfiguration
+- **Cross-platform** — runs on Windows (CUDA/CPU) and macOS (MPS / CPU) without reconfiguration
 
 ---
 
@@ -26,7 +26,7 @@ provides an end-to-end solution that is:
 |---|---|
 | **Built-in English voices** | 10 voices (American + British, male/female) via Kokoro-82M |
 | **Built-in Hindi voices** | 3 voices via Kokoro-82M |
-| **Zero-shot voice cloning** | Clone any speaker from a short reference clip via F5-TTS |
+| **Zero-shot voice cloning** | Clone any speaker from a short reference clip via XTTS v2 (17 languages incl. Hindi & Japanese) |
 | **SSML narration control** | Pause, emphasis, and character-spelling tags inline in script text |
 | **Batch synthesis** | Submit a full documentary script (up to 500 segments) in a single API call |
 | **44.1 kHz broadcast export** | Stereo WAV at CD quality — accepted directly by NLEs (DaVinci Resolve, Premiere) |
@@ -43,7 +43,7 @@ provides an end-to-end solution that is:
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │                     BROWSER UI (Vanilla JS)                        │
-│  Text input · Voice selector · Built-in / Clone mode · Batch      │
+│  Text input · Voice selector · Built-in / Clone / Test Results    │
 └────────────────────────┬───────────────────────────────────────────┘
                          │  FastAPI (Python)
           ┌──────────────┴──────────────┐
@@ -52,11 +52,11 @@ provides an end-to-end solution that is:
           │  Engine Router              │
           └──────┬──────────────┬───────┘
                  │              │
-     ┌───────────▼──┐    ┌──────▼──────────┐
-     │  Kokoro-82M  │    │    F5-TTS        │
-     │  (built-in   │    │  (voice cloning  │
-     │   voices)    │    │   from clip)     │
-     └───────────┬──┘    └──────┬───────────┘
+     ┌───────────▼──┐    ┌──────▼──────────────┐
+     │  Kokoro-82M  │    │    XTTS v2           │
+     │  (built-in   │    │  (zero-shot cloning  │
+     │   voices)    │    │   17 languages)      │
+     └───────────┬──┘    └──────┬───────────────┘
                  └──────┬───────┘
                         ▼
           ┌─────────────────────────┐
@@ -78,9 +78,10 @@ provides an end-to-end solution that is:
 local inference, and broad language support (English + Hindi). Its small footprint (82M
 parameters) makes it practical on laptops without enterprise GPU hardware.
 
-**F5-TTS** (MIT) is chosen for the cloning path as a commercially safe replacement for
-XTTS-v2 (whose license restricts revenue-generating usage). Flow-matching architecture
-gives it strong zero-shot cloning from short reference clips.
+**XTTS v2** (Coqui Public Model License v1.0) is chosen for the voice cloning path.
+It supports 17 languages including Hindi and Japanese, performs zero-shot cloning from
+a 5–12 second reference clip, and is commercially usable for organisations with annual
+revenue under $1 M. The CPML v1.0 allows production and broadcast use within that threshold.
 
 ### SSML markup example [Speech Synthesis Markup Language (SSML)]
 
@@ -131,13 +132,14 @@ Custom_TTS_Model/
     ├── backend/
     │   ├── app.py                       # FastAPI factory
     │   ├── api/                         # Routes + Pydantic schemas
-    │   ├── engines/                     # Kokoro + F5-TTS wrappers
+    │   ├── engines/                     # Kokoro + XTTS v2 wrappers
     │   └── utils/                       # Audio, broadcast, SSML, batch, device
-    ├── frontend/                        # Browser UI (HTML/CSS/JS)
+    ├── frontend/                        # Browser UI (HTML/CSS/JS — 3-tab layout)
     ├── configs/                         # Pydantic Settings
     ├── tests/                           # pytest suites
     ├── docker/                          # Dockerfile + Compose
-    ├── scripts/                         # setup.sh, download_models.py
+    ├── scripts/                         # setup.sh / setup.bat, download_models.py
+    ├── input_samples/                   # Pre-packaged Hindi + Japanese test clips
     ├── Makefile
     └── README.md                        # Detailed setup & API reference
 ```
@@ -151,14 +153,14 @@ Custom_TTS_Model/
 ```bash
 cd tts-agent
 
-bash scripts/setup.sh          # creates venv, installs deps, copies .env
+bash scripts/setup.sh          # creates Python 3.11 venv, installs deps, copies .env
 source venv/bin/activate
 
 # Add your HuggingFace token to .env (removes download rate limits)
 # HF_TOKEN=hf_your_token_here  — get one at https://huggingface.co/settings/tokens
 
-python scripts/download_models.py   # downloads Kokoro (~500 MB) + F5-TTS (~1.2 GB)
-# or individually:  --kokoro  /  --f5
+python scripts/download_models.py          # downloads Kokoro (~500 MB) + XTTS v2 (~1.8 GB)
+# or individually:  --kokoro  /  --xtts
 
 make run
 ```
@@ -172,7 +174,8 @@ source venv/bin/activate
 make run
 ```
 
-> The message `HF_TOKEN is set and is the current active token` during model download is **normal** — it confirms authentication is working.
+> **Note:** XTTS v2 requires Python 3.9–3.11. `setup.sh` automatically selects a compatible
+> Python version. Do not use the system `python3` if it resolves to 3.12 or later.
 
 For full setup, Docker usage, API reference, SSML narration control, and testing, see
 [tts-agent/README.md](tts-agent/README.md).
@@ -184,14 +187,14 @@ For full setup, Docker usage, API reference, SSML narration control, and testing
 | Component | License | Commercial use |
 |---|---|---|
 | Kokoro-82M | Apache 2.0 | Yes |
-| F5-TTS | MIT | Yes |
+| XTTS v2 (Coqui TTS) | Coqui Public Model License v1.0 | Yes (≤ $1M/yr revenue) |
 | pyloudnorm | MIT | Yes |
 | noisereduce | MIT | Yes |
 | FastAPI / Uvicorn | MIT | Yes |
 | PyTorch | BSD-3 | Yes |
 
 All components permit commercial use including monetised documentary production
-and broadcast distribution.
+and broadcast distribution within the CPML v1.0 revenue threshold.
 
 ---
 

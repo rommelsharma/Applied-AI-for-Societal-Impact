@@ -1,4 +1,4 @@
-/* TTS Agent — frontend controller */
+/* TTS Agent — frontend controller (v3.0 — Kokoro-82M + XTTS v2) */
 
 const $ = id => document.getElementById(id);
 
@@ -20,7 +20,7 @@ const LANGUAGE_TAGS = {
   en:  'en-us',
   hi:  'hi',
   ja:  'ja',
-  zh:  'zh',
+  zh:  'zh-cn',
   es:  'es',
   fr:  'fr',
   de:  'de',
@@ -29,15 +29,34 @@ const LANGUAGE_TAGS = {
   pt:  'pt-br',
   ar:  'ar',
   ru:  'ru',
+  pl:  'pl',
+  tr:  'tr',
+  nl:  'nl',
+};
+
+// ── Test suite definitions ─────────────────────────────────────────────────
+const TESTS = {
+  hindi: {
+    referenceAudio:  'cloning-voice-clip-male-hindi-1.wav',
+    referenceText:   'नमस्कार सभी को, आज मैं समय का महत्व विषय पर कुछ शब्द कहना चाहता हूँ। समय हमारे जीवन की सबसे कीमती चीज़ है।',
+    synthesisText:   'जीवन में एक लक्ष्य होना ज़रूरी है। जब मन में एक सपना हो, तो हर सुबह उठने का कारण मिलता है। अपने मन से पूछो — "मैं क्या बनना चाहता हूँ?" जब यह उत्तर मिल जाए, तो उसे अपनी आत्मा में बसा लो। रास्ते में क्रोध, ईर्ष्या और निराशा आएगी। इन्हें पहचानो, इनसे लड़ो मत। अपने भीतर की आवाज़ सुनो — यही जागरूकता तुम्हें सही राह दिखाएगी।',
+    language:        'hi',
+  },
+  japanese: {
+    referenceAudio:  'cloning-voice-samples-JP.wav',
+    referenceText:   '浜田山とは、いわゆる「超有名観光地」ではないけれど、東京のローカルで上質な住宅街の空気感を味わえるエリアです。',
+    synthesisText:   'やばい、『ホッパーズ』まじで最高だった！メイベルがビーバーのロボットに意識を移して動物たちと一緒に生きるって設定、最初は「え、どういうこと？」ってなったけど、見てるうちにどんどん引き込まれた。キング・ジョージがかわいすぎて、ずっと笑ってたのに、最後は普通に泣いた。自然保護のメッセージがすごくリアルに伝わってきたのが良かった。',
+    language:        'ja',
+  },
 };
 
 const state = {
-  mode: 'builtin',        // 'builtin' | 'clone'
-  inputFormat: 'plain',   // 'plain' | 'ssml'
-  voices: [],
-  samples: [],
-  activeSample: null,     // filename of the validated sample for synthesis
-  samplePreviewUrl: null, // blob URL for the preview player
+  mode:            'builtin',  // 'builtin' | 'clone' | 'tests'
+  inputFormat:     'plain',
+  voices:          [],
+  samples:         [],
+  activeSample:    null,
+  samplePreviewUrl: null,
 };
 
 // ── Initialisation ──────────────────────────────────────────────────────────
@@ -50,11 +69,11 @@ async function init() {
 
 async function fetchHealth() {
   try {
-    const res = await fetch('/health');
+    const res  = await fetch('/health');
     const data = await res.json();
     const badge = $('device-badge');
     badge.textContent = `device: ${data.device}`;
-    badge.className = `badge ${data.device}`;
+    badge.className   = `badge ${data.device}`;
   } catch { /* non-blocking */ }
 }
 
@@ -72,7 +91,6 @@ async function fetchSamples() {
   try {
     const res = await fetch('/voice-samples');
     state.samples = await res.json();
-    // Keep the hidden select in sync (used as state carrier for synthesis)
     populateSampleSelect();
   } catch { /* non-critical */ }
 }
@@ -88,17 +106,15 @@ function populateVoiceSelect() {
 }
 
 function populateSampleSelect() {
-  // Hidden select kept in sync so the synthesize path can read a value
   const sel = $('sample-select');
   const fromFiles = state.samples.map(s => {
-    const dur = s.duration_seconds != null ? ` (${s.duration_seconds.toFixed(1)}s)` : '';
+    const dur  = s.duration_seconds != null ? ` (${s.duration_seconds.toFixed(1)}s)` : '';
     const warn = s.duration_seconds != null && (s.duration_seconds < 3 || s.duration_seconds > 15) ? ' ⚠' : '';
     return { filename: s.filename, label: `${s.filename}${dur}${warn}` };
   });
   sel.innerHTML = '<option value="">—</option>' +
     fromFiles.map(f => `<option value="${f.filename}">${f.label}</option>`).join('');
 
-  // Re-select active sample if it's still in the list
   if (state.activeSample) {
     for (let i = 0; i < sel.options.length; i++) {
       if (sel.options[i].value === state.activeSample) {
@@ -106,7 +122,6 @@ function populateSampleSelect() {
         return;
       }
     }
-    // Active sample no longer in list — clear it
     state.activeSample = null;
     updateSynthBtn();
   }
@@ -123,6 +138,9 @@ function bindEvents() {
       tab.classList.add('active');
       state.mode = tab.dataset.mode;
       $(`panel-${state.mode}`).classList.add('active');
+      // Hide shared synthesis controls on Test Results tab
+      const isTests = state.mode === 'tests';
+      $('shared-controls').classList.toggle('hidden', isTests);
       updateSynthBtn();
     });
   });
@@ -138,40 +156,41 @@ function bindEvents() {
       : 'Enter the text you want to convert to speech…';
   });
 
-  // SSML example button
   $('ssml-example-btn').addEventListener('click', () => {
     $('text-input').value = SSML_EXAMPLE;
     $('char-count').textContent = `${SSML_EXAMPLE.length} / 5000`;
     updateSynthBtn();
   });
 
-  // Char count
   $('text-input').addEventListener('input', () => {
     const len = $('text-input').value.length;
     $('char-count').textContent = `${len} / 5000`;
     updateSynthBtn();
   });
 
-  // Speed slider
   $('speed-slider').addEventListener('input', () => {
     $('speed-val').textContent = parseFloat($('speed-slider').value).toFixed(1) + '×';
   });
 
-  // Clone language dropdown
   $('clone-language').addEventListener('change', updateSynthBtn);
 
-  // Upload file input — reset preview & active sample when a new file is chosen
   $('upload-file').addEventListener('change', () => {
     hideSamplePreview();
     $('upload-status').textContent = '';
-    // Don't clear activeSample here — user may have just browsed; wait for upload
   });
 
-  // Upload
   $('upload-btn').addEventListener('click', handleUpload);
-
-  // Synthesize
   $('synthesize-btn').addEventListener('click', handleSynthesize);
+
+  // Test suite buttons
+  $('run-all-tests-btn').addEventListener('click', () => {
+    runTest('hindi');
+    runTest('japanese');
+  });
+
+  document.querySelectorAll('.run-test-btn').forEach(btn => {
+    btn.addEventListener('click', () => runTest(btn.dataset.test));
+  });
 }
 
 function updateSynthBtn() {
@@ -180,12 +199,10 @@ function updateSynthBtn() {
   if (state.mode === 'builtin') {
     hasVoice = $('voice-select').value !== '';
   } else {
-    // Clone mode requires a validated (uploaded) sample
     hasVoice = !!state.activeSample;
   }
   $('synthesize-btn').disabled = !(hasText && hasVoice);
 
-  // Show a nudge if in clone mode and no sample is active yet
   if (state.mode === 'clone' && !state.activeSample) {
     $('synthesize-btn').title = 'Upload and verify a voice sample first (Step 1 above)';
   } else {
@@ -208,18 +225,17 @@ async function handleUpload() {
 
   try {
     const res = await fetch('/upload-voice-sample', { method: 'POST', body: form });
-    if (!res.ok) throw new Error((await res.json()).detail);
+    if (!res.ok) {
+      let detail;
+      try { detail = (await res.json()).detail; } catch { detail = await res.text().catch(() => res.statusText); }
+      throw new Error(detail || res.statusText);
+    }
     const data = await res.json();
     $('upload-status').textContent = '✓ Uploaded';
     if (data.warning) showError('Warning: ' + data.warning);
 
-    // Show audio preview from the local file object (instant, no extra round-trip)
     showSamplePreview(file);
-
-    // Update active sample — this is now the voice used for synthesis
     state.activeSample = data.filename;
-
-    // Keep hidden select in sync
     await fetchSamples();
     populateSampleSelect();
     updateSynthBtn();
@@ -230,9 +246,7 @@ async function handleUpload() {
 }
 
 function showSamplePreview(file) {
-  if (state.samplePreviewUrl) {
-    URL.revokeObjectURL(state.samplePreviewUrl);
-  }
+  if (state.samplePreviewUrl) URL.revokeObjectURL(state.samplePreviewUrl);
   state.samplePreviewUrl = URL.createObjectURL(file);
   const player = $('sample-player');
   player.src = state.samplePreviewUrl;
@@ -258,18 +272,16 @@ async function handleSynthesize() {
   showLoading(true);
   $('output-section').classList.add('hidden');
 
-  const text = $('text-input').value.trim();
-  const speed = parseFloat($('speed-slider').value);
+  const text    = $('text-input').value.trim();
+  const speed   = parseFloat($('speed-slider').value);
   const use_ssml = state.inputFormat === 'ssml';
 
   let body;
   if (state.mode === 'builtin') {
-    // Derive language from the selected voice metadata
     const selectedVoice = state.voices.find(v => v.id === $('voice-select').value);
     const language = selectedVoice ? selectedVoice.language : 'en-us';
     body = { text, voice: $('voice-select').value, language, speed, use_ssml };
   } else {
-    // Clone mode — use the validated active sample
     if (!state.activeSample) {
       showError('Please upload and verify a voice sample first.');
       showLoading(false);
@@ -277,30 +289,12 @@ async function handleSynthesize() {
     }
     const langCode = $('clone-language').value;
     const language = LANGUAGE_TAGS[langCode] || 'en-us';
-    const refText = $('ref-text').value.trim();
-
-    // Warn (but don't block) when ref_text is absent for non-English languages.
-    // Without it, F5-TTS runs Whisper ASR on the reference audio which can
-    // mis-detect the language (e.g. Hindi speech → Urdu script → wrong output).
-    if (!refText && langCode !== 'en') {
-      showError(
-        '⚠ Reference Transcript is empty. Without it, F5-TTS will try to ' +
-        'auto-transcribe the audio and may detect the wrong language, ' +
-        'producing incorrect speech. Add the transcript above for best results.'
-      );
-      showLoading(false);
-      return;
-    }
-
-    const voiceId = `clone:${state.activeSample.replace(/\.[^.]+$/, '')}`;
+    const refText  = $('ref-text').value.trim();
+    const voiceId  = `clone:${state.activeSample.replace(/\.[^.]+$/, '')}`;
     body = {
-      text,
-      voice: voiceId,
-      language,
-      speed,
-      use_ssml,
+      text, voice: voiceId, language, speed, use_ssml,
       reference_audio: state.activeSample,
-      reference_text: refText || null,
+      reference_text:  refText || null,
     };
   }
 
@@ -311,11 +305,11 @@ async function handleSynthesize() {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || res.statusText);
+      let detail;
+      try { detail = (await res.json()).detail; } catch { detail = await res.text().catch(() => res.statusText); }
+      throw new Error(detail || res.statusText);
     }
-    const data = await res.json();
-    renderOutput(data);
+    renderOutput(await res.json());
   } catch (e) {
     showError('Synthesis failed: ' + e.message);
   } finally {
@@ -327,15 +321,73 @@ function renderOutput(data) {
   const player = $('audio-player');
   player.src = data.audio_url;
   player.load();
-
   $('duration-label').textContent = `${data.duration_seconds.toFixed(2)}s`;
-  $('engine-label').textContent = `engine: ${data.engine}`;
-
+  $('engine-label').textContent   = `engine: ${data.engine}`;
   const link = $('download-link');
-  link.href = data.audio_url;
+  link.href     = data.audio_url;
   link.download = data.filename;
-
   $('output-section').classList.remove('hidden');
+}
+
+// ── Test suite ────────────────────────────────────────────────────────────────
+
+async function runTest(testId) {
+  const t    = TESTS[testId];
+  const card = document.querySelector(`.test-card[data-test="${testId}"]`);
+  if (!card) return;
+
+  const outputSection = card.querySelector('.test-output');
+  const errorBox      = card.querySelector('.test-error');
+  const outputAudio   = card.querySelector('.test-output-audio');
+  const outputMeta    = card.querySelector('.test-output-meta');
+
+  // Reset
+  outputSection.classList.add('hidden');
+  errorBox.classList.add('hidden');
+  errorBox.textContent = '';
+  setTestStatus(card, 'running', 'Running…');
+
+  const body = {
+    text:            t.synthesisText,
+    voice:           `clone:${t.referenceAudio.replace(/\.[^.]+$/, '')}`,
+    language:        t.language,
+    speed:           1.0,
+    reference_audio: t.referenceAudio,
+    reference_text:  t.referenceText,
+  };
+
+  try {
+    const res = await fetch('/synthesize', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    });
+    if (!res.ok) {
+      let detail;
+      try { detail = (await res.json()).detail; } catch { detail = await res.text().catch(() => res.statusText); }
+      throw new Error(detail || res.statusText);
+    }
+    const data = await res.json();
+
+    // Show output
+    outputAudio.src = data.audio_url;
+    outputAudio.load();
+    outputMeta.textContent = `${data.duration_seconds.toFixed(2)}s · ${data.engine} · ${data.sample_rate} Hz`;
+    outputSection.classList.remove('hidden');
+    setTestStatus(card, 'pass', 'Pass ✓');
+
+  } catch (e) {
+    errorBox.textContent = '✗ ' + e.message;
+    errorBox.classList.remove('hidden');
+    setTestStatus(card, 'fail', 'Fail ✗');
+  }
+}
+
+function setTestStatus(card, status, label) {
+  const dot       = card.querySelector('.test-status-dot');
+  const labelEl   = card.querySelector('.test-status-label');
+  dot.dataset.status  = status;
+  labelEl.textContent = label;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -345,7 +397,7 @@ function showError(msg) {
   box.textContent = msg;
   box.classList.remove('hidden');
 }
-function hideError() { $('error-box').classList.add('hidden'); }
-function showLoading(on) { $('loading').classList.toggle('hidden', !on); }
+function hideError()         { $('error-box').classList.add('hidden'); }
+function showLoading(on)     { $('loading').classList.toggle('hidden', !on); }
 
 document.addEventListener('DOMContentLoaded', init);

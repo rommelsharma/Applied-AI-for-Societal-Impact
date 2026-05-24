@@ -1,15 +1,15 @@
 # TTS Agent
 
-Local text-to-speech application using **Kokoro-82M** (built-in English & Hindi voices) and **F5-TTS** (zero-shot voice cloning). Both are commercially usable under Apache 2.0 / MIT licenses.
+Local text-to-speech application using **Kokoro-82M** (built-in English & Hindi voices) and **XTTS v2** (zero-shot voice cloning in 17 languages). Commercially usable under Apache 2.0 and Coqui Public Model License v1.0.
 
 ## Stack
 
 | Component | Technology |
 |---|---|
 | Built-in TTS | Kokoro-82M (Apache 2.0) |
-| Voice cloning | F5-TTS (MIT) |
+| Voice cloning | XTTS v2 — Coqui TTS (CPML v1.0, commercial ≤ $1M/yr) |
 | Backend | FastAPI + Uvicorn |
-| Frontend | Vanilla HTML/CSS/JS |
+| Frontend | Vanilla HTML/CSS/JS (3-tab: Built-in / Clone / Test Results) |
 | Inference | PyTorch (CUDA · MPS · CPU) |
 | Packaging | Docker + Docker Compose |
 
@@ -20,7 +20,7 @@ Local text-to-speech application using **Kokoro-82M** (built-in English & Hindi 
 ```bash
 cd tts-agent
 
-# Creates venv, installs all dependencies, copies .env.example → .env
+# Creates Python 3.11 venv, installs all dependencies, copies .env.example → .env
 # On macOS this also installs espeak-ng via Homebrew (required by Kokoro)
 bash scripts/setup.sh          # or: make setup
 
@@ -28,13 +28,12 @@ bash scripts/setup.sh          # or: make setup
 source venv/bin/activate
 ```
 
+> **Python version:** XTTS v2 requires Python 3.9–3.11. `setup.sh` auto-selects a compatible
+> Python interpreter. If running manually, use `python3.11` — do not use `python3` if it
+> resolves to 3.12 or later on your system.
+
 > **macOS users:** `setup.sh` automatically runs `brew install espeak-ng`.
-> If you skip `setup.sh` and run `download_models.py` directly, install it first:
-> ```bash
-> brew install espeak-ng
-> ```
-> Without this, Kokoro's phonemizer backend cannot find its data files and will
-> print `Error processing file .../espeakng_loader//phontab`.
+> Without this, Kokoro's phonemizer backend cannot find its data files.
 
 Then open `.env` and add your HuggingFace token (removes rate limits):
 ```
@@ -42,7 +41,7 @@ HF_TOKEN=hf_your_token_here
 ```
 Get a free read-only token at https://huggingface.co/settings/tokens
 
-### Step 2 — Download model weights (run once, ~1.7 GB total)
+### Step 2 — Download model weights (run once, ~2.3 GB total)
 
 ```bash
 # Download both engines
@@ -50,10 +49,11 @@ python scripts/download_models.py   # or: make download-models
 
 # Download individual engines if preferred
 python scripts/download_models.py --kokoro   # Kokoro-82M only (~500 MB)
-python scripts/download_models.py --f5       # F5-TTS only (~1.2 GB)
+python scripts/download_models.py --xtts    # XTTS v2 only (~1.8 GB)
 ```
 
-> **Note:** You will see the message `HF_TOKEN is set and is the current active token independently from the token you've just configured.` — this is normal and confirms authentication is working.
+> XTTS v2 downloads to `~/.local/share/tts/` (macOS/Linux) or `%LOCALAPPDATA%\tts\` (Windows).
+> Mount this as a Docker volume to persist across container restarts.
 
 ### Step 3 — Start the server
 
@@ -72,15 +72,6 @@ make run
 ```
 
 ---
-
-### Docker (GPU — Linux / WSL2 with NVIDIA Container Toolkit)
-
-```bash
-make docker-build
-make docker-run       # or: make docker-compose
-```
-
-> **macOS note**: Docker on Mac does not support GPU passthrough. Run natively with `make run` to use MPS on Apple Silicon.
 
 ### Docker (GPU — Linux / WSL2 with NVIDIA Container Toolkit)
 
@@ -118,6 +109,8 @@ Override by setting `DEVICE=cpu` in `.env`.
 | POST | `/upload-voice-sample` | Upload reference clip for cloning |
 | GET | `/voice-samples` | List uploaded reference clips |
 | DELETE | `/voice-samples/{filename}` | Remove a reference clip |
+| GET | `/input-samples` | List pre-packaged test audio clips |
+| GET | `/input-samples/{filename}` | Serve a pre-packaged test clip |
 | GET | `/docs` | FastAPI interactive docs |
 
 ### Synthesize — request body
@@ -140,7 +133,7 @@ Override by setting `DEVICE=cpu` in `.env`.
 |---|---|---|
 | `text` | required | Input text (plain or SSML-tagged) |
 | `voice` | required | Voice ID from `/voices`, or `clone:<name>` for cloning |
-| `language` | `"en-us"` | BCP-47 language tag |
+| `language` | `"en-us"` | BCP-47 language tag (XTTS v2 supports: en, hi, ja, zh-cn, fr, de, es, it, pt, pl, tr, ru, nl, cs, ar, hu, ko) |
 | `speed` | `1.0` | Playback speed (0.5–2.0) |
 | `use_ssml` | `false` | Parse text as SSML markup (see SSML section below) |
 | `output_format` | `"wav"` | `wav` = 24 kHz mono · `wav44` = 44.1 kHz stereo 16-bit · `wav44_24bit` = 44.1 kHz stereo 24-bit |
@@ -148,18 +141,20 @@ Override by setting `DEVICE=cpu` in `.env`.
 | `noise_reduce` | `true` | Spectral noise reduction |
 | `eq` | `true` | 80 Hz high-pass + 3 kHz presence shelf |
 
-For voice cloning (F5-TTS), set `voice` to `clone:<name>` and provide `reference_audio`:
+For voice cloning (XTTS v2), set `voice` to `clone:<name>` and provide `reference_audio`:
 
 ```json
 {
   "text": "Text to synthesize in the cloned voice.",
   "voice": "clone:myspeaker",
-  "language": "en-us",
+  "language": "hi",
   "speed": 1.0,
-  "reference_audio": "myspeaker.wav",
-  "reference_text": "Transcript of the reference clip."
+  "reference_audio": "myspeaker.wav"
 }
 ```
+
+The engine searches for the reference file in `voice_samples/` first, then `input_samples/`.
+No `reference_text` is needed — XTTS v2 is fully zero-shot.
 
 ### cURL examples
 
@@ -207,6 +202,18 @@ have risen by <emphasis level="moderate">1.1 degrees Celsius</emphasis>
 since pre-industrial times.<pause ms="400"/>
 ```
 
+## Test Results tab
+
+The UI includes a dedicated **Test Results** tab with two pre-configured voice cloning tests:
+
+| Test | Reference clip | Language | Expected output |
+|---|---|---|---|
+| Hindi voice cloning | `cloning-voice-clip-male-hindi-1.wav` | Hindi (hi) | Fluent Hindi narration in cloned voice |
+| Japanese voice cloning | `cloning-voice-samples-JP.wav` | Japanese (ja) | Fluent Japanese narration in cloned voice |
+
+Place both files in `input_samples/` before clicking **Run All Tests**.
+See `input_samples/README.md` for recording guidelines and reference transcripts.
+
 ## Testing
 
 ```bash
@@ -236,7 +243,7 @@ make test-cov
 
 1. Install NVIDIA drivers + Docker with GPU support (Linux/WSL2)
 2. `docker load < tts-agent.tar.gz` or clone the repo
-3. Copy `.env` and `models/` directory (or re-run `make download-models`)
+3. Copy `.env` and mount `~/.local/share/tts/` volume (or re-run `make download-models`)
 4. `make docker-compose`
 
 ## Project structure
@@ -244,14 +251,14 @@ make test-cov
 ```
 tts-agent/
 ├── backend/
-│   ├── app.py                  # FastAPI app factory
+│   ├── app.py                  # FastAPI app factory (v3.0.0)
 │   ├── api/
 │   │   ├── routes.py           # All route handlers
 │   │   └── schemas.py          # Pydantic request/response models
 │   ├── engines/
 │   │   ├── base.py             # Abstract engine contract
 │   │   ├── kokoro_engine.py    # Kokoro-82M wrapper + espeak fix
-│   │   └── f5_engine.py        # F5-TTS zero-shot cloning wrapper
+│   │   └── xtts_engine.py      # XTTS v2 zero-shot cloning wrapper
 │   └── utils/
 │       ├── audio.py            # Resample, normalise, trim
 │       ├── broadcast.py        # EBU R128, noise reduction, EQ, 44.1 kHz export
@@ -260,16 +267,19 @@ tts-agent/
 │       ├── device.py           # CUDA / MPS / CPU detection
 │       └── logger.py
 ├── frontend/
-│   ├── templates/index.html    # Browser UI (plain text & SSML modes)
+│   ├── templates/index.html    # 3-tab Browser UI
 │   └── static/{css,js}/
 ├── configs/settings.py         # Pydantic settings loaded from .env
+├── input_samples/              # Pre-packaged Hindi + Japanese test reference clips
+│   └── README.md               # Recording guidelines + test specifications
 ├── tests/
 │   ├── sample_ssml.txt         # SSML narration demo — paste into UI to test
 │   └── test_*.py
 ├── docker/
 ├── scripts/
-│   ├── setup.sh                # One-command env setup
-│   └── download_models.py      # Pre-download Kokoro + F5-TTS weights
+│   ├── setup.sh                # One-command env setup (macOS / Linux / WSL2)
+│   ├── setup.bat               # One-command env setup (Windows native)
+│   └── download_models.py      # Pre-download Kokoro + XTTS v2 weights
 ├── Makefile
 ├── requirements.txt
 └── .env.example

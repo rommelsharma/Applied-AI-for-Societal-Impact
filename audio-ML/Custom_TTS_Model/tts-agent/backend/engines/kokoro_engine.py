@@ -232,13 +232,26 @@ class KokoroEngine(TTSEngine):
         except ImportError as exc:
             logger.error("Kokoro package not installed: %s", exc)
 
+    # Map lang_code → pip extras needed for that language
+    _LANG_EXTRAS: dict[str, str] = {
+        "j": "misaki[ja]",
+        "z": "misaki[zh]",
+    }
+
     def _get_pipeline(self, lang_code: str):
         if lang_code not in self._pipelines:
             logger.info("Loading Kokoro pipeline for lang_code='%s'", lang_code)
-            self._pipelines[lang_code] = self._KPipeline(
-                lang_code=lang_code,
-                repo_id=_KOKORO_REPO_ID,
-            )
+            try:
+                self._pipelines[lang_code] = self._KPipeline(
+                    lang_code=lang_code,
+                    repo_id=_KOKORO_REPO_ID,
+                )
+            except (ImportError, ModuleNotFoundError) as exc:
+                extra = self._LANG_EXTRAS.get(lang_code, "misaki[<lang>]")
+                raise RuntimeError(
+                    f"Missing optional dependency for lang_code='{lang_code}': {exc}. "
+                    f"Install it with:  pip install '{extra}'"
+                ) from exc
         return self._pipelines[lang_code]
 
     def synthesize(

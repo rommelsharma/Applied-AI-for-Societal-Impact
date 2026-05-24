@@ -20,6 +20,10 @@ noisereduce>=3.0.2        # Spectral subtraction noise reduction
 
 # TTS engines
 # NOTE: Install PyTorch separately via setup.sh — picks CUDA / MPS / CPU build
-# kokoro and f5-tts list torch as a dependency; ensure torch is installed first.
+# kokoro and TTS list torch as a dependency; ensure torch is installed first.
 kokoro>=0.9.4
-f5-tts>=0.3.1
+# Coqui XTTS v2 — multilingual zero-shot voice cloning (17 languages incl. Hindi + Japanese)
+# License: Coqui Public Model License v1.0 (commercial use ≤ $1M/yr revenue)
+TTS>=0.22.0
+# Coqui TTS requires transformers<4.43 — isin_mps_friendly removed in 4.43, BeamSearchScorer removed in 4.57
+transformers==4.40.2

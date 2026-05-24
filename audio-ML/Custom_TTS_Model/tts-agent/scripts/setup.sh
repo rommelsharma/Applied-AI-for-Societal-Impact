@@ -2,7 +2,24 @@
 # One-command local setup for macOS (Apple Silicon or Intel) and Windows WSL2
 set -euo pipefail
 
-PYTHON=${PYTHON:-python3}
+# Coqui TTS (XTTS v2) requires Python <3.12. Prefer 3.11 when available.
+_pick_python() {
+  for candidate in python3.11 \
+      /opt/anaconda3/envs/PyTorchEnv/bin/python3.11 \
+      /opt/anaconda3/envs/PyTorchEnv/bin/python \
+      python3 python; do
+    if command -v "$candidate" &>/dev/null; then
+      ver=$("$candidate" -c "import sys; print(sys.version_info[:2])" 2>/dev/null)
+      if [ "$ver" = "(3, 11)" ] || [ "$ver" = "(3, 10)" ] || [ "$ver" = "(3, 9)" ]; then
+        echo "$candidate"; return
+      fi
+    fi
+  done
+  # Fallback — warn user
+  echo "python3"
+  echo "WARNING: Could not find Python 3.9–3.11. TTS (XTTS v2) requires Python <3.12." >&2
+}
+PYTHON=${PYTHON:-$(_pick_python)}
 VENV_DIR="venv"
 
 echo "=== TTS Agent Setup ==="
@@ -90,11 +107,15 @@ if [ ! -f ".env" ]; then
 fi
 
 # Create runtime dirs
-mkdir -p models/kokoro models/f5tts voice_samples outputs
+mkdir -p models/kokoro models/xtts voice_samples input_samples outputs
 
 echo ""
 echo "=== Setup complete ==="
-echo "Activate env:  source venv/bin/activate"
-echo "Download models: python scripts/download_models.py"
-echo "Start server:    uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload"
-echo "Open browser:    http://localhost:8000"
+echo "Activate env:       source venv/bin/activate"
+echo "Download models:    python scripts/download_models.py"
+echo "Start server:       uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload"
+echo "Open browser:       http://localhost:8000"
+echo ""
+echo "Test suite setup:   place these files in input_samples/"
+echo "  cloning-voice-clip-male-hindi-1.wav"
+echo "  cloning-voice-samples-JP.wav"
