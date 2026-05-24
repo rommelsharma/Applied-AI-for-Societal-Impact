@@ -1,4 +1,4 @@
-.PHONY: setup install dev run test test-cov docker-build docker-run docker-compose clean
+.PHONY: setup install dev run stop test test-cov docker-build docker-run docker-compose clean
 
 setup:
 	bash scripts/setup.sh
@@ -11,6 +11,9 @@ dev:
 
 run:
 	uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload
+
+stop:
+	@pkill -f "uvicorn backend.app" && echo "Server stopped." || echo "Server was not running."
 
 download-models:
 	python scripts/download_models.py

@@ -79,7 +79,8 @@ class XTTSEngine(TTSEngine):
         self._TTS = None      # TTS class (imported lazily to avoid heavy import at startup)
         self._model = None    # loaded TTS instance (lazy, created on first synthesis)
         self._ready = False
-        self._model_lock = threading.Lock()  # prevents double-load when concurrent requests arrive
+        self._model_lock = threading.Lock()      # prevents double-load on concurrent first requests
+        self._inference_lock = threading.Lock()  # XTTS v2 model.tts() is not thread-safe
         self._load()
 
     # ── Initialisation ────────────────────────────────────────────────────────
@@ -220,6 +221,77 @@ class XTTSEngine(TTSEngine):
             f"Upload the file or add it to input_samples/."
         )
 
+    # ── Text splitting ────────────────────────────────────────────────────────
+
+    # Per-language character limits copied from the XTTS v2 tokenizer.
+    # We target ~60 % of each limit so segments comfortably fit.
+    _CHAR_LIMITS: dict[str, int] = {
+        "en": 250, "de": 253, "fr": 273, "es": 239, "it": 213,
+        "pt": 203, "pl": 224, "zh-cn": 82, "ar": 166, "cs": 186,
+        "ru": 182, "nl": 251, "tr": 226, "ja": 71, "hu": 224, "ko": 95,
+        "hi": 250,  # not in tokenizer dict → falls back to 250
+    }
+
+    @classmethod
+    def _split_text(cls, text: str, lang_code: str) -> list[str]:
+        """Split *text* into model-safe segments for the given XTTS language.
+
+        For languages where pysbd doesn't recognise sentence boundaries
+        (Hindi `।`, Japanese `。！？`) we apply a regex-based pre-split so
+        that no segment exceeds the model's per-language character limit.
+
+        Returns a list with at least one element (the original text if it is
+        already short enough and no special handling is needed).
+        """
+        import re
+
+        limit = cls._CHAR_LIMITS.get(lang_code, 250)
+        target = int(limit * 0.85)  # stay well below the hard limit
+
+        # ── Hindi: split on Devanagari danda (।) and dandaanda (॥) ──────────
+        # Use a tighter target (~40 % of limit) because Hindi preprocessing
+        # in XTTS v2 is minimal (no phonemizer) — shorter segments produce
+        # cleaner, less garbled output.
+        if lang_code == "hi":
+            hi_target = int(limit * 0.40)  # ~100 chars per segment for Hindi
+            raw = re.split(r"(?<=[।॥?!])\s*", text)
+            segments: list[str] = []
+            current = ""
+            for chunk in raw:
+                chunk = chunk.strip()
+                if not chunk:
+                    continue
+                if len(current) + len(chunk) + 1 <= hi_target:
+                    current = f"{current} {chunk}".strip() if current else chunk
+                else:
+                    if current:
+                        segments.append(current)
+                    current = chunk
+            if current:
+                segments.append(current)
+            return segments or [text]
+
+        # ── Japanese: split on 。！？and close-brackets ────────────────────
+        if lang_code == "ja":
+            raw = re.split(r"(?<=[。！？」』])", text)
+            segments = []
+            current = ""
+            for chunk in raw:
+                if not chunk:
+                    continue
+                if len(current) + len(chunk) <= target:
+                    current += chunk
+                else:
+                    if current:
+                        segments.append(current)
+                    current = chunk
+            if current:
+                segments.append(current)
+            return segments or [text]
+
+        # ── All other languages: return as-is, rely on built-in pysbd ───────
+        return [text]
+
     # ── TTSEngine contract ────────────────────────────────────────────────────
 
     def synthesize(
@@ -274,12 +346,30 @@ class XTTSEngine(TTSEngine):
 
         model = self._get_model()
 
-        # XTTS v2 returns a list of float32 audio samples at 24 kHz
-        wav: list[float] = model.tts(
-            text=text,
-            speaker_wav=str(ref_path),
-            language=lang_code,
+        # Pre-split text into short segments for languages whose sentence
+        # boundaries aren't recognised by the built-in pysbd splitter.
+        # Segments are synthesised individually and their waveforms concatenated.
+        segments = self._split_text(text, lang_code)
+
+        # XTTS v2 model.tts() is not thread-safe — serialise inference calls.
+        # Concurrent requests (e.g. "Run All" firing EN + HI + JA at once) would
+        # otherwise corrupt internal tensor buffers, producing a tensor size
+        # mismatch error (a=N, b=64) in the attention layer.
+        logger.info(
+            "[XTTS] waiting for inference slot | voice=%s | segments=%d",
+            voice, len(segments),
         )
+        with self._inference_lock:
+            logger.info("[XTTS] inference start | voice=%s | lang=%s", voice, lang_code)
+            all_wav: list[float] = []
+            for seg in segments:
+                seg_wav: list[float] = model.tts(
+                    text=seg,
+                    speaker_wav=str(ref_path),
+                    language=lang_code,
+                )
+                all_wav.extend(seg_wav)
+            wav = all_wav
 
         audio = np.array(wav, dtype=np.float32)
         processed, sr = postprocess(audio, src_rate=24000)
