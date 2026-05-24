@@ -108,13 +108,59 @@
             <span class="test-engine-badge">XTTS v2</span>
           </div>
           <p class="test-suite-desc">
-            Validates XTTS v2 voice cloning for Hindi and Japanese using pre-packaged reference audio.
+            Validates XTTS v2 voice cloning for English, Hindi, and Japanese using pre-packaged reference audio.
             Place the reference WAV files in the <code>input_samples/</code> directory before running.
           </p>
           <button id="run-all-tests-btn" class="btn-primary test-run-all-btn">▶ Run All Tests</button>
         </div>
 
-        <!-- ── Hindi test card ── -->
+        <!-- ── Test 1: English test card ── -->
+        <div class="test-card" data-test="english">
+          <div class="test-card-header">
+            <span class="test-lang-badge en">EN</span>
+            <h3 class="test-card-title">English Voice Cloning</h3>
+            <div class="test-status-group">
+              <span class="test-status-dot" data-status="idle">●</span>
+              <span class="test-status-label">Ready</span>
+            </div>
+            <button class="btn-secondary run-test-btn" data-test="english">Run</button>
+          </div>
+
+          <div class="test-card-body">
+            <div class="test-ref-block">
+              <label class="test-label">Reference Audio
+                <span class="test-file-hint">input_samples/cloning-voice-sample-english-male-1.wav</span>
+              </label>
+              <audio controls class="test-ref-audio"
+                src="/input-samples/cloning-voice-sample-english-male-1.wav"
+                onerror="this.parentElement.querySelector('.test-audio-missing').classList.remove('hidden')">
+              </audio>
+              <p class="test-audio-missing hidden">⚠ File not found — place <code>cloning-voice-sample-english-male-1.wav</code> in <code>input_samples/</code></p>
+            </div>
+
+            <div class="test-synth-block">
+              <label class="test-label">Text to Synthesise</label>
+              <p class="test-synth-text" lang="en">
+                Visiting Sikkim offers a unique blend of natural beauty, cultural richness, and peaceful surroundings.
+                Nestled in the Himalayas, Sikkim is known for its snow-capped mountains, beautiful valleys, waterfalls, and clean environment.
+                Tourists can enjoy breathtaking views of Kanchenjunga, the third-highest mountain in the world.
+                The state is also famous for its Buddhist monasteries, colorful festivals, and warm hospitality.
+                Adventure lovers can experience trekking, river rafting, and mountain biking, while nature enthusiasts can explore rich biodiversity and scenic landscapes.
+                Sikkim&rsquo;s calm atmosphere and pollution-free environment make it an ideal destination for relaxation, spiritual peace, and unforgettable travel experiences.
+              </p>
+            </div>
+
+            <div class="test-output hidden">
+              <label class="test-label">Generated Audio</label>
+              <audio controls class="test-output-audio"></audio>
+              <div class="test-output-meta"></div>
+            </div>
+
+            <div class="test-error hidden"></div>
+          </div>
+        </div><!-- /english card -->
+
+        <!-- ── Test 2: Hindi test card ── -->
         <div class="test-card" data-test="hindi">
           <div class="test-card-header">
             <span class="test-lang-badge hi">HI</span>
@@ -129,13 +175,13 @@
           <div class="test-card-body">
             <div class="test-ref-block">
               <label class="test-label">Reference Audio
-                <span class="test-file-hint">input_samples/cloning-voice-clip-male-hindi-1.wav</span>
+                <span class="test-file-hint">input_samples/cloning-voice-sample-hindi-male-1.wav</span>
               </label>
               <audio controls class="test-ref-audio"
-                src="/input-samples/cloning-voice-clip-male-hindi-1.wav"
+                src="/input-samples/cloning-voice-sample-hindi-male-1.wav"
                 onerror="this.parentElement.querySelector('.test-audio-missing').classList.remove('hidden')">
               </audio>
-              <p class="test-audio-missing hidden">⚠ File not found — place <code>cloning-voice-clip-male-hindi-1.wav</code> in <code>input_samples/</code></p>
+              <p class="test-audio-missing hidden">⚠ File not found — place <code>cloning-voice-sample-hindi-male-1.wav</code> in <code>input_samples/</code></p>
             </div>
 
             <div class="test-synth-block">
@@ -158,7 +204,7 @@
           </div>
         </div><!-- /hindi card -->
 
-        <!-- ── Japanese test card ── -->
+        <!-- ── Test 3: Japanese test card ── -->
         <div class="test-card" data-test="japanese">
           <div class="test-card-header">
             <span class="test-lang-badge ja">JA</span>
@@ -173,13 +219,13 @@
           <div class="test-card-body">
             <div class="test-ref-block">
               <label class="test-label">Reference Audio
-                <span class="test-file-hint">input_samples/cloning-voice-samples-JP.wav</span>
+                <span class="test-file-hint">input_samples/cloning-voice-sample-japanese-female-1.wav</span>
               </label>
               <audio controls class="test-ref-audio"
-                src="/input-samples/cloning-voice-samples-JP.wav"
+                src="/input-samples/cloning-voice-sample-japanese-female-1.wav"
                 onerror="this.parentElement.querySelector('.test-audio-missing').classList.remove('hidden')">
               </audio>
-              <p class="test-audio-missing hidden">⚠ File not found — place <code>cloning-voice-samples-JP.wav</code> in <code>input_samples/</code></p>
+              <p class="test-audio-missing hidden">⚠ File not found — place <code>cloning-voice-sample-japanese-female-1.wav</code> in <code>input_samples/</code></p>
             </div>
 
             <div class="test-synth-block">

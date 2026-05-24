@@ -15,7 +15,7 @@ venv/
 models/
 voice_samples/
 outputs/
-input_samples/
+# input_samples/ is tracked — reference WAV clips are version-controlled for reproducible tests
 
 # Config
 .env

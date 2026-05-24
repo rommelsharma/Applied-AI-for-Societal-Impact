@@ -32,6 +32,7 @@ See: https://coqui.ai/cpml
 """
 from __future__ import annotations
 
+import threading
 import numpy as np
 from pathlib import Path
 
@@ -75,9 +76,10 @@ class XTTSEngine(TTSEngine):
     """Coqui XTTS v2 — single-model multilingual zero-shot voice cloning."""
 
     def __init__(self) -> None:
-        self._TTS = None     # TTS class (imported lazily to avoid heavy import at startup)
-        self._model = None   # loaded TTS instance (lazy, created on first synthesis)
+        self._TTS = None      # TTS class (imported lazily to avoid heavy import at startup)
+        self._model = None    # loaded TTS instance (lazy, created on first synthesis)
         self._ready = False
+        self._model_lock = threading.Lock()  # prevents double-load when concurrent requests arrive
         self._load()
 
     # ── Initialisation ────────────────────────────────────────────────────────
@@ -96,24 +98,108 @@ class XTTSEngine(TTSEngine):
                 exc,
             )
 
-    def _get_model(self):
-        """Lazy-load the XTTS v2 model on the first synthesis call."""
-        if self._model is None:
-            from backend.utils.device import DEVICE
+    @staticmethod
+    def _patch_torchaudio() -> None:
+        """Patch torchaudio.load to use soundfile when TorchCodec is not installed.
+
+        torchaudio ≥2.9 replaced its audio backend with TorchCodec.  When that
+        package is absent (e.g. macOS MPS environments), torchaudio.load raises
+        ``ImportError: TorchCodec is required``.  We intercept the import and
+        substitute a soundfile-based loader that returns the same (tensor, sr)
+        tuple so Coqui TTS works transparently.
+        """
+        try:
+            from torchcodec.decoders import AudioDecoder  # noqa: F401 — already installed, nothing to do
+            return
+        except ImportError:
+            pass  # torchcodec absent — apply patch below
+
+        try:
+            import torchaudio
+            import torch
+            import soundfile as sf  # noqa: F401 — validate availability
+
+            def _sf_load(
+                uri,
+                frame_offset: int = 0,
+                num_frames: int = -1,
+                normalize: bool = True,
+                channels_first: bool = True,
+                format=None,
+                buffer_size: int = 4096,
+                backend=None,
+            ):
+                import soundfile as _sf
+                import numpy as _np
+                import torch as _torch
+
+                data, sr = _sf.read(str(uri), dtype="float32", always_2d=True)
+                # data: [time, channels] → tensor: [channels, time]
+                tensor = _torch.from_numpy(_np.ascontiguousarray(data.T))
+                if not channels_first:
+                    tensor = tensor.T
+                if frame_offset:
+                    tensor = tensor[..., frame_offset:]
+                if num_frames > 0:
+                    tensor = tensor[..., :num_frames]
+                return tensor, sr
+
+            torchaudio.load = _sf_load
             logger.info(
-                "[XTTS] Loading model '%s' on device '%s' (first call triggers ~1.8 GB download if not cached)…",
-                settings.XTTS_MODEL_NAME, DEVICE,
+                "[XTTS] torchaudio.load patched — using soundfile backend "
+                "(TorchCodec not installed; install torchcodec to use native backend)"
             )
-            try:
-                self._model = self._TTS(settings.XTTS_MODEL_NAME).to(DEVICE)
-            except Exception as exc:
-                # MPS sometimes rejects XTTS — fall back to CPU
-                if "mps" in str(DEVICE).lower():
-                    logger.warning("[XTTS] MPS failed (%s) — retrying on CPU", exc)
-                    self._model = self._TTS(settings.XTTS_MODEL_NAME).to("cpu")
-                else:
-                    raise
-            logger.info("[XTTS] Model loaded successfully.")
+        except Exception as exc:
+            logger.warning("[XTTS] Could not patch torchaudio.load: %s", exc)
+
+    def _get_model(self):
+        """Lazy-load the XTTS v2 model on the first synthesis call.
+
+        A threading.Lock guards the initialisation block so that concurrent
+        synthesis requests (e.g. "Run All" firing three tests at once) do not
+        each attempt to load the 1.8 GB model simultaneously.
+        """
+        if self._model is None:
+            with self._model_lock:
+                # Double-checked locking: re-test inside the lock in case
+                # another thread loaded the model while we were waiting.
+                if self._model is None:
+                    import torch
+                    from backend.utils.device import DEVICE
+
+                    # torchaudio ≥2.9 requires TorchCodec for torchaudio.load().
+                    # Patch it to use soundfile when TorchCodec is absent.
+                    self._patch_torchaudio()
+
+                    # PyTorch 2.6+ defaults torch.load to weights_only=True, which
+                    # blocks Coqui TTS checkpoint classes.  Register them as trusted
+                    # globals so model loading works without disabling safety checks.
+                    try:
+                        from TTS.tts.configs.xtts_config import XttsConfig
+                        from TTS.tts.models.xtts import XttsAudioConfig, XttsArgs
+                        from TTS.config.shared_configs import BaseDatasetConfig, BaseAudioConfig
+                        torch.serialization.add_safe_globals([
+                            XttsConfig, XttsAudioConfig, XttsArgs,
+                            BaseDatasetConfig, BaseAudioConfig,
+                        ])
+                    except Exception:
+                        pass  # older PyTorch versions don't have add_safe_globals
+
+                    logger.info(
+                        "[XTTS] Loading model '%s' on device '%s' "
+                        "(first call triggers ~1.8 GB download if not cached)…",
+                        settings.XTTS_MODEL_NAME, DEVICE,
+                    )
+                    try:
+                        self._model = self._TTS(settings.XTTS_MODEL_NAME).to(DEVICE)
+                    except Exception as exc:
+                        # MPS sometimes rejects XTTS — fall back to CPU
+                        if "mps" in str(DEVICE).lower():
+                            logger.warning("[XTTS] MPS failed (%s) — retrying on CPU", exc)
+                            self._model = self._TTS(settings.XTTS_MODEL_NAME).to("cpu")
+                        else:
+                            raise
+                    logger.info("[XTTS] Model loaded successfully.")
         return self._model
 
     # ── Reference audio resolution ────────────────────────────────────────────

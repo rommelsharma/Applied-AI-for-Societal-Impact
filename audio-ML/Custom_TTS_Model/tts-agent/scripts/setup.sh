@@ -97,6 +97,9 @@ fi
 echo "Installing application dependencies…"
 pip install --quiet -r requirements.txt
 
+echo "Downloading UniDic dictionary for Japanese TTS support…"
+python -m unidic download --quiet 2>/dev/null || python -m unidic download || true
+
 echo "Installing dev dependencies…"
 pip install --quiet -r requirements-dev.txt
 

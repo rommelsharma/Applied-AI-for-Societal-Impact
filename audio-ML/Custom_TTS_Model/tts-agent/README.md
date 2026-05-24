@@ -35,6 +35,10 @@ source venv/bin/activate
 > **macOS users:** `setup.sh` automatically runs `brew install espeak-ng`.
 > Without this, Kokoro's phonemizer backend cannot find its data files.
 
+> **Japanese support:** `setup.sh` automatically downloads the UniDic dictionary
+> (`python -m unidic download`, ~500 MB) required for Japanese TTS with XTTS v2.
+> Without it, Japanese synthesis fails with a MeCab initialization error.
+
 Then open `.env` and add your HuggingFace token (removes rate limits):
 ```
 HF_TOKEN=hf_your_token_here
@@ -204,14 +208,15 @@ since pre-industrial times.<pause ms="400"/>
 
 ## Test Results tab
 
-The UI includes a dedicated **Test Results** tab with two pre-configured voice cloning tests:
+The UI includes a dedicated **Test Results** tab with three pre-configured voice cloning tests:
 
-| Test | Reference clip | Language | Expected output |
-|---|---|---|---|
-| Hindi voice cloning | `cloning-voice-clip-male-hindi-1.wav` | Hindi (hi) | Fluent Hindi narration in cloned voice |
-| Japanese voice cloning | `cloning-voice-samples-JP.wav` | Japanese (ja) | Fluent Japanese narration in cloned voice |
+| # | Test | Reference clip | Language | Expected output |
+|---|---|---|---|---|
+| 1 | English voice cloning | `cloning-voice-sample-english-male-1.wav` | English (en) | Fluent English narration in cloned voice |
+| 2 | Hindi voice cloning | `cloning-voice-sample-hindi-male-1.wav` | Hindi (hi) | Fluent Hindi narration in cloned voice |
+| 3 | Japanese voice cloning | `cloning-voice-sample-japanese-female-1.wav` | Japanese (ja) | Fluent Japanese narration in cloned voice |
 
-Place both files in `input_samples/` before clicking **Run All Tests**.
+All three files are version-controlled in `input_samples/` — no manual placement needed after cloning the repo.
 See `input_samples/README.md` for recording guidelines and reference transcripts.
 
 ## Testing

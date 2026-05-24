@@ -36,14 +36,20 @@ const LANGUAGE_TAGS = {
 
 // ── Test suite definitions ─────────────────────────────────────────────────
 const TESTS = {
+  english: {
+    referenceAudio:  'cloning-voice-sample-english-male-1.wav',
+    referenceText:   'Welcome to Sikkim. The land of magic, peaceful living and meditation. Enjoy simple conversations with the friendly and helpful locals.',
+    synthesisText:   'Visiting Sikkim offers a unique blend of natural beauty, cultural richness, and peaceful surroundings. Nestled in the Himalayas, Sikkim is known for its snow-capped mountains, beautiful valleys, waterfalls, and clean environment. Tourists can enjoy breathtaking views of Kanchenjunga, the third-highest mountain in the world. The state is also famous for its Buddhist monasteries, colorful festivals, and warm hospitality. Adventure lovers can experience trekking, river rafting, and mountain biking, while nature enthusiasts can explore rich biodiversity and scenic landscapes. Sikkim\'s calm atmosphere and pollution-free environment make it an ideal destination for relaxation, spiritual peace, and unforgettable travel experiences.',
+    language:        'en',
+  },
   hindi: {
-    referenceAudio:  'cloning-voice-clip-male-hindi-1.wav',
+    referenceAudio:  'cloning-voice-sample-hindi-male-1.wav',
     referenceText:   'नमस्कार सभी को, आज मैं समय का महत्व विषय पर कुछ शब्द कहना चाहता हूँ। समय हमारे जीवन की सबसे कीमती चीज़ है।',
     synthesisText:   'जीवन में एक लक्ष्य होना ज़रूरी है। जब मन में एक सपना हो, तो हर सुबह उठने का कारण मिलता है। अपने मन से पूछो — "मैं क्या बनना चाहता हूँ?" जब यह उत्तर मिल जाए, तो उसे अपनी आत्मा में बसा लो। रास्ते में क्रोध, ईर्ष्या और निराशा आएगी। इन्हें पहचानो, इनसे लड़ो मत। अपने भीतर की आवाज़ सुनो — यही जागरूकता तुम्हें सही राह दिखाएगी।',
     language:        'hi',
   },
   japanese: {
-    referenceAudio:  'cloning-voice-samples-JP.wav',
+    referenceAudio:  'cloning-voice-sample-japanese-female-1.wav',
     referenceText:   '浜田山とは、いわゆる「超有名観光地」ではないけれど、東京のローカルで上質な住宅街の空気感を味わえるエリアです。',
     synthesisText:   'やばい、『ホッパーズ』まじで最高だった！メイベルがビーバーのロボットに意識を移して動物たちと一緒に生きるって設定、最初は「え、どういうこと？」ってなったけど、見てるうちにどんどん引き込まれた。キング・ジョージがかわいすぎて、ずっと笑ってたのに、最後は普通に泣いた。自然保護のメッセージがすごくリアルに伝わってきたのが良かった。',
     language:        'ja',
@@ -184,6 +190,7 @@ function bindEvents() {
 
   // Test suite buttons
   $('run-all-tests-btn').addEventListener('click', () => {
+    runTest('english');
     runTest('hindi');
     runTest('japanese');
   });
