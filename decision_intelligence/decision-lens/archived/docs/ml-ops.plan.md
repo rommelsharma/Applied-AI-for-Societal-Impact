@@ -1,6 +1,6 @@
 # ML-Ops Plan
 
-This document describes the ML-Ops practices used (and planned) for the Bias-Aware Decision Making RAG Copilot. It aligns with the ML-Ops narrative in the validated portfolio SDD ([`Solution_Design_Document.docx`](Solution_Design_Document.docx), externally maintained — not overwritten by repo scripts).
+This document describes the ML-Ops practices used (and planned) for DecisionLens. It aligns with the ML-Ops narrative in the validated portfolio SDD ([`Solution_Design_Document.docx`](Solution_Design_Document.docx), externally maintained — not overwritten by repo scripts).
 
 The system is small (one runtime path, two corpora, one chat model, one embedding model) but the operational practices below are deliberately enterprise-shaped so the same patterns scale when the corpus, traffic, or team grow.
 

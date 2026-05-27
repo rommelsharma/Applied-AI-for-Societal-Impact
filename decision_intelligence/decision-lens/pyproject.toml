@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bias-aware-rag-copilot"
-version = "4.0.0"
-description = "Bias-aware decision-making RAG copilot (ontology-first hybrid retrieval)."
+name = "decision-lens"
+version = "5.0.0"
+description = "DecisionLens — Decision Intelligence Copilot (ontology-first hybrid RAG retrieval)."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

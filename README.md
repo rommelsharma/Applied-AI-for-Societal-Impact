@@ -139,7 +139,7 @@ All projects are built with a consistent set of principles:
 Applied-AI-for-Societal-Impact/
 │
 ├── decision-intelligence/
-│   └── bias-aware-decision-making-rag-copilot/
+│   └── decision-lens/
 │
 ├── financial-intelligence/
 │   └── market-analysis/
@@ -182,7 +182,7 @@ Designed for any high-stakes environment where the quality and consistency of ju
 | **Synthesis** | Cross-source synthesis that surfaces both convergent findings and conflicting evidence across the literature corpus |
 | **Privacy** | Fully local FAISS in-process vector store — no managed vector DB, no data leaves the machine |
 
-Located in `decision-intelligence/bias-aware-decision-making-rag-copilot/`.
+Located in `decision-intelligence/decision-lens/`.
 
 #### Claude for Legal Integration — Coming Next
 
@@ -194,13 +194,21 @@ The result positions this system as a professional decision intelligence platfor
 >
 > All active development beyond the initial design — including the Claude for Legal integration, domain skill packs, and enterprise architecture — is maintained in a **private branch for intellectual property protection**. What is presented in this repository reflects the initial approach and publicly shareable design foundation.
 >
-> If you are an investor, enterprise customer, or organisation interested in deploying or commercialising this system, I welcome a professional conversation. Please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
+> I welcome a professional conversation if you want to discuss the solution further. Please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
 
 ---
 
-### Market Intelligence & Analysis (Planned)
+### Market Intelligence & Analysis
 
-AI-driven system for analyzing financial data, identifying patterns, and supporting investment decision-making.
+An AI-driven system for analysing financial data, identifying market signals, and supporting investment decision-making through data-driven pattern recognition and quantitative modelling.
+
+> **Note on IP & Further Development**
+>
+> This is a private personal project developed independently. All work is maintained in a **private branch for intellectual property protection**. What is presented in this repository is a high-level description only.
+>
+> This system is **not financial advice** of any kind. It is a research and engineering project exploring the application of AI to market data analysis. Any signals, patterns, or outputs produced are for personal research and educational purposes only — not for investment decision-making by third parties.
+>
+> I welcome a professional conversation if you want to discuss the solution further. Please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
 
 ---
 

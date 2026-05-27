@@ -1,10 +1,10 @@
 # Codex Handoff — Applied-AI-for-Societal-Impact
 
 ## Project purpose
-Build a portfolio-grade, enterprise-style AI system that helps decision makers reason more carefully about complex human situations using a bias-aware RAG copilot.
+Build a portfolio-grade, enterprise-style AI system (DecisionLens) that helps decision makers reason more carefully about complex human situations using evidence-grounded decision intelligence.
 
 The current flagship project is:
-`decision_intelligence/bias-aware-decision-making-rag-copilot`
+`decision_intelligence/decision-lens`
 
 ## What the system does
 The copilot should:
@@ -46,7 +46,7 @@ Codex should continue by making the pipeline robust and traceable:
 Use this structure inside the project root:
 
 ```text
-bias-aware-decision-making-rag-copilot/
+decision-lens/
 ├── data/
 │   ├── raw/
 │   ├── processed/

@@ -7,7 +7,7 @@ This document describes the repository layout and the end-to-end execution flow 
 ## 1. Top-Level Directory Structure
 
 ```text
-bias-aware-decision-making-rag-copilot/
+decision-lens/
 │
 ├── app/                      # Application services (LLM provider, bias detector)
 │   └── services/

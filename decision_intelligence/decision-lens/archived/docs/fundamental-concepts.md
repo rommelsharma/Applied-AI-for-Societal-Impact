@@ -1,6 +1,6 @@
 # Fundamental Concepts
 
-This document explains the *why* behind the Bias-Aware Decision Making RAG Copilot — the logical flow, the core ideas in retrieval-augmented generation, and the rationale for the specific technologies chosen.
+This document explains the *why* behind DecisionLens — the logical flow, the core ideas in retrieval-augmented generation, and the rationale for the specific technologies chosen.
 
 It is intended as a primer for engineers, reviewers, and HR / Legal / business stakeholders who want to understand not just what the system does but *why* it is built this way.
 

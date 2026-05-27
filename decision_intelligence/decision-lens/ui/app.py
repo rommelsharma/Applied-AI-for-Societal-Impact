@@ -1,4 +1,4 @@
-"""Streamlit UI — Bias-Aware Decision-Making RAG Copilot."""
+"""Streamlit UI — DecisionLens: Decision Intelligence Copilot."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ load_dotenv(ROOT / ".env")
 
 # ── page config — must be the first Streamlit call ────────────────────────────
 st.set_page_config(
-    page_title="Bias-Aware Decision Copilot",
+    page_title="DecisionLens",
     page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -411,10 +411,10 @@ with st.sidebar:
 
 # ── main ──────────────────────────────────────────────────────────────────────
 
-st.title("⚖️ Bias-Aware Decision Copilot")
+st.title("⚖️ DecisionLens")
 st.markdown(
-    "Surfaces cognitive and systemic biases in high-stakes decisions — "
-    "grounded in seminal decision-science research, with full source attribution."
+    "Evidence-grounded decision intelligence — surfaces the cognitive and structural "
+    "patterns most likely to distort judgment, with full source attribution."
 )
 st.divider()
 

@@ -106,7 +106,7 @@ Re-run the same commands after changing `RAG_OVERLAP_*` or `RAG_CONTEXT_EXPAND_*
 ## Repository layout (high level)
 
 ```text
-bias-aware-decision-making-rag-copilot/
+decision-lens/
 ├── data/corpora/<corpus>/{raw,parsed_text,chunks,knowledge,vector_store}
 ├── data/eval/{gold,runs}/            # gold: scenarios_catalog; runs: captures (runs/ gitignored)
 ├── data/metadata/                  # bias-taxonomy, retrieval-concepts, …

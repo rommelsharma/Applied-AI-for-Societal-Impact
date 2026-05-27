@@ -10,7 +10,7 @@ Canonical technical reference for **repository layout**, **data paths**, **pipel
 
 ## 1. Purpose
 
-Bias-aware, taxonomy-constrained RAG over a curated decision-science corpus: **baseline vs RAG** comparison on each scenario, **strict JSON** outputs, **source-attributed** retrieval, AWS Bedrock (Claude + Titan). Decision support only — not legal, medical, HR, or financial advice.
+Evidence-grounded decision intelligence: taxonomy-constrained RAG over a curated decision-science corpus, delivering **baseline vs knowledge-enhanced** comparison per scenario, **strict JSON** outputs, and **source-attributed** recommendations. AWS Bedrock (Claude + Titan). Decision support only — not legal, medical, HR, or financial advice.
 
 **Target operators:** engineers maintaining ingestion and indexes; reviewers auditing eval captures.
 
@@ -19,7 +19,7 @@ Bias-aware, taxonomy-constrained RAG over a curated decision-science corpus: **b
 ## 2. Repository layout
 
 ```
-bias-aware-decision-making-rag-copilot/
+decision-lens/
 ├── ui/                        # Streamlit web application
 │   └── app.py                 # Single-file UI — wraps detect_bias_comparison()
 ├── app/services/              # Bedrock provider, bias_detector orchestration

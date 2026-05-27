@@ -1,7 +1,7 @@
 DIRECTORY STRUCTURE
 ========================================================================
 Generated (UTC): 2026-05-14T10:01:50.325310+00:00
-Project root: /Users/romsharm/Local-Data/my-code/GitHub/Applied-AI-for-Societal-Impact/decision_intelligence/bias-aware-decision-making-rag-copilot
+Project root: /Users/romsharm/Local-Data/my-code/GitHub/Applied-AI-for-Societal-Impact/decision_intelligence/decision-lens
 
 Excluded from this listing:
   .git/  .venv/  __pycache__/  *.egg-info/  .mypy_cache/  .pytest_cache/  .ruff_cache/

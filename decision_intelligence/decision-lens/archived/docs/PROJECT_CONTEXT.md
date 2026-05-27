@@ -4,7 +4,7 @@
 `Applied-AI-for-Societal-Impact`
 
 ## Flagship project
-`decision_intelligence/bias-aware-decision-making-rag-copilot`
+`decision_intelligence/decision-lens`
 
 ## Vision
 Create a polished enterprise-style AI portfolio project centered on decision intelligence. The project should help users reason about biased or noisy judgments by combining:

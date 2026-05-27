@@ -71,7 +71,7 @@ The result is a professional decision intelligence platform built to enterprise 
 >
 > All active development beyond the initial design — including the Claude for Legal integration, domain skill packs, and enterprise architecture — is maintained in a **private branch for intellectual property protection**. What is presented here reflects the initial approach and publicly shareable design foundation.
 >
-> If you are an investor, enterprise customer, or organisation interested in deploying or commercialising this system, please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
+> I welcome a professional conversation if you want to discuss the solution further. Please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
 
 ---
 
