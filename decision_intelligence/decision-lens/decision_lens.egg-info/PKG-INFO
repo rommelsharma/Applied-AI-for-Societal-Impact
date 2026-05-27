@@ -1,0 +1,309 @@
+Metadata-Version: 2.4
+Name: decision-lens
+Version: 5.0.0
+Summary: DecisionLens — Decision Intelligence Copilot (ontology-first hybrid RAG retrieval).
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: boto3>=1.28.57
+Requires-Dist: faiss-cpu>=1.8.0
+Requires-Dist: numpy>=1.26.0
+Requires-Dist: PyMuPDF>=1.24.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: rank-bm25>=0.2.2
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+
+# DecisionLens — Decision Intelligence Copilot
+
+**An AI advisory system that helps professionals, teams, and organisations make better decisions — by grounding analysis in peer-reviewed behavioural science, cognitive psychology, and organisational dynamics literature.**
+
+Rather than offering generic risk checklists, DecisionLens reasons about the specific situation at hand: surfacing the psychological patterns and structural dynamics most likely to distort judgment, pressure-testing assumptions against a curated evidence base, and producing traceable, actionable recommendations. Every finding links back to its source — auditable, citable, and integrable into existing review workflows.
+
+Built on Anthropic Claude via Amazon Bedrock, with a closed decision-science knowledge base, full source attribution, and structured output designed for professional use.
+
+> Decision support only. Not legal, medical, HR, or financial advice. Always pair with human judgment and domain expertise.
+
+---
+
+## Why This Exists
+
+Every organisation makes high-stakes decisions under pressure — about hiring, investment allocation, strategy, performance, supplier selection, governance, or deploying AI. Decades of behavioural economics research have established that those decisions are consistently shaped by predictable cognitive patterns (anchoring, availability, narrative lock-in, similarity, groupthink) and by structural dynamics baked into processes, rubrics, and incentive systems.
+
+Generic LLMs can discuss these problems fluently — but for professional decision support they fall short on three things that matter in practice:
+
+1. **Auditability** — where did this analysis come from, and is it grounded in evidence?
+2. **Consistency** — does the same situation get the same structured analysis tomorrow?
+3. **Discipline** — does the system stay within an established research vocabulary, or improvise?
+
+DecisionLens is designed to address those gaps directly: grounded responses from a curated knowledge base, constrained output against a closed taxonomy, and full source-level traceability per recommendation.
+
+---
+
+## What It Does
+
+Given a plain-language description of a decision situation, DecisionLens:
+
+- Evaluates the scenario against an 8-layer decision-intelligence ontology spanning cognitive mechanisms, failure modes, group dynamics, forecasting, uncertainty, and intervention techniques
+- Retrieves the most relevant passages from a curated library of peer-reviewed decision science literature
+- Produces a structured analysis: what patterns are at play, why they matter here, what the risks are, and what concrete interventions are most appropriate
+- Attributes every finding to its source — linking claims back to specific passages with verbatim supporting quotes
+- Compares a baseline response (model knowledge alone) against the knowledge-enhanced response, so you can see exactly what the evidence base adds
+
+Designed for high-stakes environments where judgment quality and consistency directly affect outcomes: investment committees, hiring panels, strategy reviews, clinical settings, regulatory and governance bodies.
+
+---
+
+## How It Works (Technical Summary)
+
+A Retrieval-Augmented Generation (RAG) pipeline with closed-taxonomy constraints and strict structured output:
+
+- **LLM**: Anthropic Claude Sonnet via Amazon Bedrock
+- **Embeddings**: Amazon Titan v2 (1024 dims, normalised). Chunks use sentence-centred windows (±3 sentences per window, mean-pooled) for richer semantic capture. Scenarios embed as a single string at query time.
+- **Retrieval**: FAISS `IndexFlatIP` dense retrieval with BM25 hybrid search (RRF fusion), concept and decision-domain filtering, MMR diversification, and an optional LLM-as-judge reranker (Claude Haiku) activated for precision-critical queries.
+- **Knowledge base**: 300+ chunks across hiring, performance, leadership, legal, AI governance, strategy, and compliance — assembled from seminal decision-science literature.
+- **Taxonomy**: 60+ entries across cognitive, systemic, and AI-alignment bias layers.
+- **Output**: Strict JSON schema constrained against the taxonomy — auditable, grounded, and integrable.
+- **Traceability**: 20+ metadata fields per retrieved passage including all 8 ontology dimensions, source, author, similarity score, and verbatim supporting passage per finding.
+- **Hosting**: AWS-native — Bedrock, FAISS local vector store, configurable for S3, KMS, CloudWatch, and IAM.
+
+For full architecture, pipeline design, and operations detail see [`docs/DESIGN.md`](docs/DESIGN.md).
+
+---
+
+## Claude for Legal Integration — In Active Development
+
+DecisionLens is being extended with architectural patterns from **Claude for Legal** — Anthropic's professional-grade platform for complex, high-stakes advisory contexts. This integration introduces:
+
+- **Domain skill packs** — hiring, investment, clinical, and governance skill profiles that focus the analysis on the patterns most relevant to that context
+- **Cold-start user profiling** — a structured onboarding interview that captures organisational context, risk tolerance, and decision domain before the first session
+- **Structured intervention playbooks** — step-by-step guidance on how to run each recommended intervention, not just what to do
+- **Adversarial synthesis** — surfaces conflicting evidence across sources rather than collapsing to a single view, making the system epistemically honest
+- **Organisational learning memory** — captures decision patterns and intervention outcomes across sessions, grounding future recommendations in your organisation's own history
+
+The result is a professional decision intelligence platform built to enterprise standards — extensible, domain-aware, and designed for deployment in regulated environments.
+
+> **Note on IP & Further Development**
+>
+> All active development beyond the initial design — including the Claude for Legal integration, domain skill packs, and enterprise architecture — is maintained in a **private branch for intellectual property protection**. What is presented here reflects the initial approach and publicly shareable design foundation.
+>
+> I welcome a professional conversation if you want to discuss the solution further. Please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
+
+---
+
+## Quickstart
+
+**Prerequisites:** Python 3.10+, an AWS Bedrock-enabled environment, credentials configured in `.env` (see [`.env.example`](.env.example)).
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -e .
+cp .env.example .env               # fill in real values
+```
+
+Verify connectivity (no UI, just checks Bedrock reachability):
+
+```bash
+python -c "from evaluation.connectivity import run_connectivity_check; print(run_connectivity_check()['ok'])"
+```
+
+---
+
+## Run the UI
+
+```bash
+source .venv/bin/activate
+streamlit run ui/app.py
+# Opens http://localhost:8501
+```
+
+The Streamlit UI provides:
+- **Scenario editor** — describe a decision situation in plain language, or load one from the built-in catalog
+- **Side-by-side comparison** — Baseline (model knowledge only) vs Knowledge-Enhanced (with evidence retrieval) analysis
+- **Metrics bar** — bias count delta, groundedness score, schema validity, chunk retrieval stats
+- **Retrieved chunks panel** — full source attribution per finding, with verbatim supporting passages
+- **JSON export** — download the full structured result
+
+Sidebar controls let you switch corpus (`public` / `private`), adjust top-k chunks (2–20), and tune MMR lambda (relevance vs diversity).
+
+---
+
+## Common Commands (CLI)
+
+| What you want | Command |
+|---|---|
+| Run the UI | `streamlit run ui/app.py` |
+| One custom scenario | `python scripts/run_my_scenario.py --scenario "…"` or `--file path.txt` |
+| Baseline trio from catalog | `python scripts/record_response_run.py --label my_run` |
+| Two fixed demo scenarios | `python scripts/run_sample_comparison.py` |
+| Full extended suite → JSON report | `python evaluation/run_evaluation.py` |
+| Check corpus for new/changed files | `python scripts/check_corpus_updates.py` |
+| Re-index after adding new content | `python scripts/check_corpus_updates.py --ingest` |
+| Unit tests (no Bedrock) | `python -m unittest discover -s tests -p 'test_*.py' -v` |
+
+---
+
+## Corpus Management
+
+### What the corpus is
+
+The knowledge base is built from source documents in `data/corpora/<corpus>/`. Two corpora ship with the project:
+
+| Corpus | Location | Content |
+|---|---|---|
+| `public` | `data/corpora/public/` | Synthesised research dossiers (~5–8 KB each) committed to the repo. Safe to use anywhere. |
+| `private` | `data/corpora/private/` | Full-book PDFs (gitignored, local-only). Richer retrieval; used for lift studies. |
+
+Set `CORPUS_NAME=public` or `CORPUS_NAME=private` in `.env`, or pass `--corpus` to any script.
+
+### Checking whether the index is up to date
+
+```bash
+# Report only — no Bedrock calls, runs in under a second
+python scripts/check_corpus_updates.py
+python scripts/check_corpus_updates.py --corpus private
+```
+
+This compares every file in `parsed_text/` against a SHA-256 fingerprint stored at `data/corpora/<corpus>/corpus_fingerprint.json` and reports:
+
+- 🆕 New files not yet indexed
+- ✏️ Changed files (content hash differs from last index)
+- 🗑️ Files removed since the last index
+- 📄 Raw PDFs in `raw/` that have never been parsed
+
+The Streamlit sidebar shows the same status automatically on every page load.
+
+### Adding a new synthesised dossier (public corpus)
+
+1. Write your `.txt` file and drop it into `data/corpora/public/parsed_text/`
+2. Create the matching `.meta.json` sidecar alongside it (copy the format from any existing one and update `source`, `author`, `title`, `publication_year`, `file_name`)
+3. Run the pipeline:
+
+```bash
+python data_pipeline/build_knowledge_base.py --corpus public
+python data_pipeline/build_vector_index.py --corpus public
+python scripts/check_corpus_updates.py --corpus public   # updates fingerprint
+```
+
+### Adding a new full-book PDF (private corpus)
+
+1. Drop the PDF into `data/corpora/private/raw/`
+2. Run the full pipeline:
+
+```bash
+python data_pipeline/build_knowledge_base.py --corpus private --profile book
+python data_pipeline/build_vector_index.py --corpus private
+python scripts/check_corpus_updates.py --corpus private   # updates fingerprint
+```
+
+### Pipeline stages (reference)
+
+| Stage | Script | Input → Output |
+|---|---|---|
+| 1. Parse | `data_pipeline/pdf_parser.py` | `raw/*.pdf` → `parsed_text/*.txt` + `.meta.json` |
+| 2. Chunk | `data_pipeline/chunker.py` | `parsed_text/*.txt` → `chunks/chunks.json` |
+| 3. Tag concepts | `data_pipeline/concept_extractor.py` | `chunks.json` → `chunks_with_concepts.json` |
+| 4. Enrich | `data_pipeline/enrich_chunks.py` | `chunks_with_concepts.json` → `processed/enriched/knowledge_base.json` |
+| 5. Synthesis | `data_pipeline/synthesis_builder.py` | `knowledge_base.json` → `processed/enriched/synthesis.json` |
+| 6. Index | `data_pipeline/build_vector_index.py` | `knowledge_base.json` → `processed/index/` (FAISS + BM25 + metadata) |
+
+---
+
+## Scenarios
+
+Scenarios are the decision situations passed to the analysis engine.
+
+| Layer | Path | Purpose |
+|---|---|---|
+| **Source JSON (edit these)** | `data/eval/gold/baseline_scenarios.json` | 3 frozen baseline scenarios used for A/B comparisons |
+| | `data/eval/gold/test_scenarios.json` | Extended test suite |
+| | `data/eval/gold/private_book_scenario_questions.json` | 12 questions grounded in specific private-corpus books |
+| | `data/eval/gold/gold_labels.json` | Expected patterns and concepts per scenario |
+| **Merged catalog (generated)** | `data/eval/gold/scenarios_catalog.json` | Single file the app loads at runtime |
+
+Rebuild the catalog after editing any source JSON:
+
+```bash
+python scripts/build_scenarios_catalog.py
+```
+
+---
+
+## Repository Map
+
+| Path | What it is |
+|---|---|
+| `ui/app.py` | Streamlit web UI |
+| `app/services/bias_detector.py` | End-to-end orchestration: retrieval + dual Claude inference |
+| `app/services/bedrock_provider.py` | Bedrock client wrapper (chat + embeddings) |
+| `rag/retriever.py` | FAISS + BM25 + RRF + MMR + optional LLM reranker |
+| `rag/fusion.py` | Reciprocal Rank Fusion |
+| `rag/hierarchical_retriever.py` | Synthesis context block selection |
+| `rag/query_classifier.py` | Intent classification to tune retrieval parameters |
+| `data_pipeline/` | Offline ingestion pipeline (parse → chunk → tag → enrich → index) |
+| `evaluation/` | Metrics, connectivity check, scenario catalog, run cards |
+| `shared_components/settings.py` | Single source of truth for all env-var configuration |
+| `shared_components/utilities/path_utils.py` | All filesystem path resolution |
+| `scripts/check_corpus_updates.py` | Corpus freshness check and incremental ingest trigger |
+| `scripts/` | All other operational CLIs |
+| `data/corpora/public/` | Public dossier corpus (committed) |
+| `data/corpora/private/` | Full-book corpus (gitignored, local-only) |
+| `data/eval/gold/` | Scenario catalog and gold labels |
+| `data/metadata/bias-taxonomy.json` | 60+ decision-science vocabulary |
+| `data/registry/decision_intelligence_ontology.json` | 8-layer decision-intelligence ontology |
+| `prompts/v1/bias_detection_system_prompt.txt` | Versioned system prompt |
+| `Dockerfile` | Container build for cloud deployment |
+| `docs/DESIGN.md` | Canonical technical design reference |
+| `docs/Solution_Design_Document_v4.3_2.docx` | Portfolio solution design |
+| `archived/` | Retired documentation (history and grep reference) |
+
+---
+
+## Deployment
+
+| Target | Cost | Notes |
+|---|---|---|
+| Local | Free | `streamlit run ui/app.py` + `.env` credentials |
+| Streamlit Community Cloud | Free (public) | Push to GitHub, add secrets at share.streamlit.io |
+| AWS App Runner | ~$5/month | Docker image on ECR; IAM role for Bedrock — no stored credentials |
+| GCP Cloud Run | ~$0–5/month | Same Docker image; inject AWS credentials via Secret Manager |
+
+Container build:
+
+```bash
+docker build -t decisionlens .
+docker run -p 8501:8501 --env-file .env decisionlens
+```
+
+---
+
+## Status
+
+- Foundation build complete and runnable
+- Public dossier corpus indexed (12 sources, 29 chunks)
+- Private full-book corpus available locally for evaluation lift studies
+- Streamlit UI live — side-by-side baseline vs knowledge-enhanced comparison with full source attribution
+- Corpus fingerprinting and incremental ingest operational
+- Evaluation harness and scenario catalog operational
+- Claude for Legal integration in active development (private branch)
+
+**Smoke checks:**
+
+```bash
+python -m unittest discover -s tests -p 'test_*.py' -v
+python -c "from evaluation.connectivity import run_connectivity_check; print(run_connectivity_check()['ok'])"
+```
+
+---
+
+## Disclaimer
+
+This system is **decision support only**. It is **not** legal, financial, medical, or HR advice. Outputs must be reviewed by qualified human decision-makers familiar with the local legal, regulatory, and organisational context. The system never automates a decision; it provides a structured, evidence-grounded second perspective.
+
+---
+
+## Author
+
+**Rommel Sharma** — Enterprise Technology Leader | Applied AI Practitioner
+
+[LinkedIn](https://www.linkedin.com/in/rommelsharma/) · Open to collaboration on decision-intelligence and responsible-AI projects.
