@@ -41,11 +41,15 @@ This portfolio spans multiple applied domains, unified by a common goal:
 
 ### 1. Decision Intelligence & Behavioral AI
 
-AI systems designed to improve decision quality by incorporating behavioral science and reducing cognitive biases.
+AI systems that enhance the quality, consistency, and defensibility of high-stakes decisions by grounding recommendations in the established science of human behaviour, cognitive psychology, organisational dynamics, and behavioural economics.
+
+Rather than simply flagging errors, these systems act as structured reasoning partners — surfacing the patterns that lead to flawed judgement, pressure-testing assumptions against a curated evidence base, and producing actionable recommendations that help decision-makers move from intuition to well-evidenced conclusions.
+
+The focus is on decisions that matter: resource allocation, organisational change, investment evaluation, clinical judgment, and situations where the cost of a poor decision is high and the value of structured reasoning is clear.
 
 **Example:**
 
-* Bias-Aware AI Decision Copilot (LLM + RAG)
+* Decision Intelligence Copilot — Behavioral AI (LLM + RAG)
 
 ---
 
@@ -161,22 +165,36 @@ Applied-AI-for-Societal-Impact/
 
 ## Featured Projects
 
-### Bias-Aware AI Decision Copilot
+### Decision Intelligence Copilot — Behavioral AI
 
-A local-first Retrieval-Augmented Generation (RAG) system grounded in peer-reviewed decision science and behavioural economics literature, designed to detect cognitive biases and improve decision quality.
+A production-grade, local-first AI advisory system that helps professionals make better decisions by grounding analysis in peer-reviewed behavioural science, cognitive psychology, and organisational dynamics literature. The system reasons about complex real-world situations — surfacing the psychological and structural patterns that commonly lead to poor outcomes, and delivering evidence-backed recommendations with full source traceability.
+
+Designed for any high-stakes environment where the quality and consistency of judgment directly affects outcomes: investment committees, hiring panels, strategy reviews, clinical settings, and governance bodies.
 
 | | |
 |---|---|
-| **Purpose** | Decision-support copilot that grounds LLM responses in evidence from behavioural science — detecting biases, surfacing interventions, and improving reasoning consistency |
-| **Retrieval** | Hybrid BM25 + FAISS dense retrieval with RRF fusion (+15–30% recall lift over dense-only); MMR (λ=0.7) for result diversity |
-| **Knowledge base** | 8-layer decision-intelligence ontology: cognitive biases, failure modes, interventions, evidence hierarchy, group dynamics, forecasting, uncertainty, and decision frameworks |
+| **Purpose** | Structured reasoning partner that evaluates situations against an evidence base drawn from behavioural economics and decision science — producing grounded, actionable recommendations rather than generic checklists |
+| **Retrieval** | Hybrid BM25 + FAISS dense retrieval with RRF fusion (+15–30% recall lift over dense-only); MMR diversity reranking; optional LLM-as-judge precision layer |
+| **Knowledge base** | 8-layer decision-intelligence ontology spanning cognitive mechanisms, failure modes, intervention techniques, evidence hierarchy, group dynamics, forecasting, uncertainty quantification, and decision frameworks |
 | **Generation** | Claude Sonnet on Amazon Bedrock; Amazon Titan Embeddings v2 for semantic indexing |
-| **Query routing** | Rule-based intent classifier (recall / comparison / synthesis / mitigation) with per-class MMR λ override |
-| **Traceability** | 20+ metadata fields per chunk including all 8 ontology dimensions, source, and similarity score |
-| **Synthesis** | Book-level and cross-book synthesis artefacts for epistemic grounding across the literature corpus |
+| **Query routing** | Intent-aware routing (recall / comparison / synthesis / mitigation) with per-class retrieval tuning |
+| **Traceability** | 20+ metadata fields per retrieved passage — every recommendation is linked to its source evidence, confidence level, and supporting passage verbatim |
+| **Synthesis** | Cross-source synthesis that surfaces both convergent findings and conflicting evidence across the literature corpus |
 | **Privacy** | Fully local FAISS in-process vector store — no managed vector DB, no data leaves the machine |
 
 Located in `decision-intelligence/bias-aware-decision-making-rag-copilot/`.
+
+#### Claude for Legal Integration — Coming Next
+
+Active development is underway to integrate architectural patterns from **Claude for Legal** — Anthropic's professional-grade AI platform for complex, high-stakes advisory contexts. This integration introduces domain-specific skill packs, structured intervention playbooks, claim-level evidence attribution, and an organisational learning layer that captures institutional decision history across sessions.
+
+The result positions this system as a professional decision intelligence platform suited for enterprise deployment across legal, investment, clinical, and governance domains — not just a research prototype.
+
+> **Note on IP & Further Development**
+>
+> All active development beyond the initial design — including the Claude for Legal integration, domain skill packs, and enterprise architecture — is maintained in a **private branch for intellectual property protection**. What is presented in this repository reflects the initial approach and publicly shareable design foundation.
+>
+> If you are an investor, enterprise customer, or organisation interested in deploying or commercialising this system, I welcome a professional conversation. Please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
 
 ---
 
