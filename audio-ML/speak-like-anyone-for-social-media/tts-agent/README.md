@@ -1,13 +1,26 @@
-# TTS Agent
+# Speak Like Anyone for Social Media — TTS Agent
 
-Local text-to-speech application using **Kokoro-82M** (built-in English & Hindi voices) and **XTTS v2** (zero-shot voice cloning in 17 languages). Commercially usable under Apache 2.0 and Coqui Public Model License v1.0.
+A production-grade, locally deployed voice app for media creators. Generate speech from
+54 built-in voices across 9 languages or clone any voice from a short reference clip —
+entirely on your own machine, no cloud required.
+
+## ⚠️ Licence & Permitted Use
+
+| Component | Licence | Use in this app |
+|---|---|---|
+| **Kokoro-82M** | Apache 2.0 | Free for all uses including commercial |
+| **XTTS v2 (Coqui TTS)** | Coqui Public Model License v1.0 | Personal and non-commercial use; commercial only for organisations with annual revenue **≤ $1 M** |
+
+**Voice cloning is provided for personal and non-commercial social media use only.**
+You must obtain explicit consent before cloning another person's voice. Do not use this
+app to impersonate, deceive, or generate audio for fraud or manipulation.
 
 ## Stack
 
 | Component | Technology |
 |---|---|
-| Built-in TTS | Kokoro-82M (Apache 2.0) |
-| Voice cloning | XTTS v2 — Coqui TTS (CPML v1.0, commercial ≤ $1M/yr) |
+| Built-in TTS | Kokoro-82M (Apache 2.0) — 54 voices, 9 languages |
+| Voice cloning | XTTS v2 — Coqui TTS (CPML v1.0) — 17 languages, zero-shot |
 | Backend | FastAPI + Uvicorn |
 | Frontend | Vanilla HTML/CSS/JS (3-tab: Built-in / Clone / Test Results) |
 | Inference | PyTorch (CUDA · MPS · CPU) |

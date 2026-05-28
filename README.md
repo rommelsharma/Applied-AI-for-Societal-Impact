@@ -79,9 +79,17 @@ Application of AI to monitor and understand natural ecosystems.
 
 AI systems that generate, transform, and analyse audio for practical applications.
 
-**Human voice synthesis (Text-to-Speech):**
+**Human voice synthesis — Speak Like Anyone for Social Media:**
 
-Producing natural, broadcast-quality speech from text at a local level — without cloud dependency or commercial licensing restrictions. The focus is on narration-grade output suitable for documentaries, training materials, and professional media workflows, including voice cloning from short reference clips.
+A production-grade, fully functional AI voice app freely given to media creators for
+voice-overs on personal and non-commercial social media projects. Generate
+broadcast-quality speech from 54 built-in voices across 9 languages, or clone any
+voice from a 5–12 second reference clip using zero-shot voice cloning across 17 languages
+— all locally on your own machine with no cloud dependency.
+
+> **Intended use:** Personal and non-commercial social media content creation only.
+> Voice cloning requires explicit consent of the voice owner. See the project README
+> for full licensing and ethical use guidance.
 
 **Wildlife identification through sound:**
 
@@ -148,7 +156,7 @@ Applied-AI-for-Societal-Impact/
 │   └── jaguar-reid/
 │
 ├── audio-ML/
-│   └── Custom_TTS_Model/          # Kokoro-82M + F5-TTS narration engine
+│   └── speak-like-anyone-for-social-media/   # Speak Like Anyone for Social Media — Kokoro-82M + XTTS v2
 │
 ├── audio-ai/
 │   └── acoustic-monitoring/       # (planned)
@@ -231,21 +239,30 @@ Located in `computer-vision/jaguar-reid/`.
 
 ---
 
-### Custom TTS Model (Audio ML)
+### Speak Like Anyone for Social Media (Audio ML)
 
-A production-grade, locally deployed Text-to-Speech system built for documentary narration,
-training material production, and professional media workflows.
+A production-grade, fully functional AI voice app — freely given to media creators for
+voice-overs on personal and non-commercial social media projects. Generate natural,
+broadcast-quality speech or clone any voice from a short recording clip, all running
+locally on your own machine.
 
 | | |
 |---|---|
-| **Engines** | Kokoro-82M (Apache 2.0) — 13 built-in voices (EN-US, EN-GB, Hindi); F5-TTS (MIT) — zero-shot voice cloning |
+| **Built-in voices** | 54 voices across 9 languages (EN-US, EN-GB, Hindi, Spanish, French, Italian, Portuguese, Japanese, Chinese) via Kokoro-82M (Apache 2.0) |
+| **Voice cloning** | Zero-shot cloning in 17 languages from a 5–12 s clip via XTTS v2 (Coqui CPML v1.0) |
 | **Audio quality** | 44.1 kHz stereo WAV · EBU R128 loudness normalisation · noise reduction · parametric EQ |
 | **Narration control** | SSML markup: `<pause>`, `<break>`, `<emphasis>`, `<say-as>` |
 | **Batch processing** | Up to 500 segments per job with optional concatenation and gap control |
-| **Privacy** | Fully local — no cloud calls, no telemetry |
-| **Platform** | macOS (MPS/CPU) and Windows WSL2 (CUDA) |
+| **Privacy** | Fully local — no cloud calls, no audio data leaves your machine |
+| **Platform** | macOS (MPS/CPU) and Windows/Linux (CUDA/CPU) |
 
-Located in `audio-ML/Custom_TTS_Model/`.
+> **Licence note:** Kokoro-82M is Apache 2.0 (unrestricted). XTTS v2 voice cloning is
+> governed by the Coqui Public Model License v1.0 — permitted for personal and
+> non-commercial use; commercial use only for organisations with annual revenue ≤ $1 M.
+> **Voice cloning is provided for personal and non-commercial social media use only.**
+> Users must obtain explicit consent before cloning another person's voice.
+
+Located in `audio-ML/speak-like-anyone-for-social-media/`.
 
 ---
 
