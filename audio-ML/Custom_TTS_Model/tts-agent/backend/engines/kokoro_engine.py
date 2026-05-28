@@ -45,12 +45,14 @@ def _configure_espeak() -> None:
     #    Homebrew installs data to PREFIX/share/espeak-ng-data, not lib.
     # ------------------------------------------------------------------
     system_candidates = [
-        "/opt/homebrew/share/espeak-ng-data",  # Apple Silicon Homebrew
-        "/usr/local/share/espeak-ng-data",      # Intel Mac Homebrew
-        "/usr/share/espeak-ng-data",            # Debian/Ubuntu/Fedora
-        "/usr/lib/espeak-ng-data",              # some older Linux distros
-        "/opt/homebrew/lib/espeak-ng-data",     # symlink Homebrew creates
-        "/usr/local/lib/espeak-ng-data",        # symlink on Intel Mac
+        "/opt/homebrew/share/espeak-ng-data",                        # Apple Silicon Homebrew
+        "/usr/local/share/espeak-ng-data",                           # Intel Mac Homebrew
+        "/usr/share/espeak-ng-data",                                 # Debian/Ubuntu/Fedora
+        "/usr/lib/espeak-ng-data",                                   # some older Linux distros
+        "/opt/homebrew/lib/espeak-ng-data",                          # symlink Homebrew creates
+        "/usr/local/lib/espeak-ng-data",                             # symlink on Intel Mac
+        r"C:\Program Files\eSpeak NG\espeak-ng-data",                # Windows default install
+        r"C:\Program Files (x86)\eSpeak NG\espeak-ng-data",          # Windows 32-bit install
     ]
     for candidate in system_candidates:
         p = Path(candidate)
@@ -87,7 +89,13 @@ def _configure_espeak() -> None:
         return
 
     if len(data_path) > 140:
-        short = Path("/tmp/kokoro_espeak_data")
+        import tempfile, sys
+        # Use the system temp dir — works on macOS, Linux, and Windows.
+        # On Windows, symlinks require Developer Mode or elevation; if that
+        # fails we fall through and use the raw path (usually short enough
+        # on Windows since venv paths tend to be shorter).
+        tmp_root = Path(tempfile.gettempdir())
+        short = tmp_root / "kokoro_espeak_data"
         try:
             real = Path(data_path).resolve()
             if short.is_symlink() and short.resolve() != real:

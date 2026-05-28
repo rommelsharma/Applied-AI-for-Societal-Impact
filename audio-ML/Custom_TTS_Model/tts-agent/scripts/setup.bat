@@ -1,7 +1,8 @@
 @echo off
 :: ============================================================================
 :: TTS Agent — Windows Native Setup Script
-:: Supports: Windows 10/11 with Python 3.10+ installed
+:: Supports: Windows 10/11 with Python 3.9, 3.10, or 3.11
+::           XTTS v2 blocks Python 3.12+ — do NOT use a newer interpreter.
 :: GPU:       Automatically detects NVIDIA GPU (CUDA 12.1)
 ::            Falls back to CPU-only PyTorch if no NVIDIA GPU is found
 :: ============================================================================
@@ -17,9 +18,21 @@ echo.
 where python >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo ERROR: Python not found on PATH.
-    echo Download Python 3.10+ from https://www.python.org/downloads/
+    echo Download Python 3.11 from https://www.python.org/downloads/
     echo Make sure to check "Add Python to PATH" during installation.
+    echo NOTE: XTTS v2 requires Python 3.9-3.11. Do NOT use Python 3.12 or later.
     pause & exit /b 1
+)
+
+:: Warn if Python 3.12+
+for /f "tokens=2 delims=." %%v in ('python --version 2^>^&1') do set PYMINOR=%%v
+if %PYMINOR% GEQ 12 (
+    echo.
+    echo WARNING: Python 3.1%PYMINOR% detected. XTTS v2 requires Python 3.9-3.11.
+    echo          The setup may fail when installing the TTS package.
+    echo          Please install Python 3.11 from https://www.python.org/downloads/
+    echo.
+    pause
 )
 
 :: Show Python version
@@ -75,6 +88,10 @@ if %ERRORLEVEL% NEQ 0 (
     pause & exit /b 1
 )
 
+:: Download UniDic dictionary for Japanese TTS support (~500 MB)
+echo Downloading UniDic dictionary for Japanese TTS support...
+python -m unidic download
+
 :: Install dev dependencies (optional — skip if not present)
 if exist requirements-dev.txt (
     echo Installing dev dependencies...
@@ -123,9 +140,10 @@ echo ========================================
 echo.
 echo Next steps:
 echo   1. Edit .env and add your HuggingFace token (optional, removes rate limits)
-echo   2. Place test reference audio in input_samples\:
-echo        cloning-voice-clip-male-hindi-1.wav
-echo        cloning-voice-samples-JP.wav
+echo   2. Test suite files (already in input_samples\ if repo was cloned):
+echo        cloning-voice-sample-english-male-1.wav
+echo        cloning-voice-sample-hindi-male-1.wav
+echo        cloning-voice-sample-japanese-female-1.wav
 echo   3. Pre-download models (optional, recommended for offline use):
 echo        python scripts\download_models.py
 echo   4. Start the server:

@@ -20,6 +20,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Download UniDic dictionary for Japanese TTS support (MeCab tokenizer data, ~500 MB)
+RUN python -m unidic download
+
 # Application source
 COPY backend/    ./backend/
 COPY frontend/   ./frontend/
