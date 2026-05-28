@@ -3,7 +3,43 @@
 set -euo pipefail
 
 # Coqui TTS (XTTS v2) requires Python <3.12. Prefer 3.11 when available.
+
+# Detect WSL early (needed by _pick_python before PLATFORM is set)
+_is_wsl() {
+  grep -qiE "(microsoft|wsl)" /proc/version 2>/dev/null || \
+  [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]
+}
+
+# On WSL/Linux, install Python 3.11 via deadsnakes PPA if only 3.12+ is present
+_ensure_python311_wsl() {
+  if ! _is_wsl; then return; fi
+  if command -v python3.11 &>/dev/null; then return; fi  # already installed
+
+  local default_ver
+  default_ver=$(python3 -c "import sys; print(sys.version_info[:2])" 2>/dev/null)
+  if [ "$default_ver" != "(3, 12)" ] && [ "$default_ver" != "(3, 13)" ]; then return; fi
+
+  echo "WSL detected: default Python is ${default_ver} (incompatible with XTTS v2)."
+  echo "Installing Python 3.11 via deadsnakes PPA…"
+
+  if ! command -v apt-get &>/dev/null; then
+    echo "WARNING: apt-get not found — cannot auto-install Python 3.11. Install it manually." >&2
+    return
+  fi
+
+  sudo apt-get update -qq
+  sudo apt-get install -y software-properties-common
+  sudo add-apt-repository -y ppa:deadsnakes/ppa
+  sudo apt-get update -qq
+  sudo apt-get install -y python3.11 python3.11-venv python3.11-distutils
+
+  echo "Python 3.11 installed successfully."
+}
+
 _pick_python() {
+  # On WSL, guarantee 3.11 is present before we search
+  _ensure_python311_wsl
+
   for candidate in python3.11 \
       /opt/anaconda3/envs/PyTorchEnv/bin/python3.11 \
       /opt/anaconda3/envs/PyTorchEnv/bin/python \
