@@ -194,9 +194,20 @@ class XTTSEngine(TTSEngine):
                     try:
                         self._model = self._TTS(settings.XTTS_MODEL_NAME).to(DEVICE)
                     except Exception as exc:
-                        # MPS sometimes rejects XTTS — fall back to CPU
-                        if "mps" in str(DEVICE).lower():
-                            logger.warning("[XTTS] MPS failed (%s) — retrying on CPU", exc)
+                        exc_str = str(exc).lower()
+                        # MPS sometimes rejects XTTS v2.
+                        # CUDA "no kernel image" means the PyTorch build lacks kernels
+                        # for this GPU architecture (e.g. RTX 50xx Blackwell with cu121).
+                        if "mps" in str(DEVICE).lower() or (
+                            "cuda" in str(DEVICE).lower()
+                            and "no kernel image" in exc_str
+                        ):
+                            logger.warning(
+                                "[XTTS] %s failed (%s) — retrying on CPU. "
+                                "If you see 'no kernel image', re-run setup.bat to install "
+                                "the correct PyTorch for your GPU (RTX 50xx needs cu126+).",
+                                DEVICE.upper(), exc,
+                            )
                             self._model = self._TTS(settings.XTTS_MODEL_NAME).to("cpu")
                         else:
                             raise

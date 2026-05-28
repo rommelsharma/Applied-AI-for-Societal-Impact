@@ -131,10 +131,18 @@ if [ "$PLATFORM" = "macos" ]; then
   echo "Installing PyTorch (macOS — MPS supported on Apple Silicon)…"
   pip install --quiet torch torchaudio
 else
-  # Linux / WSL2: prefer CUDA 12.1 build; falls back to CPU if driver absent
+  # Linux / WSL2: detect GPU architecture; RTX 50xx (Blackwell, sm_12x) needs cu126
   if command -v nvidia-smi &>/dev/null; then
-    echo "NVIDIA GPU detected — installing CUDA 12.1 PyTorch…"
-    pip install --quiet torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+    CC=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1)
+    CC_MAJOR=$(echo "${CC:-0}" | cut -d. -f1)
+    if [ "${CC_MAJOR:-0}" -ge 12 ] 2>/dev/null; then
+      echo "NVIDIA Blackwell GPU detected (compute capability ${CC}) — installing CUDA 12.6 PyTorch…"
+      echo "NOTE: RTX 50xx requires CUDA 12.6+ wheels. Installing cu126 build."
+      pip install --quiet torch torchaudio --index-url https://download.pytorch.org/whl/cu126
+    else
+      echo "NVIDIA GPU detected (compute capability ${CC}) — installing CUDA 12.1 PyTorch…"
+      pip install --quiet torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+    fi
   else
     echo "No GPU detected — installing CPU PyTorch…"
     pip install --quiet torch torchaudio --index-url https://download.pytorch.org/whl/cpu

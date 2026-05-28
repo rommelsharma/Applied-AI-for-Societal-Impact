@@ -104,6 +104,82 @@ make stop       # if running in the background
 
 ---
 
+### Windows Native (PowerShell)
+
+> **One-time:** Allow PowerShell to run local scripts — paste this into an elevated terminal once per machine:
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+> ```
+
+`setup.bat` auto-detects your GPU's compute capability and installs the correct PyTorch — no manual choice needed.
+
+#### RTX 4070 (and earlier NVIDIA GPUs)
+
+```powershell
+cd tts-agent
+
+# Step 1 — First-time setup (run once)
+# Detects RTX 4070 (sm_8x) → installs CUDA 12.1 PyTorch automatically
+scripts\setup.bat
+
+# Step 2 — Activate the virtual environment
+# NOTE: 'source venv/bin/activate' is bash-only — use this in PowerShell instead
+.\venv\Scripts\Activate.ps1
+
+# Step 3 — Download model weights (~2.3 GB, run once)
+python scripts\download_models.py
+
+# Step 4 — Start the server
+venv\Scripts\uvicorn.exe backend.app:app --host 0.0.0.0 --port 8000 --reload
+# Open http://localhost:8000
+```
+
+**Every subsequent session:**
+```powershell
+.\venv\Scripts\Activate.ps1
+venv\Scripts\uvicorn.exe backend.app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+---
+
+#### RTX 5080 (Blackwell architecture — sm_12x)
+
+The RTX 5080 uses NVIDIA's Blackwell architecture (compute capability sm_12.0). Standard CUDA 12.1 PyTorch builds do not include Blackwell kernels and will crash with *"no kernel image is available for execution on the device"*. CUDA 12.6+ is required.
+
+`setup.bat` detects this automatically — no extra steps needed.
+
+```powershell
+cd tts-agent
+
+# Step 1 — First-time setup (run once)
+# Detects RTX 5080 (sm_12x) → installs CUDA 12.6 PyTorch automatically
+scripts\setup.bat
+
+# Step 2 — Activate the virtual environment
+.\venv\Scripts\Activate.ps1
+
+# Step 3 — Download model weights (~2.3 GB, run once)
+python scripts\download_models.py
+
+# Step 4 — Start the server
+venv\Scripts\uvicorn.exe backend.app:app --host 0.0.0.0 --port 8000 --reload
+# Open http://localhost:8000
+```
+
+**Every subsequent session:**
+```powershell
+.\venv\Scripts\Activate.ps1
+venv\Scripts\uvicorn.exe backend.app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+> **Already set up with the wrong PyTorch?** If you installed before this fix, run once to upgrade:
+> ```powershell
+> .\venv\Scripts\Activate.ps1
+> pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu126
+> ```
+
+---
+
 ### Docker (GPU — Linux / WSL2 with NVIDIA Container Toolkit)
 
 ```bash

@@ -64,11 +64,22 @@ echo Upgrading pip...
 python -m pip install --quiet --upgrade pip wheel
 
 :: Detect NVIDIA GPU and install appropriate PyTorch
+:: RTX 50xx (Blackwell, sm_12x) requires CUDA 12.6+ — older cu121 wheels lack those kernels.
 echo Detecting GPU...
 where nvidia-smi >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    echo NVIDIA GPU detected — installing PyTorch with CUDA 12.1...
-    pip install --quiet torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+    :: Read compute capability major version (e.g. "12.0" → "12")
+    for /f "tokens=1 delims=." %%M in ('nvidia-smi --query-gpu=compute_cap --format=csv^,noheader 2^>nul') do set CC_MAJOR=%%M
+    if not defined CC_MAJOR set CC_MAJOR=0
+
+    if !CC_MAJOR! GEQ 12 (
+        echo NVIDIA Blackwell GPU detected ^(compute capability !CC_MAJOR!.x^) — installing PyTorch with CUDA 12.6...
+        echo NOTE: RTX 50xx requires CUDA 12.6+ wheels. Installing cu126 build.
+        pip install --quiet torch torchaudio --index-url https://download.pytorch.org/whl/cu126
+    ) else (
+        echo NVIDIA GPU detected ^(compute capability !CC_MAJOR!.x^) — installing PyTorch with CUDA 12.1...
+        pip install --quiet torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+    )
 ) else (
     echo No NVIDIA GPU detected — installing CPU-only PyTorch.
     echo NOTE: Voice synthesis will be slower without GPU acceleration.
@@ -88,9 +99,14 @@ if %ERRORLEVEL% NEQ 0 (
     pause & exit /b 1
 )
 
-:: Download UniDic dictionary for Japanese TTS support (~500 MB)
-echo Downloading UniDic dictionary for Japanese TTS support...
-python -m unidic download
+:: Download UniDic dictionary for Japanese TTS support (~500 MB) — skip if already present
+python -c "import unidic, os; assert os.path.isdir(unidic.DICDIR)" >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo UniDic already installed -- skipping download.
+) else (
+    echo Downloading UniDic dictionary for Japanese TTS support...
+    python -m unidic download
+)
 
 :: Install dev dependencies (optional — skip if not present)
 if exist requirements-dev.txt (
