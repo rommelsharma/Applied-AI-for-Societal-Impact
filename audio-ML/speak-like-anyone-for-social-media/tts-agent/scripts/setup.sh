@@ -144,8 +144,12 @@ fi
 echo "Installing application dependencies…"
 pip install --quiet -r requirements.txt
 
-echo "Downloading UniDic dictionary for Japanese TTS support…"
-python -m unidic download --quiet 2>/dev/null || python -m unidic download || true
+if python -c "import unidic, os; assert os.path.isdir(unidic.DICDIR)" 2>/dev/null; then
+  echo "UniDic already installed — skipping download."
+else
+  echo "Downloading UniDic dictionary for Japanese TTS support…"
+  python -m unidic download --quiet 2>/dev/null || python -m unidic download || true
+fi
 
 echo "Installing dev dependencies…"
 pip install --quiet -r requirements-dev.txt
