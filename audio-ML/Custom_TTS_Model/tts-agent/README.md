@@ -32,6 +32,8 @@ source venv/bin/activate
 > Python interpreter. If running manually, use `python3.11` — do not use `python3` if it
 > resolves to 3.12 or later on your system.
 
+> **WSL2 users:** Run `setup.sh` from the Windows filesystem path (`/mnt/c/Users/<you>/...`) where GitHub Desktop manages the repo, not from a separate WSL clone. This keeps git changes in sync automatically.
+
 > **macOS users:** `setup.sh` automatically runs `brew install espeak-ng`.
 > Without this, Kokoro's phonemizer backend cannot find its data files.
 
@@ -54,6 +56,9 @@ python scripts/download_models.py   # or: make download-models
 # Download individual engines if preferred
 python scripts/download_models.py --kokoro   # Kokoro-82M only (~500 MB)
 python scripts/download_models.py --xtts    # XTTS v2 only (~1.8 GB)
+
+# Download Japanese dictionary (required for Japanese voice cloning)
+python -m unidic download
 ```
 
 > XTTS v2 downloads to `~/.local/share/tts/` (macOS/Linux) or `%LOCALAPPDATA%\tts\` (Windows).
@@ -73,6 +78,15 @@ make run
 ```bash
 source venv/bin/activate
 make run
+```
+
+---
+
+### Stop the server
+
+```bash
+Ctrl+C          # if running in the foreground
+make stop       # if running in the background
 ```
 
 ---
@@ -230,19 +244,35 @@ make test-cov
 
 | Voice ID | Description |
 |---|---|
+| `af_heart` | American English Female |
 | `af_bella` | American English Female |
+| `af_aoede` | American English Female |
+| `af_kore` | American English Female |
+| `af_alloy` | American English Female |
+| `af_nova` | American English Female |
 | `af_nicole` | American English Female |
 | `af_sarah` | American English Female |
 | `af_sky` | American English Female |
-| `am_adam` | American English Male |
+| `am_fenrir` | American English Male |
 | `am_michael` | American English Male |
+| `am_puck` | American English Male |
+| `am_echo` | American English Male |
+| `am_eric` | American English Male |
+| `am_liam` | American English Male |
+| `am_onyx` | American English Male |
+| `am_adam` | American English Male |
 | `bf_emma` | British English Female |
 | `bf_isabella` | British English Female |
+| `bf_alice` | British English Female |
+| `bf_lily` | British English Female |
 | `bm_george` | British English Male |
+| `bm_fable` | British English Male |
+| `bm_daniel` | British English Male |
 | `bm_lewis` | British English Male |
 | `hf_alpha` | Hindi Female |
 | `hf_beta` | Hindi Female |
 | `hm_omega` | Hindi Male |
+| `hm_psi` | Hindi Male |
 
 ## Porting to another machine
 

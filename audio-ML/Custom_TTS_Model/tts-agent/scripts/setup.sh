@@ -1,44 +1,44 @@
 #!/usr/bin/env bash
-# One-command local setup for macOS (Apple Silicon or Intel) and Windows WSL2
+# One-command local setup for macOS (Apple Silicon or Intel) and Linux / WSL2
 set -euo pipefail
 
 # Coqui TTS (XTTS v2) requires Python <3.12. Prefer 3.11 when available.
 
-# Detect WSL early (needed by _pick_python before PLATFORM is set)
-_is_wsl() {
-  grep -qiE "(microsoft|wsl)" /proc/version 2>/dev/null || \
-  [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]
-}
-
-# On WSL/Linux, install Python 3.11 via deadsnakes PPA if only 3.12+ is present
-_ensure_python311_wsl() {
-  if ! _is_wsl; then return; fi
+# On Linux (including WSL2), install Python 3.11 via deadsnakes PPA if the
+# system default is 3.12+.  Works regardless of whether WSL is detectable.
+_ensure_python311_linux() {
+  if [ "$(uname -s)" != "Linux" ]; then return; fi
   if command -v python3.11 &>/dev/null; then return; fi  # already installed
 
-  local default_ver
-  default_ver=$(python3 -c "import sys; print(sys.version_info[:2])" 2>/dev/null)
-  if [ "$default_ver" != "(3, 12)" ] && [ "$default_ver" != "(3, 13)" ]; then return; fi
+  local major minor
+  major=$(python3 -c "import sys; print(sys.version_info.major)" 2>/dev/null || echo 0)
+  minor=$(python3 -c "import sys; print(sys.version_info.minor)" 2>/dev/null || echo 0)
 
-  echo "WSL detected: default Python is ${default_ver} (incompatible with XTTS v2)."
+  # Only intervene when default Python is 3.12+
+  if [ "$major" -lt 3 ] || { [ "$major" -eq 3 ] && [ "$minor" -lt 12 ]; }; then
+    return
+  fi
+
+  echo "Default Python is ${major}.${minor} — incompatible with XTTS v2 (requires <3.12)."
   echo "Installing Python 3.11 via deadsnakes PPA…"
 
   if ! command -v apt-get &>/dev/null; then
-    echo "WARNING: apt-get not found — cannot auto-install Python 3.11. Install it manually." >&2
-    return
+    echo "ERROR: apt-get not found. Install Python 3.11 manually, then re-run this script." >&2
+    exit 1
   fi
 
   sudo apt-get update -qq
   sudo apt-get install -y software-properties-common
   sudo add-apt-repository -y ppa:deadsnakes/ppa
   sudo apt-get update -qq
-  sudo apt-get install -y python3.11 python3.11-venv python3.11-distutils
+  sudo apt-get install -y python3.11 python3.11-venv python3.11-dev
 
-  echo "Python 3.11 installed successfully."
+  echo "Python 3.11 installed."
 }
 
 _pick_python() {
-  # On WSL, guarantee 3.11 is present before we search
-  _ensure_python311_wsl
+  # On Linux, guarantee 3.11 is present before searching
+  _ensure_python311_linux
 
   for candidate in python3.11 \
       /opt/anaconda3/envs/PyTorchEnv/bin/python3.11 \
@@ -59,6 +59,7 @@ PYTHON=${PYTHON:-$(_pick_python)}
 VENV_DIR="venv"
 
 echo "=== TTS Agent Setup ==="
+echo "Python interpreter: $PYTHON ($($PYTHON --version 2>&1))"
 
 # Detect platform
 OS="$(uname -s)"

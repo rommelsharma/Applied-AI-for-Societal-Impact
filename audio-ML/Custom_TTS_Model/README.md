@@ -24,8 +24,7 @@ provides an end-to-end solution that is:
 
 | Capability | Detail |
 |---|---|
-| **Built-in English voices** | 10 voices (American + British, male/female) via Kokoro-82M |
-| **Built-in Hindi voices** | 3 voices via Kokoro-82M |
+| **Built-in voices** | 54 built-in voices across 9 languages via Kokoro-82M |
 | **Zero-shot voice cloning** | Clone any speaker from a short reference clip via XTTS v2 (17 languages incl. Hindi & Japanese) |
 | **SSML narration control** | Pause, emphasis, and character-spelling tags inline in script text |
 | **Batch synthesis** | Submit a full documentary script (up to 500 segments) in a single API call |
@@ -34,7 +33,7 @@ provides an end-to-end solution that is:
 | **Noise reduction** | Spectral subtraction denoising on every output |
 | **Parametric EQ** | 80 Hz high-pass + 3 kHz presence shelf for narration clarity |
 | **GPU acceleration** | Auto-detects CUDA (Linux/WSL2), MPS (Apple Silicon), or CPU |
-| **Docker packaging** | Reproducible deployment with host-mounted model and output volumes |
+| **Docker packaging** | Reproducible deployment for Linux servers — not needed for local macOS/Windows use |
 
 ---
 
@@ -132,7 +131,7 @@ Custom_TTS_Model/
     ├── backend/
     │   ├── app.py                       # FastAPI factory
     │   ├── api/                         # Routes + Pydantic schemas
-    │   ├── engines/                     # Kokoro + XTTS v2 wrappers
+    │   ├── engines/                     # Kokoro + xtts_engine.py wrappers
     │   └── utils/                       # Audio, broadcast, SSML, batch, device
     ├── frontend/                        # Browser UI (HTML/CSS/JS — 3-tab layout)
     ├── configs/                         # Pydantic Settings
@@ -162,6 +161,8 @@ source venv/bin/activate
 python scripts/download_models.py          # downloads Kokoro (~500 MB) + XTTS v2 (~1.8 GB)
 # or individually:  --kokoro  /  --xtts
 
+python -m unidic download       # Japanese dictionary (~500 MB, required for Japanese TTS)
+
 make run
 ```
 
@@ -172,10 +173,10 @@ Open `http://localhost:8000` in your browser.
 ```bash
 source venv/bin/activate
 make run
+make stop    # to stop the server
 ```
 
-> **Note:** XTTS v2 requires Python 3.9–3.11. `setup.sh` automatically selects a compatible
-> Python version. Do not use the system `python3` if it resolves to 3.12 or later.
+> **Note:** XTTS v2 requires Python 3.9–3.11. `setup.sh` automatically installs Python 3.11 via the deadsnakes PPA on Linux/WSL2 if needed, and selects the correct interpreter automatically.
 
 For full setup, Docker usage, API reference, SSML narration control, and testing, see
 [tts-agent/README.md](tts-agent/README.md).
