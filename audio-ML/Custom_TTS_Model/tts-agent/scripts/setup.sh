@@ -102,9 +102,19 @@ elif [ "$PLATFORM" = "linux" ]; then
   fi
 fi
 
-# Create virtual environment
+# Create virtual environment — recreate if it exists but uses the wrong Python version
+if [ -d "$VENV_DIR" ]; then
+  existing_ver=$("$VENV_DIR/bin/python" -c "import sys; print(sys.version_info[:2])" 2>/dev/null || echo "unknown")
+  expected_ver=$($PYTHON -c "import sys; print(sys.version_info[:2])" 2>/dev/null)
+  if [ "$existing_ver" != "$expected_ver" ]; then
+    echo "Existing venv uses Python $existing_ver but need $expected_ver — recreating…"
+    rm -rf "$VENV_DIR"
+  else
+    echo "Existing venv is correct Python $existing_ver — reusing."
+  fi
+fi
 if [ ! -d "$VENV_DIR" ]; then
-  echo "Creating virtual environment…"
+  echo "Creating virtual environment with $PYTHON…"
   $PYTHON -m venv "$VENV_DIR"
 fi
 
