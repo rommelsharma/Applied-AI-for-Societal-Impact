@@ -147,6 +147,10 @@ function bindEvents() {
       // Hide shared synthesis controls on Test Results tab
       const isTests = state.mode === 'tests';
       $('shared-controls').classList.toggle('hidden', isTests);
+      // Clear shared output so audio from a previous tab never bleeds into the new one
+      $('output-section').classList.add('hidden');
+      $('audio-player').src = '';
+      hideError();
       updateSynthBtn();
     });
   });
@@ -189,10 +193,26 @@ function bindEvents() {
   $('synthesize-btn').addEventListener('click', handleSynthesize);
 
   // Test suite buttons
-  $('run-all-tests-btn').addEventListener('click', () => {
-    runTest('english');
-    runTest('hindi');
-    runTest('japanese');
+  $('run-all-tests-btn').addEventListener('click', async () => {
+    const btn = $('run-all-tests-btn');
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+
+    // Pre-mark all three as queued so the user sees immediate feedback
+    ['english', 'hindi', 'japanese'].forEach(id => {
+      const card = document.querySelector(`.test-card[data-test="${id}"]`);
+      if (card) setTestStatus(card, 'idle', 'Queued…');
+    });
+
+    // Run sequentially — XTTS v2 serialises synthesis server-side, so firing all
+    // three concurrently just stacks them invisibly behind a lock; running them one
+    // at a time gives accurate per-card status updates.
+    await runTest('english');
+    await runTest('hindi');
+    await runTest('japanese');
+
+    btn.disabled = false;
+    btn.textContent = '▶ Run All Tests';
   });
 
   document.querySelectorAll('.run-test-btn').forEach(btn => {
@@ -241,11 +261,13 @@ async function handleUpload() {
     $('upload-status').textContent = '✓ Uploaded';
     if (data.warning) showError('Warning: ' + data.warning);
 
-    showSamplePreview(file);
-    state.activeSample = data.filename;
+    // Refresh the sample list first (populateSampleSelect runs with activeSample = null
+    // → no risk of it nulling a not-yet-listed file and disabling the Generate button).
     await fetchSamples();
-    populateSampleSelect();
-    updateSynthBtn();
+    state.activeSample = data.filename;
+    populateSampleSelect();      // re-run with activeSample set → selects the new file
+    showSamplePreview(file);     // reveal preview player for the uploaded clip
+    updateSynthBtn();            // activeSample is now set → enables Generate Speech
   } catch (e) {
     $('upload-status').textContent = '';
     showError('Upload failed: ' + e.message);
