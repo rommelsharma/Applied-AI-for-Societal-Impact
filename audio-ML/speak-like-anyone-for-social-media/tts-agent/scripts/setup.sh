@@ -2,25 +2,20 @@
 # One-command local setup for macOS (Apple Silicon or Intel) and Linux / WSL2
 set -euo pipefail
 
-# Coqui TTS (XTTS v2) requires Python <3.12. Prefer 3.11 when available.
+# Supports Python 3.9–3.12. Prefers the newest available version.
+# On Linux/WSL2, installs Python 3.11 via deadsnakes PPA only when no supported
+# version is found at all.
 
-# On Linux (including WSL2), install Python 3.11 via deadsnakes PPA if the
-# system default is 3.12+.  Works regardless of whether WSL is detectable.
+# On Linux (including WSL2), install Python 3.11 via deadsnakes PPA if no
+# supported Python (3.9–3.12) is available on the system.
 _ensure_python311_linux() {
   if [ "$(uname -s)" != "Linux" ]; then return; fi
-  if command -v python3.11 &>/dev/null; then return; fi  # already installed
+  # Check if any supported version is already present
+  for v in python3.12 python3.11 python3.10 python3.9; do
+    command -v "$v" &>/dev/null && return
+  done
 
-  local major minor
-  major=$(python3 -c "import sys; print(sys.version_info.major)" 2>/dev/null || echo 0)
-  minor=$(python3 -c "import sys; print(sys.version_info.minor)" 2>/dev/null || echo 0)
-
-  # Only intervene when default Python is 3.12+
-  if [ "$major" -lt 3 ] || { [ "$major" -eq 3 ] && [ "$minor" -lt 12 ]; }; then
-    return
-  fi
-
-  echo "Default Python is ${major}.${minor} — incompatible with XTTS v2 (requires <3.12)."
-  echo "Installing Python 3.11 via deadsnakes PPA…"
+  echo "No supported Python (3.9–3.12) found — installing Python 3.11 via deadsnakes PPA…"
 
   if ! command -v apt-get &>/dev/null; then
     echo "ERROR: apt-get not found. Install Python 3.11 manually, then re-run this script." >&2
@@ -37,26 +32,46 @@ _ensure_python311_linux() {
 }
 
 _pick_python() {
-  # On Linux, guarantee 3.11 is present before searching
+  # On Linux, ensure a supported Python is present before searching
   _ensure_python311_linux
 
-  for candidate in python3.11 \
-      /opt/anaconda3/envs/PyTorchEnv/bin/python3.11 \
-      /opt/anaconda3/envs/PyTorchEnv/bin/python \
-      python3 python; do
-    if command -v "$candidate" &>/dev/null; then
-      ver=$("$candidate" -c "import sys; print(sys.version_info[:2])" 2>/dev/null)
-      if [ "$ver" = "(3, 11)" ] || [ "$ver" = "(3, 10)" ] || [ "$ver" = "(3, 9)" ]; then
+  # Platform-aware candidate order:
+  #   macOS       — 3.12 confirmed working; try it first
+  #   Linux/WSL2  — 3.11 preferred; XTTS v2 pip wheels are more reliable on 3.11
+  if [ "$(uname -s)" = "Darwin" ]; then
+    CANDIDATES="python3.12 python3.11 python3.10 python3.9
+      /opt/anaconda3/envs/PyTorchEnv/bin/python3.12
+      /opt/anaconda3/envs/PyTorchEnv/bin/python3.11
+      /opt/anaconda3/envs/PyTorchEnv/bin/python
+      python3 python"
+  else
+    CANDIDATES="python3.11 python3.10 python3.9 python3.12 python3 python"
+  fi
+
+  for candidate in $CANDIDATES; do
+    # Use -x (executable exists) rather than `command -v` so absolute paths are found
+    # even when the candidate's parent directory is not on the active conda PATH.
+    if [ -x "$candidate" ] || command -v "$candidate" &>/dev/null; then
+      ver=$("$candidate" -c "import sys; print(sys.version_info[:2])" 2>/dev/null || true)
+      if [ "$ver" = "(3, 12)" ] || [ "$ver" = "(3, 11)" ] || \
+         [ "$ver" = "(3, 10)" ] || [ "$ver" = "(3, 9)" ]; then
         echo "$candidate"; return
       fi
     fi
   done
-  # Fallback — warn user
-  echo "python3"
-  echo "WARNING: Could not find Python 3.9–3.11. TTS (XTTS v2) requires Python <3.12." >&2
+  # Return empty — caller will detect and exit with a clear message
+  echo "WARNING: Could not find Python 3.9–3.12." >&2
 }
 PYTHON=${PYTHON:-$(_pick_python)}
 VENV_DIR="venv"
+
+# Guard: if _pick_python returned nothing (e.g. conda env shadowing PATH), fail clearly.
+if [ -z "${PYTHON:-}" ]; then
+  echo "ERROR: Could not detect a Python 3.9–3.12 interpreter." >&2
+  echo "  Pass it explicitly:  PYTHON=/path/to/python3.12 bash scripts/setup.sh" >&2
+  echo "  Conda users:         PYTHON=\$(conda run -n <env> which python3) bash scripts/setup.sh" >&2
+  exit 1
+fi
 
 echo "=== TTS Agent Setup ==="
 echo "Python interpreter: $PYTHON ($($PYTHON --version 2>&1))"
