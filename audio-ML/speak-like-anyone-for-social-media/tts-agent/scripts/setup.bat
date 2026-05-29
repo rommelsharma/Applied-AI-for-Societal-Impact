@@ -99,6 +99,29 @@ if %ERRORLEVEL% NEQ 0 (
     pause & exit /b 1
 )
 
+:: Kokoro CJK language support — optional extras that require a C++ compiler.
+:: misaki[ja] → pyopenjtalk (Japanese phonemisation)
+:: misaki[zh] → jieba + pypinyin (Chinese/Mandarin phonemisation)
+:: Skipped gracefully if the build fails (e.g. Visual Studio Build Tools not installed).
+echo Installing Kokoro Japanese support (misaki[ja])...
+pip install --quiet "misaki[ja]"
+if %ERRORLEVEL% EQU 0 (
+    echo   misaki[ja] installed.
+) else (
+    echo   WARNING: misaki[ja] install failed -- Japanese Kokoro voices will be unavailable.
+    echo            Fix: install Visual Studio Build Tools from
+    echo            https://visualstudio.microsoft.com/visual-cpp-build-tools/
+    echo            then run: pip install "misaki[ja]"
+)
+
+echo Installing Kokoro Chinese support (misaki[zh])...
+pip install --quiet "misaki[zh]"
+if %ERRORLEVEL% EQU 0 (
+    echo   misaki[zh] installed.
+) else (
+    echo   WARNING: misaki[zh] install failed -- Chinese Kokoro voices will be unavailable.
+)
+
 :: Download UniDic dictionary for Japanese TTS support (~500 MB) — skip if already present
 python -c "import unidic, os; assert os.path.isdir(unidic.DICDIR)" >nul 2>&1
 if %ERRORLEVEL% EQU 0 (

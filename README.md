@@ -264,6 +264,12 @@ locally on your own machine.
 
 Located in `audio-ML/speak-like-anyone-for-social-media/`.
 
+> **Note on IP & Further Development**
+>
+> This is a fully functional, production-grade solution — released publicly for educational purposes so that creators and practitioners can study, run, and learn from a complete end-to-end voice AI system. All further development is maintained in a **private branch for intellectual property protection** and is not publicly available.
+>
+> I welcome a professional conversation if you want to discuss the solution further. Please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
+
 ---
 
 ### Acoustic Monitoring (Audio AI) — Planned

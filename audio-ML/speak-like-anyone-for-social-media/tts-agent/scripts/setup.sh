@@ -152,6 +152,26 @@ fi
 echo "Installing application dependencies…"
 pip install --quiet -r requirements.txt
 
+# Kokoro CJK language support — optional extras that require a C++ compiler.
+# misaki[ja] → pyopenjtalk (Japanese phonemisation)
+# misaki[zh] → jieba + pypinyin (Chinese/Mandarin phonemisation)
+# Both are skipped gracefully if the build fails (e.g. cmake not found).
+echo "Installing Kokoro Japanese support (misaki[ja])…"
+if pip install --quiet 'misaki[ja]' 2>/dev/null; then
+  echo "  misaki[ja] installed."
+else
+  echo "  WARNING: misaki[ja] install failed — Japanese Kokoro voices will be unavailable."
+  echo "           macOS fix:  brew install cmake && pip install 'misaki[ja]'"
+  echo "           Linux fix:  sudo apt-get install -y cmake build-essential && pip install 'misaki[ja]'"
+fi
+
+echo "Installing Kokoro Chinese support (misaki[zh])…"
+if pip install --quiet 'misaki[zh]' 2>/dev/null; then
+  echo "  misaki[zh] installed."
+else
+  echo "  WARNING: misaki[zh] install failed — Chinese Kokoro voices will be unavailable."
+fi
+
 if python -c "import unidic, os; assert os.path.isdir(unidic.DICDIR)" 2>/dev/null; then
   echo "UniDic already installed — skipping download."
 else

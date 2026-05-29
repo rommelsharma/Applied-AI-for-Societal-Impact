@@ -183,3 +183,17 @@ testing, see [tts-agent/README.md](tts-agent/README.md).
 real-world applications in media, conservation, and decision support.
 
 [github.com/rommelsharma/Applied-AI-for-Societal-Impact](https://github.com/rommelsharma/Applied-AI-for-Societal-Impact)
+
+---
+
+## Note on IP & Further Development
+
+This is a fully functional, production-grade solution — released publicly for educational
+purposes so that creators and practitioners can study, run, and learn from a complete
+end-to-end voice AI system built on Kokoro-82M and XTTS v2.
+
+All further development beyond what is presented here is maintained in a **private branch
+for intellectual property protection** and is not publicly available.
+
+I welcome a professional conversation if you want to discuss the solution further.
+Please reach out via [LinkedIn](https://www.linkedin.com/in/rommelsharma/).
