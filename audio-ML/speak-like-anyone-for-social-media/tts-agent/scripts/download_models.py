@@ -50,8 +50,9 @@ def _configure_hf_token() -> None:
 def download_kokoro() -> None:
     _configure_hf_token()
     from backend.engines.kokoro_engine import _configure_espeak, _KOKORO_REPO_ID
+    from backend.utils.device import DEVICE   # respects CUDA kernel-check + CPU fallback
     _configure_espeak()
-    logger.info("Pre-downloading Kokoro-82M weights…")
+    logger.info("Pre-downloading Kokoro-82M weights… (device=%s)", DEVICE)
     try:
         from kokoro import KPipeline
         # Core lang_codes always downloaded:
@@ -59,12 +60,12 @@ def download_kokoro() -> None:
         #   e=Spanish  f=French  i=Italian  p=Portuguese
         for lang_code in ("a", "b", "h", "e", "f", "i", "p"):
             logger.info("  Loading lang_code='%s'", lang_code)
-            KPipeline(lang_code=lang_code, repo_id=_KOKORO_REPO_ID)
+            KPipeline(lang_code=lang_code, repo_id=_KOKORO_REPO_ID, device=DEVICE)
         # CJK lang_codes require optional misaki extras
         for lang_code, pkg in (("j", "misaki[ja]"), ("z", "misaki[zh]")):
             try:
                 logger.info("  Loading lang_code='%s'", lang_code)
-                KPipeline(lang_code=lang_code, repo_id=_KOKORO_REPO_ID)
+                KPipeline(lang_code=lang_code, repo_id=_KOKORO_REPO_ID, device=DEVICE)
             except Exception as e:
                 logger.warning(
                     "  lang_code='%s' skipped — install %s to enable: %s",
