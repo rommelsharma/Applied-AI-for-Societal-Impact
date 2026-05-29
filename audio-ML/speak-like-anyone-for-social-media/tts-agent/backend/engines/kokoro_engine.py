@@ -248,11 +248,13 @@ class KokoroEngine(TTSEngine):
 
     def _get_pipeline(self, lang_code: str):
         if lang_code not in self._pipelines:
-            logger.info("Loading Kokoro pipeline for lang_code='%s'", lang_code)
+            from backend.utils.device import DEVICE  # respects CUDA kernel-check + CPU fallback
+            logger.info("Loading Kokoro pipeline for lang_code='%s' on device='%s'", lang_code, DEVICE)
             try:
                 self._pipelines[lang_code] = self._KPipeline(
                     lang_code=lang_code,
                     repo_id=_KOKORO_REPO_ID,
+                    device=DEVICE,
                 )
             except (ImportError, ModuleNotFoundError) as exc:
                 extra = self._LANG_EXTRAS.get(lang_code, "misaki[<lang>]")
