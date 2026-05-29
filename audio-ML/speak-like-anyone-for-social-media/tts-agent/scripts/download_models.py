@@ -87,8 +87,24 @@ def download_xtts() -> None:
     _configure_hf_token()
     logger.info("Pre-downloading XTTS v2 weights (~1.8 GB)…")
     try:
+        import torch
         from TTS.api import TTS
         from backend.utils.device import DEVICE
+
+        # PyTorch 2.6+ changed torch.load default to weights_only=True, which
+        # blocks Coqui TTS checkpoint classes. Register them as trusted globals
+        # before instantiating TTS so the download + verification load succeeds.
+        try:
+            from TTS.tts.configs.xtts_config import XttsConfig
+            from TTS.tts.models.xtts import XttsAudioConfig, XttsArgs
+            from TTS.config.shared_configs import BaseDatasetConfig, BaseAudioConfig
+            torch.serialization.add_safe_globals([
+                XttsConfig, XttsAudioConfig, XttsArgs,
+                BaseDatasetConfig, BaseAudioConfig,
+            ])
+        except Exception:
+            pass  # older PyTorch — add_safe_globals not needed
+
         logger.info("  Downloading to Coqui TTS cache (device=%s)…", DEVICE)
         # Instantiating TTS triggers the download; no synthesis needed
         tts = TTS(settings.XTTS_MODEL_NAME)
