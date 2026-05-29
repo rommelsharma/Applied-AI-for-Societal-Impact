@@ -155,14 +155,24 @@ pip install --quiet -r requirements.txt
 # Kokoro CJK language support — optional extras that require a C++ compiler.
 # misaki[ja] → pyopenjtalk (Japanese phonemisation)
 # misaki[zh] → jieba + pypinyin (Chinese/Mandarin phonemisation)
-# Both are skipped gracefully if the build fails (e.g. cmake not found).
+#
+# pyopenjtalk compiles a C++ extension at install time and needs:
+#   Linux/WSL2: python3.11-dev  cmake  build-essential
+#   macOS:      cmake  (Xcode Command Line Tools provide the C++ compiler)
+# Install these system packages now on Linux before attempting pip install.
+if [ "$PLATFORM" = "linux" ] && command -v apt-get &>/dev/null; then
+  echo "Installing C++ build prerequisites for pyopenjtalk (misaki[ja])…"
+  sudo apt-get install -y --no-install-recommends python3.11-dev cmake build-essential 2>/dev/null || \
+    echo "  WARNING: apt-get install of build prerequisites failed — misaki[ja] may not build."
+fi
+
 echo "Installing Kokoro Japanese support (misaki[ja])…"
 if pip install --quiet 'misaki[ja]' 2>/dev/null; then
   echo "  misaki[ja] installed."
 else
   echo "  WARNING: misaki[ja] install failed — Japanese Kokoro voices will be unavailable."
   echo "           macOS fix:  brew install cmake && pip install 'misaki[ja]'"
-  echo "           Linux fix:  sudo apt-get install -y cmake build-essential && pip install 'misaki[ja]'"
+  echo "           Linux fix:  sudo apt-get install -y python3.11-dev cmake build-essential && pip install 'misaki[ja]'"
 fi
 
 echo "Installing Kokoro Chinese support (misaki[zh])…"
