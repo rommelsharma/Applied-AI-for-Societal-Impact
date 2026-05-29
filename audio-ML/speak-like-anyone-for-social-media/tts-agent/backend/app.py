@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 from backend.api.routes import router
 from backend.utils.logger import get_logger
@@ -33,6 +33,12 @@ app.include_router(router)
 app.mount("/static", StaticFiles(directory=str(_FRONTEND / "static")), name="static")
 
 templates = Jinja2Templates(directory=str(_FRONTEND / "templates"))
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    ico = _FRONTEND / "static" / "favicon.ico"
+    return FileResponse(str(ico), media_type="image/x-icon")
 
 
 @app.get("/", response_class=HTMLResponse)
