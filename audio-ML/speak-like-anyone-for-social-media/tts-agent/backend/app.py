@@ -35,10 +35,10 @@ app.mount("/static", StaticFiles(directory=str(_FRONTEND / "static")), name="sta
 templates = Jinja2Templates(directory=str(_FRONTEND / "templates"))
 
 
-@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.png", include_in_schema=False)
 def favicon():
-    ico = _FRONTEND / "static" / "favicon.ico"
-    return FileResponse(str(ico), media_type="image/x-icon")
+    png = _FRONTEND / "static" / "favicon.png"
+    return FileResponse(str(png), media_type="image/png")
 
 
 @app.get("/", response_class=HTMLResponse)
