@@ -1,5 +1,14 @@
 # Design, layout, and operations
 
+> **📦 Project status — moved to a private repository.** This is the **public
+> v4.3 predecessor** of DecisionLens. Active development has **moved to a private
+> repository (a private fork)** for **IP reasons**; the approach has since evolved
+> to the **latest industry best practices in the fast-evolving world of RAG design
+> patterns**. This document is a reference snapshot of the original design. For a
+> professional one-on-one discussion about the current approach, reach out to me,
+> **Rommel Sharma**, on **[LinkedIn](https://www.linkedin.com/in/rommelsharma)**.
+> See [`PROJECT_MOVED.md`](PROJECT_MOVED.md).
+
 Canonical technical reference for **repository layout**, **data paths**, **pipelines**, **runtime behaviour**, **evaluation**, **corpus management**, **UI**, and **deployment**. Narrative deep-dives and historical splits live under [`archived/docs/`](../archived/docs/).
 
 **Binary design artefacts (not overwritten by automation):**

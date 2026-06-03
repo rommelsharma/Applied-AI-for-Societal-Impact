@@ -10,6 +10,24 @@ Built on Anthropic Claude via Amazon Bedrock, with a closed decision-science kno
 
 ---
 
+> ## 📦 Project status — moved to a private repository
+>
+> This repository is the **public v4.3 predecessor** of DecisionLens. Active
+> development has since **moved to a private repository (a private fork)** for
+> **IP reasons**, where the approach has evolved to align with the **latest
+> industry best practices in the fast-evolving world of RAG design patterns**
+> (semantic / structure-aware chunking, parent-document and contextual retrieval,
+> human-in-the-loop curation, and more).
+>
+> This public version remains available as a reference snapshot of the original
+> design. If you'd like a professional one-on-one discussion about the current
+> approach, you're welcome to reach out to me, **Rommel Sharma**, on
+> **[LinkedIn](https://www.linkedin.com/in/rommelsharma)**.
+>
+> *Authored by [Rommel Sharma](https://www.linkedin.com/in/rommelsharma).*
+
+---
+
 ## Why This Exists
 
 Every organisation makes high-stakes decisions under pressure — about hiring, investment allocation, strategy, performance, supplier selection, governance, or deploying AI. Decades of behavioural economics research have established that those decisions are consistently shaped by predictable cognitive patterns (anchoring, availability, narrative lock-in, similarity, groupthink) and by structural dynamics baked into processes, rubrics, and incentive systems.
